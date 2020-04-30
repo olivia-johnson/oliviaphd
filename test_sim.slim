@@ -1,0 +1,48 @@
+initialize() {
+	initializeMutationRate(1e-7);
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	initializeMutationType("m2", 0.8, "f", 0.0);
+	initializeMutationType("m3", 0.7, "f", 0.2);
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElementType("g2", m2, 0.5);
+	initializeGenomicElementType("g3", m3, 0.8);
+	
+	lines = readFile("~/work/PhD/Drosophila/GStest.txt");
+	for (line in lines) {
+		components = strsplit(line, "\t");
+		start = asInteger(components[0]);
+		end = asInteger(components[1]);
+		type = components[2];
+		if (type == 'g1') {
+			initializeGenomicElement(g1, start, end);
+		}
+		if (type == 'g2') {
+			initializeGenomicElement(g2, start, end);
+		}
+		if (type == 'g3') {
+			initializeGenomicElement(g3, start, end);
+		}
+	}
+	
+	rec = readFile("~/work/PhD/Drosophila/RRtest.txt");
+	rates = NULL;
+	ends = NULL;
+	
+	for (x in rec)
+	{
+		rr = strsplit(x, "\t");
+		ends = c(ends, asInteger(rr[0]));
+		rates = c(rates, asFloat(rr[1]));
+	}
+	
+	ends = c(ends[1:(size(ends)-1)] - 2, 10000);
+	rates = rates * 1e-8;
+	initializeRecombinationRate(rates, ends);
+
+
+}
+
+
+
+1 { sim.addSubpop("p1", 1000); }
+10000 { sim.simulationFinished(); }
