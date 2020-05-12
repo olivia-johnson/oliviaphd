@@ -1,0 +1,67 @@
+initialize() {
+	initializeMutationRate(1e-7);
+	initializeMutationType("m1", 0.5, "f", 0.5); // neutral
+	initializeMutationType("m2", 0.5, "g", -0.01, 0.1); // deleterious
+	initializeMutationType("m3", 0.6, "e", 0.2); // beneficial
+	m1.color="gray40";
+	m2.color="red";
+	m3.color = "green";
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElementType("g2", m1, 1.0);
+	initializeGenomicElementType("g3", m1, 1.0);
+	initializeGenomicElementType("g4", m2, 1.0);
+	
+	lines = readFile("~/work/PhD/Drosophila/GStest.txt");
+	for (line in lines) {
+		components = strsplit(line, "\t");
+		start = asInteger(components[0]);
+		end = asInteger(components[1]);
+		type = components[2];
+		if (type == 'intergenic') {
+			initializeGenomicElement(g1, start, end);
+		}
+		if (type == 'exon') {
+			initializeGenomicElement(g2, start, end);
+		}
+		if (type == 'intron') {
+			initializeGenomicElement(g3, start, end);
+		}
+		if (type == 'conserved_nc') {
+			initializeGenomicElement(g4, start, end);
+		}
+	}
+	
+	rec = readFile("~/work/PhD/Drosophila/RRtest.txt");
+	rates = NULL;
+	ends = NULL;
+	
+	for (x in rec)
+	{
+		rr = strsplit(x, "\t");
+		ends = c(ends, asInteger(rr[0]));
+		rates = c(rates, asFloat(rr[1]));
+	}
+	
+	ends = c(ends[1:(size(ends)-1)] - 2, 20000);
+	rates = rates * 1e-8;
+	initializeRecombinationRate(rates, ends);
+
+}
+
+1 { sim.addSubpop("p1", 1000); }
+
+1000 late(){
+s_ind = sample(p1.genomes, 1)
+s_ind.addNewDrawnMutation(m3, 8000)}
+
+fitness(m3, p1){
+gens = sim.generation;
+gen= integerMod(gens, 5);
+if (gen ==  0){
+return relFitness * -1;}
+else{ return relFitness;}
+}
+
+
+
+10000 { sim.simulationFinished(); }
