@@ -18,7 +18,7 @@ initialize() {
 	initializeGenomicElementType("g4", m2, 1.0);
 	
 	// lines = readFile("~/Downloads/GStest.txt");
-	lines = readFile("~/work/PhD/Drosophila/GStest.txt");
+	lines = readFile("~/work/PhD/oliviaphd/GStest.txt");
 	for (line in lines) {
 		components = strsplit(line, "\t");
 		start = asInteger(components[0]);
@@ -39,7 +39,7 @@ initialize() {
 	}
 	
 	// rec = readFile("~/Downloads/RRtest.txt");
-	rec = readFile("~/work/PhD/Drosophila/RRtest.txt");
+	rec = readFile("~/work/PhD/oliviaphd/RRtest.txt");
 	rates = NULL;
 	ends = NULL;
 	
@@ -56,7 +56,7 @@ initialize() {
 
 }
 
-1 { sim.addSubpop("p1", 1000); }
+1 { sim.addSubpop("p1", 1500); }
 
 
 1000 late(){
@@ -77,21 +77,20 @@ initialize() {
 	if (modValue == 0) //summer
 	{
 	
-		sim.mutationsOfType(m4).setSelectionCoeff(
-		(1 - s_freq)/10);
-		sim.mutationsOfType(m5).setSelectionCoeff(-(1 - w_freq)/15);
+		sim.mutationsOfType(m4).setSelectionCoeff(0.5-(mut_s.selectionCoeff*s_freq));
+		sim.mutationsOfType(m5).setSelectionCoeff(-(mut_w.selectionCoeff*w_freq));
 	}
 	if (modValue == 5)  //winter
 	{
-		sim.mutationsOfType(m4).setSelectionCoeff(-(1 - s_freq)/15);
-		sim.mutationsOfType(m5).setSelectionCoeff((1 - w_freq)/10);
+		sim.mutationsOfType(m4).setSelectionCoeff(-(mut_s.selectionCoeff*s_freq));
+		sim.mutationsOfType(m5).setSelectionCoeff(0.5-(mut_w.selectionCoeff*w_freq));
 	}
 	if (mutsum == 0 | mutwin == 0)
 	{
 		fixed_s = (sum(sim.substitutions.mutationType == m4) == 1);
 		fixed_w = (sum(sim.substitutions.mutationType == m5) == 1);
-		cat(ifelse(fixed_s, "SUMMER FIXED\n", ""));
-		cat(ifelse(fixed_w, "WINTER FIXED\n", ""));
+		cat(ifelse(fixed_s, "SUMMER FIXED\n", "SUMMER LOST\n"));
+		cat(ifelse(fixed_w, "WINTER FIXED\n", "WINTER LOST\n"));
 		sim.simulationFinished();
 	}
 }
