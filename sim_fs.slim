@@ -15,10 +15,11 @@ initialize() {
 	initializeGenomicElementType("g1", m1, 1.0);
 	initializeGenomicElementType("g2", m1, 1.0);
 	initializeGenomicElementType("g3", m1, 1.0);
-	initializeGenomicElementType("g4", m2, 1.0);
+	initializeGenomicElementType("g4", m1, 1.0);
 	
-	lines = readFile("~/Downloads/GStest.txt");
-	// lines = readFile("~/work/PhD/oliviaphd/GStest.txt");
+	//lines = readFile("~/Downloads/GStest.txt");
+	//lines = readFile("~/work/PhD/oliviaphd/GStest.txt"); // olivia air
+	lines = readFile("~/work/oliviaphd/GStest.txt"); // olivia pro
 	for (line in lines) {
 		components = strsplit(line, "\t");
 		start = asInteger(components[0]);
@@ -38,8 +39,9 @@ initialize() {
 		}
 	}
 	
-	rec = readFile("~/Downloads/RRtest.txt");
-	// rec = readFile("~/work/PhD/oliviaphd/RRtest.txt");
+	//rec = readFile("~/Downloads/RRtest.txt");
+	// rec = readFile("~/work/PhD/oliviaphd/RRtest.txt"); // olivia air
+	rec = readFile("~/work/oliviaphd/RRtest.txt"); // olivia pro
 	rates = NULL;
 	ends = NULL;
 	
@@ -59,14 +61,14 @@ initialize() {
 1 { sim.addSubpop("p1", 1500); }
 
 
-1000 late(){
+10 late(){
 	s_ind = sample(p1.genomes, 1500);
 	s_ind.addNewDrawnMutation(m4, 8000);
 	w_ind= sample(p1.genomes, 1500);
 	w_ind.addNewDrawnMutation(m5, 15000);
 }
 
-1000:10000 late(){
+10:10000 late(){
 	modValue = integerMod(sim.generation, 10);
 	mut_s = sim.mutationsOfType(m4);
 	mut_w = sim.mutationsOfType(m5);
@@ -79,8 +81,8 @@ initialize() {
 	// Every generation
 	if (modValue >= 0 & modValue < 5) //summer
 	{
-	
-		mut_s.setSelectionCoeff((1-s_freq));
+		
+		mut_s.setSelectionCoeff(1-((s_freq)^2));
 		//mut_w.setSelectionCoeff(-(w_freq));
 		cat("Summer:\n");
 		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");
@@ -88,7 +90,7 @@ initialize() {
 	}
 	if (modValue >= 5)  //winter
 	{
-		mut_s.setSelectionCoeff(-(s_freq));
+		mut_s.setSelectionCoeff(-((s_freq)^2));
 		//mut_w.setSelectionCoeff((1-w_freq));
 		cat("Winter:\n");
 		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");
@@ -107,4 +109,4 @@ initialize() {
 
 
 
-//10000 { sim.simulationFinished(); }
+10000 { sim.simulationFinished(); }
