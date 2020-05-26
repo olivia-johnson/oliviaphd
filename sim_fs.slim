@@ -2,14 +2,12 @@ initialize() {
 	initializeMutationRate(1e-7);
 	initializeMutationType("m1", 0.5, "f", 0.0); // neutral
 	initializeMutationType("m2", 0.5, "g", -0.01, 0.1); // deleterious
-	initializeMutationType("m3", 0.5, "f", 0.9); // beneficial
+	initializeMutationType("m3", 0.5, "f", 0.3); // beneficial
 	
-	initializeMutationType("m4", 0.5, "f", -0.3); // summer
-	initializeMutationType("m5", 0.5, "f", 0.3); // winter
+	initializeMutationType("m4", 0.5, "f", 0.3); // summer
 	
 	m2.color="red";
 	m3.color = "green";
-	
 	m4.color="orange";
 	m5.color = "blue";
 	initializeGenomicElementType("g1", m1, 1.0);
@@ -83,25 +81,19 @@ initialize() {
 	{
 		
 		mut_s.setSelectionCoeff(1-((s_freq)^0.5));
-		//mut_w.setSelectionCoeff(-(w_freq));
 		cat("Summer:\n");
 		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");
-		cat("Sel coef winter mutation " + mut_w.selectionCoeff + "\n");
+		 
 	}
 	if (modValue >= 5)  //winter
 	{
 		mut_s.setSelectionCoeff(-((s_freq)^2));
-		//mut_w.setSelectionCoeff((1-w_freq));
 		cat("Winter:\n");
-		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");
-		cat("Sel coef winter mutation " + mut_w.selectionCoeff + "\n");
-	}
+		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");	}
 	if (mutsum == 0 & mutwin == 0)
 	{
 		fixed_s = (sum(sim.substitutions.mutationType == m4) == 1);
-		fixed_w = (sum(sim.substitutions.mutationType == m5) == 1);
 		cat(ifelse(fixed_s, "SUMMER FIXED\n", "SUMMER LOST\n"));
-		cat(ifelse(fixed_w, "WINTER FIXED\n", "WINTER LOST\n"));
 		sim.simulationFinished();
 	}
 }
