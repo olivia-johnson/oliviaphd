@@ -61,7 +61,7 @@ initialize() {
 
 10 late(){
 	s_ind = sample(p1.genomes, 1500);
-	s_ind.addNewDrawnMutation(m4, 8000);
+	s_ind.addNewDrawnMutation(m4, 10000);
 }
 
 10:10000 late(){
@@ -74,7 +74,6 @@ initialize() {
 	// Every generation
 	if (modValue >= 0 & modValue < 5) //summer
 	{
-		
 		mut_s.setSelectionCoeff(1-((s_freq)^0.5));
 		cat("Summer:\n");
 		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");
@@ -95,6 +94,7 @@ initialize() {
 
 
 
-9999 late(){p1.outputMSSample(1000,replace = F, filePath = "~/work/PhD/Drosophila/slim_fs_output.txt");}
+9999 late(){//p1.genomes.outputMS(filePath = NULL);
+p1.genomes.outputMS(filePath = "~/work/PhD/Drosophila/slim_fs_output.txt");}
 
 10000 { sim.simulationFinished(); }
