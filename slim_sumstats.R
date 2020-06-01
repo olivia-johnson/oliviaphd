@@ -1,9 +1,9 @@
 library(popgen.tools)
-setwd("~/work/PhD/Drosophila/")
+#setwd("~/work/PhD/Drosophila/")
 
 ## read in SLiM output (MS)
 raw <- scan(
-  file = "~/work/PhD/Drosophila/slim_fs_output.txt",
+  file = "data/slim_fs_output.txt",
   what = character(0),
   sep = "\n",
   quiet = TRUE
@@ -13,16 +13,21 @@ raw <- scan(
 genotypeM = t(sapply(raw[4:length(raw)], function(x) as.numeric(strsplit(x, split = "")[[1]]), USE.NAMES = F))
 
 #extract positions of seg sites
-pos = unlist(strsplit(raw[3], split=" "))
-p = list(pos[2:length(pos)])
-p
+#pos = unlist(strsplit(raw[3], split=" "))
+#p = list(pos[2:length(pos)])
+
+# pos needs to be a vector not a list.
+pos = as.numeric(strsplit(substr(raw[3], 
+                                     12, 
+                                     nchar(raw[3]) - 1), 
+                              split =" ")[[1]])
 
 
 # calculate sum_stats using popgen.tools
 obs <- sim_obj(cmd = NA,
                seeds = NA,
                segsites = ncol(genotypeM),
-               positions = p,
+               positions = pos,
                genome_matrix = genotypeM,
                sweep ="partial",
                select_coeff = 0.3 )
