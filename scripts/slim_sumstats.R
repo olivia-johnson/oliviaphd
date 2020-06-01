@@ -1,5 +1,5 @@
 library(popgen.tools)
-#setwd("~/work/PhD/Drosophila/")
+#setwd("~/oliviaphd")
 
 ## read in SLiM output (MS)
 raw <- scan(

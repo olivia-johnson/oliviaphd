@@ -14,10 +14,8 @@ initialize() {
 	initializeGenomicElementType("g2", m1, 1.0);
 	initializeGenomicElementType("g3", m1, 1.0);
 	initializeGenomicElementType("g4", m1, 1.0);
-	
-	//lines = readFile("~/Downloads/GStest.txt");
-	//lines = readFile("~/work/PhD/oliviaphd/GStest.txt"); // olivia air
-	lines = readFile("~/work/oliviaphd/GStest.txt"); // olivia pro
+
+	lines = readFile("~/oliviaphd/data/GStest.txt"); // olivia pro
 	for (line in lines) {
 		components = strsplit(line, "\t");
 		start = asInteger(components[0]);
@@ -37,9 +35,8 @@ initialize() {
 		}
 	}
 	
-	//rec = readFile("~/Downloads/RRtest.txt");
-	// rec = readFile("~/work/PhD/oliviaphd/RRtest.txt"); // olivia air
-	rec = readFile("~/work/oliviaphd/RRtest.txt"); // olivia pro
+	
+	rec = readFile("~/oliviaphd/data/RRtest.txt");
 	rates = NULL;
 	ends = NULL;
 	
@@ -94,7 +91,6 @@ initialize() {
 
 
 
-9999 late(){//p1.genomes.outputMS(filePath = NULL);
-p1.genomes.outputMS(filePath = "~/work/PhD/Drosophila/slim_fs_output.txt");}
+9999 late(){p1.genomes.outputMS(oliviaphd/data/slim_fs_output.txt");}
 
 10000 { sim.simulationFinished(); }
