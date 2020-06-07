@@ -1,47 +1,38 @@
 initialize() {
-	initializeMutationRate(1e-7);
-	initializeMutationType("m1", 0.5, "f", 0.0); // neutral
-	initializeMutationType("m2", 0.5, "g", -0.01, 0.1); // deleterious
-	initializeMutationType("m3", 0.5, "f", 0.3); // beneficial
-	initializeMutationType("m4", 0.5, "f", 0.3); // summer
-	
-	m2.color="red";
-	m3.color = "green";
-	m4.color="orange";
-	
-	initializeGenomicElementType("g1", c(m1, m2, m4), c(0.9, 0.09, 0.01);
-	initializeGenomicElement(g1, 0, 100000);
-	initializeRecombinationRate(1e-7);
-	
-	}
-
+	defineConstant("L", 1e6);
+	initializeSLiMOptions(nucleotideBased=T); 		initializeAncestralNucleotides(randomNucleotides(100000));
+	initializeMutationTypeNuc("m1", 0.5, "f", 0.0);
+	initializeGenomicElementType("g1", m1, 1.0, mmJukesCantor(1e-7)); initializeGenomicElement(g1, 0, 99999);
+	initializeRecombinationRate(1e-8);
+}
 1 { sim.addSubpop("p1", 2000); }
 
+//
+//1:10000 late(){
+//	modValue = integerMod(sim.generation, 10);	
+//	
+// Every generation
+//	if (modValue >= 0 & modValue < 5) //summer
+//	{
+//	fitness(NULL)  gen1s = genome1.MutationsOfType(m4);
+//	gen2s = genome2.MutationsOfType(m4);
+//	
+//	return
+//		;
+//		 
 
-1:10000 late(){
-	modValue = integerMod(sim.generation, 10);	
-	
-	// Every generation
-	if (modValue >= 0 & modValue < 5) //summer
-	{
-	fitness(NULL){  gen1s = genome1.MutationsOfType(m4);
-	gen2s = genome2.MutationsOfType(m4);
-	
-	return
-		;
-		 
-	}
-	if (modValue >= 5)  //winter
-	{
-	fitness(NULL){  gen1s = genome1.MutationsOfType(m4);
-	gen2s = genome2.MutationsOfType(m4);
-			}
-	
-}
+//	if (modValue >= 5)  //winter
+//	{
+//	fitness(NULL){  gen1s = genome1.MutationsOfType(m4);
+//	gen2s = genome2.MutationsOfType(m4);
+//			}
+//	
+//}
 
 
 
 9999 late(){p1.genomes.outputMS(filePath = NULL);
-//p1.genomes.outputMS(filePath = "~/oliviaphd/data/seglift_output.txt")}
+	//p1.genomes.outputMS(filePath = "~/oliviaphd/data/seglift_output.txt")
+}
 
 10000 { sim.simulationFinished(); }
