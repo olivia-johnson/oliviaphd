@@ -1,30 +1,46 @@
 initialize() {
-	defineConstant("L", 1e6);
-	initializeSLiMOptions(nucleotideBased=T); 		initializeAncestralNucleotides(randomNucleotides(L));
+	defineConstant("L", 1e4);
+	initializeSLiMOptions(nucleotideBased=T);
+	
+	//seq = rbinom(L, 3, 0.5);
+	seq = randomNucleotides(L);
+	initializeAncestralNucleotides(seq);
+	
 	initializeMutationTypeNuc("m1", 0.5, "f", 0.0);
-	initializeGenomicElementType("g1", m1, 1.0, mmJukesCantor(1e-7)); initializeGenomicElement(g1, 0, L-1);
+	initializeGenomicElementType("g1", m1, 1.0, mmJukesCantor(1e-7));
+	initializeGenomicElement(g1, 0, L-1);
 	initializeRecombinationRate(1e-8);
 }
 1 { sim.addSubpop("p1", 2000); }
 
-s1 fitness(NULL) { //summer
-	nuc1 = genome1.nucleotides();
-	nuc2 = genome2.nucleotides();
+1 fitness(NULL) { //summer
+	gnm1 = genome1.nucleotides();
+	gnm2 = genome2.nucleotides();
+	shared = sum(match(gnm1, gnm2) >=0); //homozygosity
+	nhet = gnm1.size() + gnm2.size() - 2* shared;  // heterozygosity
+	return 1; //ns + (0.5 * nhet);
 }
-s2 fitness(NULL) { //winter
-	nuc1 = genome1.nucleotides();
-	nuc2 = genome2.nucleotides();
-}
+//s2 fitness(NULL) { //winter
+//	gnm1 = genome1.nucleotides();
+//	gnm2 = genome2.nucleotides();
+//	nw = sum(match(gnm1, gnm2));
+//	
+//	return 1; // nw + (0.5 * nhet);;
+//}
+
+
 
 1:10000 late(){
 	modValue = integerMod(sim.generation, 10);
 	
 	if (modValue >= 0 & modValue < 5) { //summer
-		s1;
+		cat("Summer");
+		//s1;
 	}
 	if (modValue >= 5) { //winter
-		s2
-			;	}
+		cat("Winter");
+		//s2
+		;	}
 
 }
 
