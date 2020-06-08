@@ -1,5 +1,5 @@
 initialize() {
-	defineConstant("L", 1e4);
+	defineConstant("L", 1e5);
 	initializeSLiMOptions(nucleotideBased=T);
 	
 	//seq = rbinom(L, 3, 0.5);
@@ -13,12 +13,14 @@ initialize() {
 }
 1 { sim.addSubpop("p1", 2000); }
 
-1 fitness(NULL) { //summer
-	gnm1 = genome1.nucleotides();
-	gnm2 = genome2.nucleotides();
-	shared = sum(match(gnm1, gnm2) >=0); //homozygosity
-	nhet = gnm1.size() + gnm2.size() - 2* shared;  // heterozygosity
-	return 1; //ns + (0.5 * nhet);
+s1 fitness(NULL) { //summer
+	gnm1 = genome1.nucleotides(format = "integer");
+	gnm2 = genome2.nucleotides(format = "integer");
+	shared = sum(match(gnm1, gnm2)>=0); //homozygosity
+	nhet = size(gnm1) + size(gnm2) - 2 * shared;  // heterozygosity
+	// use nucleotideValue. ns = gnm1.nucleotideCounts()
+	
+	return 1.0;  //ns + 0.5*nhet
 }
 //s2 fitness(NULL) { //winter
 //	gnm1 = genome1.nucleotides();
@@ -34,11 +36,11 @@ initialize() {
 	modValue = integerMod(sim.generation, 10);
 	
 	if (modValue >= 0 & modValue < 5) { //summer
-		cat("Summer");
-		//s1;
+		cat("Summer\n");
+		s1;
 	}
 	if (modValue >= 5) { //winter
-		cat("Winter");
+		cat("Winter\n");
 		//s2
 		;	}
 
