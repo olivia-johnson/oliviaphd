@@ -7,27 +7,26 @@ initialize() {
 }
 1 { sim.addSubpop("p1", 2000); }
 
-//
-//1:10000 late(){
-//	modValue = integerMod(sim.generation, 10);	
-//	
-// Every generation
-//	if (modValue >= 0 & modValue < 5) //summer
-//	{
-//	fitness(NULL)  gen1s = genome1.MutationsOfType(m4);
-//	gen2s = genome2.MutationsOfType(m4);
-//	
-//	return
-//		;
-//		 
+s1 fitness(NULL) { //summer
+	nuc1 = genome1.nucleotides();
+	nuc2 = genome2.nucleotides();
+}
+s2 fitness(NULL) { //winter
+	nuc1 = genome1.nucleotides();
+	nuc2 = genome2.nucleotides();
+}
 
-//	if (modValue >= 5)  //winter
-//	{
-//	fitness(NULL){  gen1s = genome1.MutationsOfType(m4);
-//	gen2s = genome2.MutationsOfType(m4);
-//			}
-//	
-//}
+1:10000 late(){
+	modValue = integerMod(sim.generation, 10);
+	
+	if (modValue >= 0 & modValue < 5) { //summer
+		s1;
+	}
+	if (modValue >= 5) { //winter
+		s2
+			;	}
+
+}
 
 
 
