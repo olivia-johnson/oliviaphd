@@ -1,25 +1,20 @@
 library(popgen.tools)
-#setwd("~/oliviaphd")
+setwd("~/oliviaphd")
 
-## read in SLiM output (MS)
-raw <- scan(
-  file = "data/slim_fs_output.txt",
-  what = character(0),
-  sep = "\n",
-  quiet = TRUE
-)
+# run sim
+cmd = "slim ~/oliviaphd/scripts/sim_fs.slim"
+slim_out <- system(cmd, intern = TRUE)
+
 
 ## Sep genotypes 
-genotypeM = t(sapply(raw[4:length(raw)], function(x) as.numeric(strsplit(x, split = "")[[1]]), USE.NAMES = F))
+out_pos = grep("positions", slim_out)
+genotypeM = t(sapply(slim_out[(out_pos+1):length(slim_out)], function(x) as.numeric(strsplit(x, split = "")[[1]]), USE.NAMES = F))
 
 #extract positions of seg sites
-#pos = unlist(strsplit(raw[3], split=" "))
-#p = list(pos[2:length(pos)])
 
-# pos needs to be a vector not a list.
-pos = as.numeric(strsplit(substr(raw[3], 
+pos = as.numeric(strsplit(substr(slim_out[out_pos], 
                                      12, 
-                                     nchar(raw[3]) - 1), 
+                                     nchar(slim_out[out_pos]) - 1), 
                               split =" ")[[1]])
 
 
