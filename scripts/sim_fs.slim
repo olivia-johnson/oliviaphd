@@ -61,7 +61,7 @@ initialize() {
 	s_ind.addNewDrawnMutation(m4, 10000);
 }
 
-10:10000 late(){
+10:5000 late(){
 	modValue = integerMod(sim.generation, 10);
 	mut_s = sim.mutationsOfType(m4);
 	s_freq = sim.mutationFrequencies(NULL, mut_s);
@@ -72,25 +72,27 @@ initialize() {
 	if (modValue >= 0 & modValue < 5) //summer
 	{
 		mut_s.setSelectionCoeff(1-((s_freq)^0.5));
-		cat("Summer:\n");
-		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");
+//		cat("Summer:\n");
+//		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");
 		 
 	}
 	if (modValue >= 5)  //winter
 	{
 		mut_s.setSelectionCoeff(-((s_freq)^2));
-		cat("Winter:\n");
-		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");	}
+//		cat("Winter:\n");
+//		cat("Sel coef summer mutation " + mut_s.selectionCoeff + "\n");	
+}
 	if (mutsum == 0)
 	{
 		fixed_s = (sum(sim.substitutions.mutationType == m4) == 1);
-		cat(ifelse(fixed_s, "SUMMER FIXED\n", "SUMMER LOST\n"));
+//		cat(ifelse(fixed_s, "SUMMER FIXED\n", "SUMMER LOST\n"));
 		sim.simulationFinished();
 	}
 }
 
 
 
-9999 late(){p1.genomes.outputMS(oliviaphd/data/slim_fs_output.txt");}
+5000 late(){p1.genomes.outputMS();
+}
 
-10000 { sim.simulationFinished(); }
+5001 { sim.simulationFinished(); }
