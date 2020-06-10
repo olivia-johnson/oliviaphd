@@ -1,27 +1,43 @@
+
 initialize() {
-	defineConstant("L", 1e5);
-	initializeSLiMOptions(nucleotideBased=T);
-	
-	//seq = rbinom(L, 3, 0.5);
-	seq = randomNucleotides(L);
-	initializeAncestralNucleotides(seq);
-	
-	initializeMutationTypeNuc("m1", 0.5, "f", 0.0);
-	initializeGenomicElementType("g1", m1, 1.0, mmJukesCantor(1e-7));
+	defineConstant("L", 1000);
+	initializeMutationRate(1e-6);
+	initializeMutationType("m1", 0.5, "f", 0.0); // neutral
+	initializeMutationType("m2", 0.5, "f", 0.3); // summer
+	initializeGenomicElementType("g1", m1, 1.0);
 	initializeGenomicElement(g1, 0, L-1);
 	initializeRecombinationRate(1e-8);
 }
-1 { sim.addSubpop("p1", 2000); }
 
-s1 fitness(NULL) { //summer
-	gnm1 = genome1.nucleotides(format = "integer");
-	gnm2 = genome2.nucleotides(format = "integer");
-	shared = sum(match(gnm1, gnm2)>=0); //homozygosity
-	nhet = size(gnm1) + size(gnm2) - 2 * shared;  // heterozygosity
-	// use nucleotideValue. ns = gnm1.nucleotideCounts()
-	
-	return 1.0;  //ns + 0.5*nhet
+
+1 { sim.addSubpop("p1", 100);}
+
+
+1 late() {
+	for (ind in 0:(p1.individualCount-1)) {
+		gn1 = p1.individuals[ind].genome1;
+		gn2 = p1.individuals[ind].genome2;
+		for (pos in 0:(L-1)){
+			all_count= rbinom(1, 2, 0.5);
+			if (all_count == 2) {
+				gn1.addNewDrawnMutation(m2, pos);
+				gn2.addNewDrawnMutation(m2, pos);}
+			if (all_count == 1) {
+				gn1.addNewDrawnMutation(m2, pos); // is this introducing bias?
+			}
+		}
+	}
 }
+
+//s1 fitness(NULL) { //summer
+//	gnm1 = genome1.nucleotides(format = "integer");
+//	gnm2 = genome2.nucleotides(format = "integer");
+//	shared = sum(match(gnm1, gnm2)>=0); //homozygosity
+//	nhet = size(gnm1) + size(gnm2) - 2 * shared;  // heterozygosity
+//	// use nucleotideValue. ns = gnm1.nucleotideCounts()
+//	
+//	return 1.0;  //ns + 0.5*nhet
+//}
 //s2 fitness(NULL) { //winter
 //	gnm1 = genome1.nucleotides();
 //	gnm2 = genome2.nucleotides();
@@ -37,7 +53,7 @@ s1 fitness(NULL) { //summer
 	
 	if (modValue >= 0 & modValue < 5) { //summer
 		cat("Summer\n");
-		s1;
+		//s1;
 	}
 	if (modValue >= 5) { //winter
 		cat("Winter\n");
@@ -47,9 +63,5 @@ s1 fitness(NULL) { //summer
 }
 
 
-
-9999 late(){p1.genomes.outputMS(filePath = NULL);
-	//p1.genomes.outputMS(filePath = "~/oliviaphd/data/seglift_output.txt")
-}
-
-10000 { sim.simulationFinished(); }
+10000 { p1.genomes.outputMS(filePath = NULL);
+	sim.simulationFinished(); }
