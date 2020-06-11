@@ -14,7 +14,7 @@ initialize() {
 1 { sim.addSubpop("p1", 100);}
 
 
-1 late() {
+2 late() {
 	for (ind in 0:(p1.individualCount-1)) {
 		gn1 = p1.individuals[ind].genome1;
 		gn2 = p1.individuals[ind].genome2;
@@ -39,6 +39,7 @@ s1 fitness(NULL) { //summer
 	
 	return (1 + zs)^y;  
 }
+
 //s2 fitness(NULL) { //winter
 //	gnm1 = genome1.nucleotides();
 //	gnm2 = genome2.nucleotides();
