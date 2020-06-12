@@ -1,8 +1,8 @@
 
 initialize() {
-	defineConstant("L", 1000); // segment length
+	defineConstant("L", 5000); // segment length
 	defineConstant("y", 0.5); // exponent of fitness function
-	defineConstant("P", 200); // population size
+	defineConstant("P", 400); // population size
 	initializeMutationRate(1e-6);
 	initializeMutationType("m1", 0.5, "f", 0.0); // neutral
 	initializeMutationType("m2", 0.5, "f", 0.001); // summer
