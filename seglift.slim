@@ -5,7 +5,7 @@ initialize() {
 	defineConstant("P", 200); // population size
 	initializeMutationRate(1e-6);
 	initializeMutationType("m1", 0.5, "f", 0.0); // neutral
-	initializeMutationType("m2", 0.5, "f", 0.3); // summer
+	initializeMutationType("m2", 0.5, "f", 0.001); // summer
 	initializeGenomicElementType("g1", m1, 1.0);
 	initializeGenomicElement(g1, 0, L-1);
 	initializeRecombinationRate(1e-8);
@@ -29,17 +29,20 @@ s1 fitness(NULL) { //summer
 	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
 	zs = ns + (0.5 * nhet);
 	
-	//return (1 + zs)^y;
-	return 1.0;
+	return (1 + zs)^y;
+	//return 1.0;
 }
 
-//s2 fitness(NULL) { //winter
-//	gnm1 = genome1.nucleotides();
-//	gnm2 = genome2.nucleotides();
-//	nw = sum(match(gnm1, gnm2));
-//	
-//	return 1; // nw + (0.5 * nhet);;
-//}
+s2 fitness(NULL) { //winter
+	gnm1 = genome1.mutationsOfType(m2);
+	gnm2 = genome2.mutationsOfType(m2);
+	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
+	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
+	nw = L-(ns+nhet);
+	zw = nw + (0.5 * nhet);
+	
+	return (1 + zw)^y;
+}
 
 
 
