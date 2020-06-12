@@ -2,6 +2,7 @@
 initialize() {
 	defineConstant("L", 1000);
 	defineConstant("y", 0.5 ); // exponent of fitness function
+	defineConstant("P", 200);
 	initializeMutationRate(1e-6);
 	initializeMutationType("m1", 0.5, "f", 0.0); // neutral
 	initializeMutationType("m2", 0.5, "f", 0.3); // summer
@@ -11,22 +12,13 @@ initialize() {
 }
 
 
-1 { sim.addSubpop("p1", 100);}
+1 { sim.addSubpop("p1", P);}
 
 
 2 late() {
-	for (ind in 0:(p1.individualCount-1)) {
-		gn1 = p1.individuals[ind].genome1;
-		gn2 = p1.individuals[ind].genome2;
-		for (pos in 0:(L-1)){
-			all_count= rbinom(1, 2, 0.5);
-			if (all_count == 2) {
-				gn1.addNewDrawnMutation(m2, pos);
-				gn2.addNewDrawnMutation(m2, pos);}
-			if (all_count == 1) {
-				gn1.addNewDrawnMutation(m2, pos); // is this introducing bias?
-			}
-		}
+	target = sample(p1.genomes, asInteger(P));
+	for (pos in 0:(L-1)){
+		target.addNewDrawnMutation(m2, pos);
 	}
 }
 
@@ -37,7 +29,8 @@ s1 fitness(NULL) { //summer
 	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
 	zs = ns + (0.5 * nhet);
 	
-	return (1 + zs)^y;  
+	//return (1 + zs)^y;
+	return 1.0;
 }
 
 //s2 fitness(NULL) { //winter
@@ -55,7 +48,7 @@ s1 fitness(NULL) { //summer
 	
 	if (modValue >= 0 & modValue < 5) { //summer
 		cat("Summer\n");
-		//s1;
+		s1;
 	}
 	if (modValue >= 5) { //winter
 		cat("Winter\n");
