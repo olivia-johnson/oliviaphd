@@ -16,8 +16,9 @@ initialize() {
 
 
 2 late() {
-	target = sample(p1.genomes, asInteger(P));
+	
 	for (pos in 0:(L-1)){
+	target = sample(p1.genomes, asInteger(P));
 		target.addNewDrawnMutation(m2, pos);
 	}
 }
