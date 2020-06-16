@@ -4,6 +4,7 @@ initialize() {
 	defineConstant("y", 0.5); // exponent of fitness function
 	defineConstant("pop", 400); // population size
 	defineConstant("d", 0.5); // dominance
+	defineConstant("g", 5); // generations per season
 	initializeMutationRate(1e-6);
 	initializeMutationType("m1", 0.5, "f", 0.0); // neutral
 	initializeMutationType("m2", 0.5, "f", 0.001); // summer
@@ -48,13 +49,13 @@ s2 fitness(NULL) { //winter
 
 
 1:10000 late(){
-	modValue = integerMod(sim.generation, 10);
+	modValue = integerMod(sim.generation, (g*2));
 	
-	if (modValue >= 0 & modValue < 5) { //summer
+	if (modValue >= 0 & modValue < g) { //summer
 		cat("Summer\n");
 		s1;
 	}
-	if (modValue >= 5) { //winter
+	if (modValue >= g) { //winter
 		cat("Winter\n");
 		s2
 		;	}
