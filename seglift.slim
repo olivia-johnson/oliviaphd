@@ -1,8 +1,9 @@
 
 initialize() {
-	defineConstant("L", 5000); // segment length
+	defineConstant("L", 1000); // segment length
 	defineConstant("y", 0.5); // exponent of fitness function
-	defineConstant("P", 400); // population size
+	defineConstant("pop", 400); // population size
+	defineConstant("d", 0.5); // dominance
 	initializeMutationRate(1e-6);
 	initializeMutationType("m1", 0.5, "f", 0.0); // neutral
 	initializeMutationType("m2", 0.5, "f", 0.001); // summer
@@ -12,13 +13,13 @@ initialize() {
 }
 
 
-1 { sim.addSubpop("p1", P);}
+1 { sim.addSubpop("p1", pop);}
 
 
-2 late() {
+1 late() {
 	
 	for (pos in 0:(L-1)){
-	target = sample(p1.genomes, asInteger(P));
+	target = sample(p1.genomes, asInteger(pop));
 		target.addNewDrawnMutation(m2, pos);
 	}
 }
@@ -28,7 +29,7 @@ s1 fitness(NULL) { //summer
 	gnm2 = genome2.mutationsOfType(m2);
 	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
 	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
-	zs = ns + (0.5 * nhet);
+	zs = ns + (d * nhet);
 	
 	return (1 + zs)^y;
 }
@@ -39,7 +40,7 @@ s2 fitness(NULL) { //winter
 	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
 	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
 	nw = L-(ns+nhet);
-	zw = nw + (0.5 * nhet);
+	zw = nw + (d * nhet);
 	
 	return (1 + zw)^y;
 }
