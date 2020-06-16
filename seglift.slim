@@ -48,7 +48,10 @@ s2 fitness(NULL) { //winter
 
 
 
-1:10000 late(){
+2:10000 late(){
+	if (sim.countOfMutationsOfType(m2) == 0) {
+	sim.simulationFinished(); 
+	}
 	modValue = integerMod(sim.generation, (g*2));
 	
 	if (modValue >= 0 & modValue < g) { //summer
@@ -63,5 +66,6 @@ s2 fitness(NULL) { //winter
 }
 
 
-10000 { p1.genomes.outputMS(filePath = NULL);
-	sim.simulationFinished(); }
+100 { p1.genomes.outputMS(filePath = NULL);}
+
+
