@@ -1,22 +1,29 @@
 
 initialize() {
-	if (exists("slimgui")){
-		defineConstant("GenomeSize", 1000); // genome size
-		
-		defineConstant("L", 100); // no. selected seasonal loci
-		
-		defineConstant("y", 1); // exponent of fitness function
-		
-		defineConstant("N", 400); // population size
-		
-		defineConstant("d", 0.6);  // dominance 
-	}
+	if (!exists("GenomeSize"))
+	{defineConstant("GenomeSize", 1000); } // genome size
 	
-	defineConstant("g", 5);  // generations per season     
+	if (!exists("L"))
+	{defineConstant("L", 100); }// no. selected seasonal loci
 	
-	defineConstant("mut", 1e-6);// mutation rate
+	if (!exists("y"))
+	{defineConstant("y", 1); }// exponent of fitness function
 	
-	defineConstant("rr", 0.5); // recombination rate
+	if (!exists("N"))
+	{defineConstant("N", 400); }// population size
+	
+	if (!exists("d"))
+	{defineConstant("d", 0.6); } // dominance
+	
+	if (!exists("g"))
+	{defineConstant("g", 5); } // generations per season     
+	
+	if (!exists("mut"))
+	{defineConstant("mut", 1e-6);} // mutation rate
+	
+	if (!exists("rr"))
+	{defineConstant("rr", 0.5);} // recombination rate
+	
 	
 	initializeMutationRate(mut);
 	initializeRecombinationRate(rr);
