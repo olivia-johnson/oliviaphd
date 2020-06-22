@@ -2,7 +2,7 @@ library(popgen.tools)
 setwd("~/oliviaphd")
 
 # run sim
-cmd = "slim ~/oliviaphd/scripts/sim_fs.slim"
+cmd = "slim -d GenomeSize=1000 -d N=400 -d y=2.0 -d L=100 -d d=0.6 seglift.slim"
 slim_out <- system(cmd, intern = TRUE)
 
 
@@ -19,18 +19,20 @@ pos = as.numeric(strsplit(substr(slim_out[out_pos],
 
 
 # calculate sum_stats using popgen.tools
-obs <- sim_obj(cmd = NA,
+obs <- sim_obj(cmd = cmd,
                seeds = NA,
                segsites = ncol(genotypeM),
                positions = pos,
                genome_matrix = genotypeM,
                sweep ="partial",
-               select_coeff = 0.3 )
+               select_coeff = NA )
 
 obs_ss = sum_stats(
   sim = obs,
-  nwins = 2,
+  nwins = 5,
   ID = 1, 
   split_type = "mut",
-  snp=100, #trim genome matrix
+  snp = 1000
+  
 )
+obs_ss
