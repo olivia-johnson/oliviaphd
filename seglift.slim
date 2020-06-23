@@ -1,16 +1,16 @@
 
 initialize() {
 	if (!exists("GenomeSize"))
-	{defineConstant("GenomeSize", 1000); } // genome size
+	{defineConstant("GenomeSize", 100e6); } // genome size
 	
 	if (!exists("L"))
-	{defineConstant("L", 100); }// no. selected seasonal loci
+	{defineConstant("L", 1000); }// no. selected seasonal loci
 	
 	if (!exists("y"))
 	{defineConstant("y", 1); }// exponent of fitness function
 	
 	if (!exists("N"))
-	{defineConstant("N", 400); }// population size
+	{defineConstant("N", 1000); }// population size
 	
 	if (!exists("d"))
 	{defineConstant("d", 0.6); } // dominance
@@ -22,7 +22,7 @@ initialize() {
 	{defineConstant("mut", 1e-6);} // mutation rate
 	
 	if (!exists("rr"))
-	{defineConstant("rr", 0.5);} // recombination rate
+	{defineConstant("rr", 01e-8);} // recombination rate
 	
 	
 	initializeMutationRate(mut);
@@ -36,7 +36,7 @@ initialize() {
 
 
 1 { sim.addSubpop("p1", N);
-	catn("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y);
+	catn("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr);
 }
 
 
