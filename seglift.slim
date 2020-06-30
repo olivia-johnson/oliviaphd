@@ -83,11 +83,11 @@ s2 fitness(NULL) { //winter
 	return (1 + zw)^y;
 }
 
-1000 {
-	if (!exists("slimgui")) {
-		p1.genomes.outputMS(filePath = NULL);}
+//1000 {
+//	if (!exists("slimgui")) {
+//		p1.genomes.outputMS(filePath = NULL);}
 
-}
+//}
 
 1:5000 late(){ // have change 10000 to 5k
 	if (sim.countOfMutationsOfType(m2) == 0) {
@@ -105,9 +105,9 @@ s2 fitness(NULL) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
 		s2;
 	}
-//	if (modValue500 == 0) {// sample
-//		p1.outputMSSample(10, replace = F);
-//	}
+	if (modValue500 == 0) {// sample
+		p1.outputMSSample(10, replace = F);
+	}
 
 }
 
