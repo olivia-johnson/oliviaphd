@@ -19,7 +19,7 @@ initialize() {
 	{defineConstant("g", 5); } // generations per season     
 	
 	if (!exists("mut"))
-	{defineConstant("mut", 1e-6);} // mutation rate
+	{defineConstant("mut", 0.0);} // mutation rate
 	
 	if (!exists("rr"))
 	{defineConstant("rr", 0.5);} // recombination rate
@@ -27,21 +27,27 @@ initialize() {
 	
 	initializeMutationRate(mut);
 	initializeRecombinationRate(rr);
-	initializeMutationType("m1", 0.5, "f", 0.0); // neutral
+	initializeMutationType("m1", 0.0, "f", 0.0); // neutral
 	initializeMutationType("m2", 0.5, "f", 0.0); // summer
 	initializeGenomicElementType("g1", m1, 1.0);
 	initializeGenomicElement(g1, 0, GenomeSize-1);
 	m2.color = "pink";
+	m2.convertToSubstitution = F;
 	
+	initializeTreeSeq();
 }
 
 
-1 { sim.addSubpop("p1", N);
+
+
+1 { 
+sim.addSubpop("p1", N);
 	catn("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr);
 }
 
 
 1 late() {
+//sim.readFromPopulationFile("./burnin.trees");
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	// if (size(unique(val))!= 100){
@@ -77,7 +83,7 @@ s2 fitness(NULL) { //winter
 	return (1 + zw)^y;
 }
 
-100 {
+1000 {
 	if (!exists("slimgui")) {
 		p1.genomes.outputMS(filePath = NULL);}
 
@@ -87,16 +93,25 @@ s2 fitness(NULL) { //winter
 	if (sim.countOfMutationsOfType(m2) == 0) {
 		sim.simulationFinished();
 	}
-	modValue = integerMod(sim.generation, (g*2));
+	gen = sim.generation;
+	modValue10 = integerMod(gen, (g*2));
+	modValue500 = integerMod(gen, 500);
 	
-	if (modValue >= 0 & modValue < g) { //summer
+	if (modValue10 >= 0 & modValue10 < g) { //summer
 		if (exists("slimgui")) {cat("Summer\n");}
 		s1;
 	}
-	if (modValue >= g) { //winter
+	if (modValue10 >= g) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
-		s2
-			;	}
+		s2;
+	}
+//	if (modValue500 == 0) {// sample
+//		p1.outputMSSample(10, replace = F);
+//	}
 
+}
+
+5000 late() {
+sim.treeSeqOutput("./treeseq.trees");
 }
 
