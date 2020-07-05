@@ -42,6 +42,8 @@ initialize() {
 1 {
 	sim.addSubpop("p1", N);
 	catn("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr);
+	line1 = paste(c("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr));
+	writeFile("~/oliviaphd/sim_data.txt", line1, append = F);
 }
 
 
@@ -53,8 +55,8 @@ initialize() {
 	// val = asInteger(round(runif(L, min = 0, max = GenomeSize)));;
 	// }
 	
-	cat("Positions:"); cat( positions);
-	//writeFile("~/oliviaphd/sim_data.txt", positions);
+	line2 = paste("Positions:");
+	writeFile("~/oliviaphd/sim_data.txt", c(line2, positions), append = T);
 	
 	for (pos in positions){
 		target = sample(p1.genomes, N);
@@ -117,7 +119,8 @@ s2 fitness(NULL) { //winter
 	fix = sum(sim.mutationFrequencies(p1)== 1);
 	loss = 100 - e_mc;
 	
-	catn(loss + " winter allele fixed, " + fix + " summer allele fixed.");
+	line3 = paste(loss + " winter allele fixed, " + fix + " summer allele fixed.");
+	writeFile("~/oliviaphd/sim_data.txt", line3, append = T);
 	sim.treeSeqOutput("./treeseq.trees");
 }
 
