@@ -1,0 +1,50 @@
+initialize() {
+	defineConstant("L", 1e5);
+	initializeSLiMOptions(nucleotideBased=T);
+	
+	//seq = rbinom(L, 3, 0.5);
+	seq = randomNucleotides(L);
+	initializeAncestralNucleotides(seq);
+	
+	initializeMutationTypeNuc("m1", 0.5, "f", 0.0);
+	initializeGenomicElementType("g1", m1, 1.0, mmJukesCantor(1e-7));
+	initializeGenomicElement(g1, 0, L-1);
+	initializeRecombinationRate(1e-8);
+}
+1 { sim.addSubpop("p1", 2000); }
+
+s1 fitness(NULL) { //summer - let 0(A) and 1(C) be summer favoured
+	gnm1 = genome1.nucleotides(format = "integer");
+	gnm2 = genome2.nucleotides(format = "integer");
+	shared = sum(match(gnm1, gnm2)>=0); //homozygosity
+	nhet = size(gnm1) + size(gnm2) - 2 * shared;  // heterozygosity
+	
+	// use nucleotideValue. ns = gnm1.nucleotideCounts()
+	
+	return 1.0;  //ns + 0.5*nhet
+}
+
+
+
+
+1:10000 late(){
+	modValue = integerMod(sim.generation, 10);
+	
+	if (modValue >= 0 & modValue < 5) { //summer
+		cat("Summer\n");
+		s1;
+	}
+	if (modValue >= 5) { //winter
+		cat("Winter\n");
+		//s2
+		;	}
+
+}
+
+
+
+9999 late(){p1.genomes.outputMS(filePath = NULL);
+	//p1.genomes.outputMS(filePath = "~/oliviaphd/data/seglift_output.txt")
+}
+
+10000 { sim.simulationFinished(); }

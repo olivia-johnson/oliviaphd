@@ -39,27 +39,28 @@ initialize() {
 
 
 
-
-1 { 
-sim.addSubpop("p1", N);
+1 {
+	sim.addSubpop("p1", N);
 	catn("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr);
 }
 
 
 1 late() {
-//sim.readFromPopulationFile("./burnin.trees");
+	//sim.readFromPopulationFile("./burnin.trees");
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	// if (size(unique(val))!= 100){
 	// val = asInteger(round(runif(L, min = 0, max = GenomeSize)));;
 	// }
 	
+	cat("Positions:"); cat( positions);
+	//writeFile("~/oliviaphd/sim_data.txt", positions);
 	
 	for (pos in positions){
 		target = sample(p1.genomes, N);
 		target.addNewDrawnMutation(m2, pos);
 	}
-
+	
 }
 
 s1 fitness(NULL) { //summer
@@ -89,7 +90,7 @@ s2 fitness(NULL) { //winter
 
 //}
 
-1:5000 late(){ // have change 10000 to 5k
+1:2000 late(){ // have change 10000 to 5k
 	if (sim.countOfMutationsOfType(m2) == 0) {
 		sim.simulationFinished();
 	}
@@ -105,13 +106,18 @@ s2 fitness(NULL) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
 		s2;
 	}
-	if (modValue500 == 0) {// sample
-		p1.outputMSSample(10, replace = F);
-	}
+	//	if (modValue500 == 0) {// sample
+	//		p1.outputMSSample(10, replace = F);
+	//	}
 
 }
 
-5000 late() {
-sim.treeSeqOutput("./treeseq.trees");
+2000 late() {
+	e_mc = sim.countOfMutationsOfType(m2);
+	fix = sum(sim.mutationFrequencies(p1)== 1);
+	loss = 100 - e_mc;
+	
+	catn(loss + " winter allele fixed, " + fix + " summer allele fixed.");
+	sim.treeSeqOutput("./treeseq.trees");
 }
 
