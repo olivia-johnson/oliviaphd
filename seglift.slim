@@ -37,14 +37,15 @@ initialize() {
 	initializeTreeSeq();
 }
 
-
-
-1 {
-	sim.addSubpop("p1", N);
-	catn("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr);
-	line1 = paste(c("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr));
-	writeFile("~/oliviaphd/sim_data.txt", line1, append = F);
-}
+// the information for the initial pop is included in the treesqe file, and i think this step is not in the SLiM manual recipe.
+// this is not needed, and anyway its effect is over written once the burnin.tress file is read in.
+// NOTE: p0 is the first pop in treeseq ferom msprime.
+//1 {
+//	sim.addSubpop("p1", N);
+//	catn("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr);
+//	line1 = paste(c("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr));
+//	writeFile("~/oliviaphd/sim_data.txt", line1, append = F);
+//}
 
 
 1 late() {
