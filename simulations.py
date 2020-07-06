@@ -20,8 +20,10 @@ d = 0.6
 ## COALESCENT BURN IN
 
 #burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, length=genomeSize, mutation_rate=mutRate, recombination_rate=recRate)
-#burnin_ts = pyslim.annotate_defaults(simp, model_type="WF", slim_generation=1. reference_sequence=None)
-#burnin_ts.dump("./burnin.trees")
+# issue is having mutations in this tree. Turn mut rate to 0. ALso, makes sense, as we only need the geneaology from the burn in, and we add all muations at the end of combined coalescent + forward time.
+burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, length=genomeSize, mutation_rate=0, recombination_rate=recRate)
+burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
+burnin_ts.dump("burnin.trees")
 
 ## FORWARD SIMULATION
 
