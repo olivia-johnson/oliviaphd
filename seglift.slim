@@ -48,14 +48,14 @@ initialize() {
 
 
 1 late() {
-	//sim.readFromPopulationFile("./burnin.trees");
+	sim.readFromPopulationFile("./burnin.trees");
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	// if (size(unique(val))!= 100){
 	// val = asInteger(round(runif(L, min = 0, max = GenomeSize)));;
 	// }
 	
-	line2 = paste("Positions:");
+	line2 = paste("Summer positions:");
 	writeFile("~/oliviaphd/sim_data.txt", c(line2, positions), append = T);
 	
 	for (pos in positions){
@@ -109,7 +109,8 @@ s2 fitness(NULL) { //winter
 		s2;
 	}
 	//	if (modValue500 == 0) {// sample
-	//		p1.outputMSSample(10, replace = F);
+	//		ADD remember ind
+	// ADD inds to text file?
 	//	}
 
 }
@@ -119,7 +120,7 @@ s2 fitness(NULL) { //winter
 	fix = sum(sim.mutationFrequencies(p1)== 1);
 	loss = 100 - e_mc;
 	
-	line3 = paste(loss + " winter allele fixed, " + fix + " summer allele fixed.");
+	line3 = paste("winter_fixed:" + loss + "\n summer_fixed:" + fix);
 	writeFile("~/oliviaphd/sim_data.txt", line3, append = T);
 	sim.treeSeqOutput("./treeseq.trees");
 }
