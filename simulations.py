@@ -23,6 +23,15 @@ d = 0.6
 #burnin_ts = pyslim.annotate_defaults(simp, model_type="WF", slim_generation=1. reference_sequence=None)
 #burnin_ts.dump("./burnin.trees")
 
+## error in burnin if not specifiying nucleotide model of mutation.
+burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, length=genomeSize, mutation_rate=0, recombination_rate=recRate)
+mut_burnin=msprime.mutate(burnin,rate=mutRate,model=msprime.InfiniteSites(alphabet=1)) # alphabet=1 specifies nucleotide
+# check mutations have been placed
+for variant in mut_burnin.variants():
+	print(variant.site.id, variant.site.position, variant.alleles, variant.genotypes, sep="\t")
+
+burnin_ts = pyslim.annotate_defaults(mut_burnin, model_type="WF", slim_generation=1, reference_sequence=None)
+# now i get an error here. Is something to do with the mutation type (nucleotide)
 ## FORWARD SIMULATION
 
 cmd = "slim -d GenomeSize=" + str(genomeSize) + " -d L=" + str(l)+ " -d N=" + str(popnSize) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +" ~/oliviaphd/seglift.slim"
