@@ -1,7 +1,7 @@
 
 initialize() {
 	if (!exists("GenomeSize"))
-	{defineConstant("GenomeSize", 1000); } // genome size
+	{defineConstant("GenomeSize", 1e6); } // genome size
 	
 	if (!exists("L"))
 	{defineConstant("L", 100); }// no. selected seasonal loci
@@ -10,19 +10,28 @@ initialize() {
 	{defineConstant("y", 1); }// exponent of fitness function
 	
 	if (!exists("N"))
-	{defineConstant("N", 400); }// population size
+	{defineConstant("N", 100); }// population size
 	
 	if (!exists("d"))
 	{defineConstant("d", 0.6); } // dominance
 	
+	if (!exists("g_s"))
+	{defineConstant("g_s", 5); } // generations per summer
+	
+	if (!exists("g_w"))
+	{defineConstant("g_w", 5); } // generations per winter 
+	    
 	if (!exists("g"))
-	{defineConstant("g", 5); } // generations per season     
+	{defineConstant("g", (g_s + g_w)); } // generations per seasonal cycle     
 	
 	if (!exists("mut"))
 	{defineConstant("mut", 0.0);} // mutation rate
 	
 	if (!exists("rr"))
-	{defineConstant("rr", 0.5);} // recombination rate
+	{defineConstant("rr", 1e-8);} // recombination rate
+	
+	if (!exists("rGen"))
+	{defineConstant("rGen", 100);} // remember individuals gen call
 	
 	
 	initializeMutationRate(mut);
@@ -43,18 +52,19 @@ initialize() {
 //1 {
 //	sim.addSubpop("p1", N);
 //	catn("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr);
-//	line1 = paste(c("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr));
-//	writeFile("~/oliviaphd/sim_data.txt", line1, append = F);
+
 //}
 
 
 1 late() {
-	sim.readFromPopulationFile("./burnin.trees");
+	line1 = paste(c("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr));
+	writeFile("~/oliviaphd/sim_data.txt", line1, append = F);
+	
+	
+	sim.readFromPopulationFile("/Users/olivia/oliviaphd/burnin.trees");
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
-	// if (size(unique(val))!= 100){
-	// val = asInteger(round(runif(L, min = 0, max = GenomeSize)));;
-	// }
+	
 	
 	line2 = paste("Summer positions:");
 	writeFile("~/oliviaphd/sim_data.txt", c(line2, positions), append = T);
@@ -63,7 +73,7 @@ initialize() {
 		target = sample(p0.genomes, N);
 		target.addNewDrawnMutation(m2, pos);
 	}
-	
+
 }
 
 s1 fitness(NULL) { //summer
@@ -87,42 +97,37 @@ s2 fitness(NULL) { //winter
 	return (1 + zw)^y;
 }
 
-//1000 {
-//	if (!exists("slimgui")) {
-//		p0.genomes.outputMS(filePath = NULL);}
 
-//}
-
-1:2000 late(){ // have change 10000 to 5k
+1:5000 late(){ // have change 10000 to 5k
 	if (sim.countOfMutationsOfType(m2) == 0) {
 		sim.simulationFinished();
 	}
 	gen = sim.generation;
-	modValue10 = integerMod(gen, (g*2));
-	modValue500 = integerMod(gen, 500);
+	modValue10 = integerMod(gen, (g));
+	modValuerGen = integerMod(gen, rGen);
 	
-	if (modValue10 >= 0 & modValue10 < g) { //summer
+	if (modValue10 >= 0 & modValue10 < g_s) { //summer
 		if (exists("slimgui")) {cat("Summer\n");}
 		s1;
 	}
-	if (modValue10 >= g) { //winter
+	if (modValue10 >= g_s) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
 		s2;
 	}
-	//	if (modValue500 == 0) {// sample
-	//		ADD remember ind
-	// ADD inds to text file?
-	//	}
+	if (modValuerGen == 0 | modValuerGen == (g_s)) {// sample
+		rInd= sample(p0.individuals, 100);
+		sim.treeSeqRememberIndividuals(rInd);
+	}
 
 }
 
-2000 late() {
+5000 late() {
 	e_mc = sim.countOfMutationsOfType(m2);
 	fix = sum(sim.mutationFrequencies(p0)== 1);
 	loss = 100 - e_mc;
 	
-	line3 = paste("winter_fixed:" + loss + "\n summer_fixed:" + fix);
-	writeFile("~/oliviaphd/sim_data.txt", line3, append = T);
+	line4 = paste("winter_fixed:" + loss + "\n summer_fixed:" + fix);
+	writeFile("~/oliviaphd/sim_data.txt", line4, append = T);
 	sim.treeSeqOutput("./treeseq.trees");
 }
 
