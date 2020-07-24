@@ -62,7 +62,7 @@ def allele_counts(ts, sample_sets=None):
 
 alco = allele_counts(slim_ts, sample_sets = None) ## ASSUMING IN RIGHT ORDER
 mut_met["allele_count"] = alco
-mut_met.assign(allele_freq=lambda df: mut_met.allele_count/(2*popnSize))
+mut_met.assign(allele_freq=lambda df: (mut_met.allele_count/(2*popnSize)/100))
 
 
 ## SUMMARISE INDIVIDUALS
@@ -80,20 +80,22 @@ for ind in slim_ts.individuals():
 ## CALCULATE FITNESS
 samps = ind_met[["id", "nodes"]]
 counts = allele_counts(slim_ts, sample_sets = list(samps.nodes))
-
-for i in len(counts[1]):
-    s_count = counts[:,i]
-    ns = sum(s_count == 2)
-    n_het = sum(s_count == 1)
-    nw = sum(s_count == 0)
-    z_s = ns + (d*nhet)
-    z_w = nw + (d*nhet)
-    s_fit = (1+z_s)^y
-    w_fit = (1+z_w)^y
-    if samps.nodes[i] == ind_met.nodes[i]:
-        ind_met.loc[ind_met.id == samps.id[i], ["s_fitness", "w_fitness"]] = [s_fit, w_fit]
-    else:
-        print("Nodes do not match for sample " + str(i))
+if  len(samps) == len(counts[1]):
+    for i in range(len(samps)):
+        s_count = counts[:,i]
+        ns = sum(s_count == 2)
+        nhet = sum(s_count == 1)
+        nw = sum(s_count == 0)
+        z_s = ns + (d*nhet)
+        z_w = nw + (d*nhet)
+        s_fit = (1+z_s)**y
+        w_fit = (1+z_w)**y
+        if str(samps.nodes[i]) == str(ind_met.nodes[i]):
+            ind_met.loc[ind_met.id == samps.id[i], ["s_fitness", "w_fitness"]] = [s_fit, w_fit]
+        else:
+            print("Nodes do not match for sample " + str(i))
+else:
+    print("samples do not macth allele counts")
     
 
 #for i in list(np.unique(ind_met.time)):
@@ -102,15 +104,45 @@ for i in len(counts[1]):
 ## ADD NEUTRAL MUTATIONS
 mut_ts = pyslim.SlimTreeSequence(msprime.mutate(slim_ts, rate=mutRate, keep=True))
 
+n_met = pd.DataFrame({"mut_id":[],"mut_num": [], "mut_pos": [], "mut_type":[], "nearest_mut_pos":[], "nearest_mut_num":[]})
+a_list = list(mut_met.mut_pos)
+for mut in mut_ts.mutations():
+    #print(mut)
+    if mut.metadata == []:
+        #print(mut)
+        
+        given_value = mut.position
+        
+        absolute_difference_function = lambda list_value : abs(list_value - given_value)
 
-  
+        closest_value = min(a_list, key=absolute_difference_function)
+    
+        num = mut_met.mut_num[mut_met.mut_pos == closest_value]
+    
+        n_met = n_met.append({"mut_id":mut.id, "mut_num" : mut.site, "mut_pos" : mut.position, "mut_type":"neutral", "nearest_mut_pos": closest_value, "nearest_mut_num": int(num)}, ignore_index=True)
+
+for i in range(len(n_met)):
+    given_value = n_met.mut_pos[i]
+    a_list = list(mut_met.mut_pos)
+    absolute_difference_function = lambda list_value : abs(list_value - given_value)
+
+    closest_value = min(a_list, key=absolute_difference_function)
+    
+    num = mut_met.mut_num[mut_met.mut_pos == closest_value]
+
+    n_met=n_met.append({"nearest_mut_pos": closest_value, "nearest_mut_num": num}, ignore_index=True)
+    
+
+   
+    
+   
 ## SUMMARY STATISTICS
 ##Tajima's D - make sample_sets list of lists when sampling over time
 #win = np.linspace(0, genomeSize, num=wins+1)
 #win = win.astype(int)
 
 
-sum_stats = pd.DataFrame({"generation": [],  "win_start": [], "win_end" :[], "tajimas_d": [], "afs":[]})
+sum_stats = pd.DataFrame({"generation": [],  "win_start": [], "win_end" :[], "tajimas_d": [], "afs":[], "diversity":[]})
 #"allele_freq":[],
 #"win_num":[],
 
@@ -125,9 +157,11 @@ def sum_stats(ts, wins):
     #calculate allele frequency spectrum
     fs = ts.allele_frequency_spectrum(sample_sets=None, windows = win, span_normalise=False, polarised=True)
     
+    div = ts.diversity(sample_sets = None, windows = win)
+    
     ## SAMPLE BY WINDOW???  allele_counts(ts,sample_sets=None)
     #Fill in df
     #sum_stats = sum_stats.append({"generation": [gen],  "win_start" : win[0:wins], "win_end":[(win[1:(wins+1)]-1)], "tajimas_d": [tajd], "afs":[fs]}, ignore_index=True))
     
-    df = pd.DataFrame({"win_start" : win[0:wins], "win_end":[(win[1:(wins+1)]-1)], "tajimas_d": [tajd], "afs":[fs]}, index = pd.MultiIndex.from_tuples([(gen, (1:wins))], names=['generation','n_win']))
+    df = pd.DataFrame({"n_win":range(wins),"win_start" : win[0:wins], "win_end":(win[1:(wins+1)]-1), "tajimas_d": tajd, "afs":fs, "diversity":div})
     
