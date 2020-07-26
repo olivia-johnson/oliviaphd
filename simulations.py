@@ -42,6 +42,7 @@ if (slim_ts.num_sites != l):
     print("Less than " + str(l) + "introduced mutations")
 else:
     print (str(l) + " introduced mutations")
+    
 ## SUMMARISE MUTATIONS
 mut_met = pd.DataFrame({"mut_num": [], "mut_pos": [], "mut_type":[]})
 for mut in slim_ts.mutations():
@@ -95,7 +96,7 @@ if  len(samps) == len(counts[1]):
         else:
             print("Nodes do not match for sample " + str(i))
 else:
-    print("samples do not macth allele counts")
+    print("samples do not match allele counts")
     
 
 #for i in list(np.unique(ind_met.time)):
@@ -104,35 +105,35 @@ else:
 ## ADD NEUTRAL MUTATIONS
 mut_ts = pyslim.SlimTreeSequence(msprime.mutate(slim_ts, rate=mutRate, keep=True))
 
-n_met = pd.DataFrame({"mut_id":[],"mut_num": [], "mut_pos": [], "mut_type":[], "nearest_mut_pos":[], "nearest_mut_num":[]})
+n_met = pd.DataFrame({"mut_id":[],"mut_num": [], "mut_pos": [], "mut_type":[], "nearest_dist":[], "nearest_mut_pos":[], "nearest_mut_num":[]})
 a_list = list(mut_met.mut_pos)
 for mut in mut_ts.mutations():
     #print(mut)
-    if mut.metadata == []:
+
         #print(mut)
         
-        given_value = mut.position
+    given_value = mut.position
         
-        absolute_difference_function = lambda list_value : abs(list_value - given_value)
-
-        closest_value = min(a_list, key=absolute_difference_function)
-    
-        num = mut_met.mut_num[mut_met.mut_pos == closest_value]
-    
-        n_met = n_met.append({"mut_id":mut.id, "mut_num" : mut.site, "mut_pos" : mut.position, "mut_type":"neutral", "nearest_mut_pos": closest_value, "nearest_mut_num": int(num)}, ignore_index=True)
-
-for i in range(len(n_met)):
-    given_value = n_met.mut_pos[i]
-    a_list = list(mut_met.mut_pos)
     absolute_difference_function = lambda list_value : abs(list_value - given_value)
 
     closest_value = min(a_list, key=absolute_difference_function)
+        
+    dist = given_value - closest_value
     
     num = mut_met.mut_num[mut_met.mut_pos == closest_value]
+    if mut.metadata == []:
+        type = "neutral"
+    else:
+        type = "fluctuating"
+    n_met = n_met.append({"mut_id":mut.id, "mut_num" : mut.site, "mut_pos" : mut.position, "mut_type":type, "nearest_dist": abs(dist),"nearest_mut_pos": closest_value, "nearest_mut_num": int(num)}, ignore_index=True)
 
-    n_met=n_met.append({"nearest_mut_pos": closest_value, "nearest_mut_num": num}, ignore_index=True)
-    
 
+n_met = n_met.loc[n_met.astype(str).drop_duplicates(subset=("mut_num")).index]
+nalco = allele_counts(mut_ts, sample_sets = None) ## ASSUMING IN RIGHT ORDER
+n_met["allele_count"] = nalco
+n_met.assign(allele_freq=lambda df: (n_met.allele_count/(2*popnSize)/100))
+
+## PLot dist by freq
    
     
    
