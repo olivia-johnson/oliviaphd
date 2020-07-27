@@ -6,6 +6,7 @@ import pyslim
 import tskit
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 
@@ -44,13 +45,15 @@ else:
     print (str(l) + " introduced mutations")
     
 ## SUMMARISE MUTATIONS
-mut_met = pd.DataFrame({"mut_num": [], "mut_pos": [], "mut_type":[]})
+mut_met = pd.DataFrame({"mut_num": [], "mut_pos": []})
 for mut in slim_ts.mutations():
     #print(mut)
-    mut_met = mut_met.append({"mut_num" : mut.site, "mut_pos" : mut.position, "mut_type":"fluctuating"}, ignore_index=True)
+    mut_met = mut_met.append({"mut_num" : mut.site, "mut_pos" : mut.position}, ignore_index=True)
 
 mut_met = mut_met.loc[mut_met.astype(str).drop_duplicates(subset=("mut_num")).index]
     
+
+
 
 def allele_counts(ts, sample_sets=None):
     if sample_sets is None:
@@ -61,12 +64,9 @@ def allele_counts(ts, sample_sets=None):
                span_normalise=False, windows='sites',
                polarised=True, mode='site', strict=False)
 
-alco = allele_counts(slim_ts, sample_sets = None) ## ASSUMING IN RIGHT ORDER
-mut_met["allele_count"] = alco
-mut_met.assign(allele_freq=lambda df: (mut_met.allele_count/(2*popnSize)/100))
-
 
 ## SUMMARISE INDIVIDUALS
+rows_list = []
 ind_met = pd.DataFrame({"id": [], "time": [], "pop": [], "season" : [], "nodes":[], "s_fitness":[], "w_fitness":[]})   
 for ind in slim_ts.individuals():
  
@@ -75,7 +75,21 @@ for ind in slim_ts.individuals():
         ind_season = "S"
     else:
         ind_season = "W"
-        
+    
+
+   # dict1 = {}
+        # get input row in dictionary format
+        # key = col_name
+   # dict1.update({"id" : ind.id})
+    # dict1.update({"time" : ind.time})
+    # dict1.update({"pop" : ind.population})
+    # dict1.update({"season" : ind_season})
+    # dict1.update({"nodes": ind.nodes}) 
+
+#     rows_list.append(dict1)
+
+# df = pd.DataFrame(rows_list) 
+
     ind_met = ind_met.append({"id" : ind.id, "time" : ind.time, "pop" : ind.population, "season" : ind_season, "nodes": ind.nodes}, ignore_index=True)
 
 ## CALCULATE FITNESS
@@ -127,15 +141,25 @@ for mut in mut_ts.mutations():
         type = "fluctuating"
     n_met = n_met.append({"mut_id":mut.id, "mut_num" : mut.site, "mut_pos" : mut.position, "mut_type":type, "nearest_dist": abs(dist),"nearest_mut_pos": closest_value, "nearest_mut_num": int(num)}, ignore_index=True)
 
+o_len = len(n_met)
+s_len = len(n_met[n_met.mut_type == 'fluctuating'])
 
 n_met = n_met.loc[n_met.astype(str).drop_duplicates(subset=("mut_num")).index]
+n_len = len(n_met)
+
+if n_len == (o_len - s_len + l):
+    print("Only duplicate selected mutations removed")
+else:
+    print("More than duplicate selected mutations removed")
 nalco = allele_counts(mut_ts, sample_sets = None) ## ASSUMING IN RIGHT ORDER
 n_met["allele_count"] = nalco
-n_met.assign(allele_freq=lambda df: (n_met.allele_count/(2*popnSize)/100))
+n_met = n_met.assign(allele_freq=lambda df: ((n_met.allele_count/(2*popnSize))/100))
 
 ## PLot dist by freq
    
-    
+plt.scatter(n_met.nearest_dist, n_met.allele_freq, s=2)
+plt.show()
+
    
 ## SUMMARY STATISTICS
 ##Tajima's D - make sample_sets list of lists when sampling over time
@@ -143,13 +167,17 @@ n_met.assign(allele_freq=lambda df: (n_met.allele_count/(2*popnSize)/100))
 #win = win.astype(int)
 
 
-sum_stats = pd.DataFrame({"generation": [],  "win_start": [], "win_end" :[], "tajimas_d": [], "afs":[], "diversity":[]})
+#sum_stats = pd.DataFrame({"generation": [],  "win_start": [], "win_end" :[], "tajimas_d": [], "afs":[], "diversity":[]})
 #"allele_freq":[],
 #"win_num":[],
 
 
-def sum_stats(ts, wins):
+def sum_stats(ts, wins, sample_sets=None):
+    if sample_sets is None:
+       sample_sets = [ts.samples()]
     #create windows
+    df = pd.DataFrame({"n_win":[],"win_start":[], "win_end":[], "tajimas_d": [], "afs":[], "diversity":[]})
+
     win = np.linspace(0, ts.sequence_length, num=wins+1)
     
     # calculate Tajima's D for windows
@@ -164,5 +192,9 @@ def sum_stats(ts, wins):
     #Fill in df
     #sum_stats = sum_stats.append({"generation": [gen],  "win_start" : win[0:wins], "win_end":[(win[1:(wins+1)]-1)], "tajimas_d": [tajd], "afs":[fs]}, ignore_index=True))
     
-    df = pd.DataFrame({"n_win":range(wins),"win_start" : win[0:wins], "win_end":(win[1:(wins+1)]-1), "tajimas_d": tajd, "afs":fs, "diversity":div})
+    df = df.append({"n_win":(range(wins)[0:wins]),"win_start": win[0:wins], "win_end":(win[1:(wins+1)]-1), "tajimas_d": tajd, "afs":fs, "diversity":div}, ignore_index=True)
     
+    
+pd.DataFrame({"win_start" : win[0:10], "win_end" :(win[1:11]-1), "Tajimas D": tajd}, index = pd.MultiIndex.from_tuples([(2000,1), (2000,2), (2000,3),(2000,4),(2000,5),(2000,6),(2000,6),(2000,7),(2000,8),(2000,9),], names=["Generation", "Window"]))
+for t in np.unique(ind_met.time):
+    sum    
