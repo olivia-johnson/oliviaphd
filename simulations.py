@@ -67,7 +67,7 @@ def allele_counts(ts, sample_sets=None):
 
 ## SUMMARISE INDIVIDUALS
 rows_list = []
-ind_met = pd.DataFrame({"id": [], "time": [], "pop": [], "season" : [], "nodes":[], "s_fitness":[], "w_fitness":[]})   
+#ind_met = pd.DataFrame({"id": [], "time": [], "pop": [], "season" : [], "nodes":[], "s_fitness":[], "w_fitness":[]})   
 for ind in slim_ts.individuals():
  
   #  print(ind)
@@ -77,20 +77,20 @@ for ind in slim_ts.individuals():
         ind_season = "W"
     
 
-   # dict1 = {}
+    dict1 = {}
         # get input row in dictionary format
         # key = col_name
-   # dict1.update({"id" : ind.id})
-    # dict1.update({"time" : ind.time})
-    # dict1.update({"pop" : ind.population})
-    # dict1.update({"season" : ind_season})
-    # dict1.update({"nodes": ind.nodes}) 
+    dict1.update({"id" : ind.id})
+    dict1.update({"time" : ind.time})
+    dict1.update({"pop" : ind.population})
+    dict1.update({"season" : ind_season})
+    dict1.update({"nodes": ind.nodes}) 
 
-#     rows_list.append(dict1)
+    rows_list.append(dict1)
 
-# df = pd.DataFrame(rows_list) 
+ind_met = pd.DataFrame(rows_list) 
 
-    ind_met = ind_met.append({"id" : ind.id, "time" : ind.time, "pop" : ind.population, "season" : ind_season, "nodes": ind.nodes}, ignore_index=True)
+    #ind_met = ind_met.append({"id" : ind.id, "time" : ind.time, "pop" : ind.population, "season" : ind_season, "nodes": ind.nodes}, ignore_index=True)
 
 ## CALCULATE FITNESS
 samps = ind_met[["id", "nodes"]]
@@ -119,7 +119,8 @@ else:
 ## ADD NEUTRAL MUTATIONS
 mut_ts = pyslim.SlimTreeSequence(msprime.mutate(slim_ts, rate=mutRate, keep=True))
 
-n_met = pd.DataFrame({"mut_id":[],"mut_num": [], "mut_pos": [], "mut_type":[], "nearest_dist":[], "nearest_mut_pos":[], "nearest_mut_num":[]})
+#n_met = pd.DataFrame({"mut_id":[],"mut_num": [], "mut_pos": [], "mut_type":[], "nearest_dist":[], "nearest_mut_pos":[], "nearest_mut_num":[]})
+rows_list2 = []
 a_list = list(mut_met.mut_pos)
 for mut in mut_ts.mutations():
     #print(mut)
@@ -136,10 +137,25 @@ for mut in mut_ts.mutations():
     
     num = mut_met.mut_num[mut_met.mut_pos == closest_value]
     if mut.metadata == []:
-        type = "neutral"
+        m_type = "neutral"
     else:
-        type = "fluctuating"
-    n_met = n_met.append({"mut_id":mut.id, "mut_num" : mut.site, "mut_pos" : mut.position, "mut_type":type, "nearest_dist": abs(dist),"nearest_mut_pos": closest_value, "nearest_mut_num": int(num)}, ignore_index=True)
+        m_type = "fluctuating"
+        
+    dict2 = {}
+        # get input row in dictionary format
+        # key = col_name
+    dict2.update({"mut_id":mut.id})
+    dict2.update({"mut_num" : mut.site})
+    dict2.update({"mut_pos" : mut.position})
+    dict2.update({"mut_type":m_type})
+    dict2.update({"nearest_dist": abs(dist)}) 
+    dict2.update({"nearest_mut_pos": closest_value})
+    dict2.update({"nearest_mut_num": int(num)})
+
+    rows_list2.append(dict2)
+
+n_met = pd.DataFrame(rows_list2) 
+   # n_met = n_met.append({"mut_id":mut.id, "mut_num" : mut.site, "mut_pos" : mut.position, "mut_type":type, "nearest_dist": abs(dist),"nearest_mut_pos": closest_value, "nearest_mut_num": int(num)}, ignore_index=True)
 
 o_len = len(n_met)
 s_len = len(n_met[n_met.mut_type == 'fluctuating'])
@@ -172,29 +188,46 @@ plt.show()
 #"win_num":[],
 
 
-def sum_stats(ts, wins, sample_sets=None):
+def sum_stats(ts, wins, sample_sets):
     if sample_sets is None:
        sample_sets = [ts.samples()]
     #create windows
-    df = pd.DataFrame({"n_win":[],"win_start":[], "win_end":[], "tajimas_d": [], "afs":[], "diversity":[]})
+    rows_list3 = []
+   
+    #df = pd.DataFrame({"n_win":[],"win_start":[], "win_end":[], "tajimas_d": [], "afs":[], "diversity":[]})
 
     win = np.linspace(0, ts.sequence_length, num=wins+1)
     
     # calculate Tajima's D for windows
-    tajd =  ts.Tajimas_D(sample_sets=None, windows=win, mode="site")
+    tajd =  ts.Tajimas_D(sample_sets=sample_sets, windows=win, mode="site")
     
     #calculate allele frequency spectrum
-    fs = ts.allele_frequency_spectrum(sample_sets=None, windows = win, span_normalise=False, polarised=True)
+    fs = ts.allele_frequency_spectrum(sample_sets=sample_sets, windows = win, span_normalise=False, polarised=True)
     
-    div = ts.diversity(sample_sets = None, windows = win)
-    
+    div = ts.diversity(sample_sets = sample_sets, windows = win)
+    for w in range(wins):
+        
+        dict3={}
+        dict3.update({"n_win":w})
+        dict3.update({"win_start" : win[w]})
+        dict3.update({"win_end" : win[w+1]-1})
+        dict3.update({"tajimas_d":tajd[w]})
+        dict3.update({"afs": fs[w]}) 
+        dict3.update({"diversity": div[w]})
+        rows_list3.append(dict3)
+
+    rows_list3.append(dict3)
+
+    s_stats = pd.DataFrame(rows_list3) 
+    return(s_stats)
     ## SAMPLE BY WINDOW???  allele_counts(ts,sample_sets=None)
     #Fill in df
     #sum_stats = sum_stats.append({"generation": [gen],  "win_start" : win[0:wins], "win_end":[(win[1:(wins+1)]-1)], "tajimas_d": [tajd], "afs":[fs]}, ignore_index=True))
     
-    df = df.append({"n_win":(range(wins)[0:wins]),"win_start": win[0:wins], "win_end":(win[1:(wins+1)]-1), "tajimas_d": tajd, "afs":fs, "diversity":div}, ignore_index=True)
+    #df = df.append({"n_win":(range(wins)[0:wins]),"win_start": win[0:wins], "win_end":(win[1:(wins+1)]-1), "tajimas_d": tajd, "afs":fs, "diversity":div}, ignore_index=True)
     
     
-pd.DataFrame({"win_start" : win[0:10], "win_end" :(win[1:11]-1), "Tajimas D": tajd}, index = pd.MultiIndex.from_tuples([(2000,1), (2000,2), (2000,3),(2000,4),(2000,5),(2000,6),(2000,6),(2000,7),(2000,8),(2000,9),], names=["Generation", "Window"]))
+#pd.DataFrame({"win_start" : win[0:10], "win_end" :(win[1:11]-1), "Tajimas D": tajd}, index = pd.MultiIndex.from_tuples([(2000,1), (2000,2), (2000,3),(2000,4),(2000,5),(2000,6),(2000,6),(2000,7),(2000,8),(2000,9),], names=["Generation", "Window"]))
 for t in np.unique(ind_met.time):
-    sum    
+    
+    sum_stats(ts = mut_ts, wins = 10, sample_sets = None)
