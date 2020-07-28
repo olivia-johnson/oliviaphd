@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import itertools
 
 
 genomeSize = 1e4
@@ -188,7 +189,7 @@ plt.show()
 #"win_num":[],
 
 
-def sum_stats(ts, wins, sample_sets):
+def sum_stats(ts, wins, sample_sets=None):
     if sample_sets is None:
        sample_sets = [ts.samples()]
     #create windows
@@ -228,6 +229,15 @@ def sum_stats(ts, wins, sample_sets):
     
     
 #pd.DataFrame({"win_start" : win[0:10], "win_end" :(win[1:11]-1), "Tajimas D": tajd}, index = pd.MultiIndex.from_tuples([(2000,1), (2000,2), (2000,3),(2000,4),(2000,5),(2000,6),(2000,6),(2000,7),(2000,8),(2000,9),], names=["Generation", "Window"]))
+
 for t in np.unique(ind_met.time):
+    sample = ind_met.nodes[ind_met.time == t]
+    samples= list(itertools.chain(*sample))
+
+    df = sum_stats(ts = mut_ts, wins = 10, sample_sets = [samples])
+    df['Gen']=t
+    if t == ind_met.time[0]:
+        s_stat = df
+    else:
+        s_stat = pd.concat([s_stat, df])
     
-    sum_stats(ts = mut_ts, wins = 10, sample_sets = None)
