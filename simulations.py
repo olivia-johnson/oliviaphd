@@ -7,7 +7,7 @@ import tskit
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import time
 import itertools
 
 
@@ -95,7 +95,12 @@ ind_met = pd.DataFrame(rows_list)
 
 ## CALCULATE FITNESS
 samps = ind_met[["id", "nodes"]]
+
+
+start_time = time.time()
 counts = allele_counts(slim_ts, sample_sets = list(samps.nodes))
+print("Time for counts = " + (start_time - time.time()))
+start_time = time.time()
 if  len(samps) == len(counts[1]):
     for i in range(len(samps)):
         s_count = counts[:,i]
@@ -112,7 +117,8 @@ if  len(samps) == len(counts[1]):
             print("Nodes do not match for sample " + str(i))
 else:
     print("samples do not match allele counts")
-    
+
+print("Time for fitness calc = " + (start_time - time.time()))
 
 #for i in list(np.unique(ind_met.time)):
 
