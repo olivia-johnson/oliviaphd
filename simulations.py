@@ -11,14 +11,14 @@ import time
 import itertools
 
 
-genomeSize = 1e4
-popnSize = 100
-mutRate = 1e-6
+genomeSize = 1e5
+popnSize = 1000
+mutRate = 1e-5
 recRate = 1e-8
 l = 100
 y = 2.0
 d = 0.6
-nWin = 10
+nWin = 20
 rGen = 100
 sum_gen = 8#no. summer generations
 win_gen = 3#no. winter generations
@@ -94,31 +94,31 @@ ind_met = pd.DataFrame(rows_list)
     #ind_met = ind_met.append({"id" : ind.id, "time" : ind.time, "pop" : ind.population, "season" : ind_season, "nodes": ind.nodes}, ignore_index=True)
 
 ## CALCULATE FITNESS
-samps = ind_met[["id", "nodes"]]
+# samps = ind_met[["id", "nodes"]]
 
 
-start_time = time.time()
-counts = allele_counts(slim_ts, sample_sets = list(samps.nodes))
-print("Time for counts = " + (start_time - time.time()))
-start_time = time.time()
-if  len(samps) == len(counts[1]):
-    for i in range(len(samps)):
-        s_count = counts[:,i]
-        ns = sum(s_count == 2)
-        nhet = sum(s_count == 1)
-        nw = sum(s_count == 0)
-        z_s = ns + (d*nhet)
-        z_w = nw + (d*nhet)
-        s_fit = (1+z_s)**y
-        w_fit = (1+z_w)**y
-        if str(samps.nodes[i]) == str(ind_met.nodes[i]):
-            ind_met.loc[ind_met.id == samps.id[i], ["s_fitness", "w_fitness"]] = [s_fit, w_fit]
-        else:
-            print("Nodes do not match for sample " + str(i))
-else:
-    print("samples do not match allele counts")
+# start_time = time.time()
+# counts = allele_counts(slim_ts, sample_sets = list(samps.nodes))
+# print("Time for counts = " + (start_time - time.time()))
+# start_time = time.time()
+# if  len(samps) == len(counts[1]):
+#     for i in range(len(samps)):
+#         s_count = counts[:,i]
+#         ns = sum(s_count == 2)
+#         nhet = sum(s_count == 1)
+#         nw = sum(s_count == 0)
+#         z_s = ns + (d*nhet)
+#         z_w = nw + (d*nhet)
+#         s_fit = (1+z_s)**y
+#         w_fit = (1+z_w)**y
+#         if str(samps.nodes[i]) == str(ind_met.nodes[i]):
+#             ind_met.loc[ind_met.id == samps.id[i], ["s_fitness", "w_fitness"]] = [s_fit, w_fit]
+#         else:
+#             print("Nodes do not match for sample " + str(i))
+# else:
+#     print("samples do not match allele counts")
 
-print("Time for fitness calc = " + (start_time - time.time()))
+# print("Time for fitness calc = ", (time.time()- start_time))
 
 #for i in list(np.unique(ind_met.time)):
 
@@ -127,6 +127,10 @@ print("Time for fitness calc = " + (start_time - time.time()))
 mut_ts = pyslim.SlimTreeSequence(msprime.mutate(slim_ts, rate=mutRate, keep=True))
 
 #n_met = pd.DataFrame({"mut_id":[],"mut_num": [], "mut_pos": [], "mut_type":[], "nearest_dist":[], "nearest_mut_pos":[], "nearest_mut_num":[]})
+
+start_time = time.time()
+
+
 rows_list2 = []
 a_list = list(mut_met.mut_pos)
 for mut in mut_ts.mutations():
@@ -162,26 +166,29 @@ for mut in mut_ts.mutations():
     rows_list2.append(dict2)
 
 n_met = pd.DataFrame(rows_list2) 
+
+
+print("Time for mut table = ", (time.time()- start_time))
+
    # n_met = n_met.append({"mut_id":mut.id, "mut_num" : mut.site, "mut_pos" : mut.position, "mut_type":type, "nearest_dist": abs(dist),"nearest_mut_pos": closest_value, "nearest_mut_num": int(num)}, ignore_index=True)
 
 o_len = len(n_met)
 s_len = len(n_met[n_met.mut_type == 'fluctuating'])
 
-n_met = n_met.loc[n_met.astype(str).drop_duplicates(subset=("mut_num")).index]
-n_len = len(n_met)
+mut_ud = n_met.loc[n_met.astype(str).drop_duplicates(subset=("mut_num")).index]
+n_len = len(mut_ud)
 
 if n_len == (o_len - s_len + l):
     print("Only duplicate selected mutations removed")
 else:
     print("More than duplicate selected mutations removed")
-nalco = allele_counts(mut_ts, sample_sets = None) ## ASSUMING IN RIGHT ORDER
-n_met["allele_count"] = nalco
-n_met = n_met.assign(allele_freq=lambda df: ((n_met.allele_count/(2*popnSize))/100))
+# nalco = allele_counts(mut_ts, sample_sets = None) ## ASSUMING IN RIGHT ORDER
+# n_met["allele_count"] = nalco
+# n_met = n_met.assign(allele_freq=lambda df: ((n_met.allele_count/(2*popnSize))))
 
 ## PLot dist by freq
    
-plt.scatter(n_met.nearest_dist, n_met.allele_freq, s=2)
-plt.show()
+
 
    
 ## SUMMARY STATISTICS
@@ -195,6 +202,8 @@ plt.show()
 #"win_num":[],
 
 
+
+start_time = time.time()
 def sum_stats(ts, wins, sample_sets=None):
     if sample_sets is None:
        sample_sets = [ts.samples()]
@@ -213,19 +222,22 @@ def sum_stats(ts, wins, sample_sets=None):
     
     div = ts.diversity(sample_sets = sample_sets, windows = win)
     for w in range(wins):
-        
+       # print(w)
         dict3={}
         dict3.update({"n_win":w})
         dict3.update({"win_start" : win[w]})
         dict3.update({"win_end" : win[w+1]-1})
         dict3.update({"tajimas_d":tajd[w]})
-        dict3.update({"afs": fs[w]}) 
+        #dict3.update({"afs": fs[w]}) 
         dict3.update({"diversity": div[w]})
+        #print(dict3)
         rows_list3.append(dict3)
+       # print(rows_list3)
 
     rows_list3.append(dict3)
-
     s_stats = pd.DataFrame(rows_list3) 
+    s_stats = s_stats.loc[s_stats.astype(str).drop_duplicates().index]
+
     return(s_stats)
     ## SAMPLE BY WINDOW???  allele_counts(ts,sample_sets=None)
     #Fill in df
@@ -239,11 +251,31 @@ def sum_stats(ts, wins, sample_sets=None):
 for t in np.unique(ind_met.time):
     sample = ind_met.nodes[ind_met.time == t]
     samples= list(itertools.chain(*sample))
+    ac_label = "".join([str(int(t)), "_ac"])
+    af_label = "".join([str(int(t)), "_af"])
+    nalco = allele_counts(mut_ts, sample_sets = sample) ## ASSUMING IN RIGHT ORDER
+    mut_ud[ac_label] = nalco
+    mut_ud  = mut_ud.assign(af_label=lambda df: ((n_met.allele_count/(2*popnSize))))
 
-    df = sum_stats(ts = mut_ts, wins = 10, sample_sets = [samples])
+    df = sum_stats(ts = mut_ts, wins = nWin, sample_sets = [samples])
     df['Gen']=t
     if t == ind_met.time[0]:
         s_stat = df
     else:
         s_stat = pd.concat([s_stat, df])
     
+print("Time for sum stats = ", (time.time()- start_time))
+
+samp_list = []
+for t in np.unique(ind_met.time):
+    sample = ind_met.nodes[ind_met.time == t]
+    samples= list(itertools.chain(*sample))
+    samp_list.append(samples)
+nalco = allele_counts(mut_ts, sample_sets = samp_list) ## ASSUMING IN RIGHT ORDER
+   
+
+    mut_ud[ac_label] = nalco
+    mut_ud  = mut_ud.assign(af_label=lambda df: ((n_met.allele_count/(2*popnSize))))
+
+plt.scatter(n_met.nearest_dist[n_met.mut_type == "neutral"], n_met.allele_freq[n_met.mut_type == "neutral"], s=2)
+plt.show()
