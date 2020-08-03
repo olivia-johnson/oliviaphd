@@ -27,7 +27,7 @@ win_gen = 3#no. winter generations
 
 #burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, length=genomeSize, mutation_rate=mutRate, recombination_rate=recRate)
 # issue is having mutations in this tree. Turn mut rate to 0. ALso, makes sense, as we only need the geneaology from the burn in, and we add all muations at the end of combined coalescent + forward time.
-burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, length=genomeSize, mutation_rate=0, recombination_rate=recRate)
+burnin = msprime.simulate(sample_size=popnSize,Ne=popnSize, length=genomeSize, mutation_rate=0, recombination_rate=recRate)
 burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
 burnin_ts.dump("burnin.trees")
 
@@ -193,11 +193,11 @@ else:
    
 ## SUMMARY STATISTICS
 
-list_m = n_met.mut_id[n_met.mut_pos=="fluctuating"]
+list_m = mut_ud.mut_pos[mut_ud.mut_type=="fluctuating"].astype(int)
 list_mu = list_m.tolist()
 stat_ts = mut_ts.delete_sites(list_mu, record_provenance=True)
 
-start_time = time.time()
+
 def sum_stats(ts, wins, sample_sets=None):
     if sample_sets is None:
        sample_sets = [ts.samples()]
@@ -209,10 +209,11 @@ def sum_stats(ts, wins, sample_sets=None):
     win = np.linspace(0, ts.sequence_length, num=wins+1)
     
     # calculate Tajima's D for windows
-    tajd =  ts.Tajimas_D(sample_sets=sample_sets, windows=win, mode="site")
-    
+    tajds =  ts.Tajimas_D(sample_sets=sample_sets, windows=win, mode="site")
+    tajdb =  ts.Tajimas_D(sample_sets=sample_sets, windows=win, mode="branch")
+
     #calculate allele frequency spectrum
-    fs = ts.allele_frequency_spectrum(sample_sets=sample_sets, windows = win, span_normalise=False, polarised=True)
+    #fs = ts.allele_frequency_spectrum(sample_sets=sample_sets, windows = win, span_normalise=False, polarised=True)
     
     div = ts.diversity(sample_sets = sample_sets, windows = win)
     for w in range(wins):
@@ -221,7 +222,8 @@ def sum_stats(ts, wins, sample_sets=None):
         dict3.update({"n_win":w})
         dict3.update({"win_start" : win[w]})
         dict3.update({"win_end" : win[w+1]-1})
-        dict3.update({"tajimas_d":tajd[w]})
+        dict3.update({"tajimas_d_site":tajds[w]})
+        dict3.update({"tajimas_d_branch":tajdb[w]})
         #dict3.update({"afs": fs[w]}) 
         dict3.update({"diversity": div[w]})
         #print(dict3)
@@ -241,15 +243,16 @@ def sum_stats(ts, wins, sample_sets=None):
     
     
 #pd.DataFrame({"win_start" : win[0:10], "win_end" :(win[1:11]-1), "Tajimas D": tajd}, index = pd.MultiIndex.from_tuples([(2000,1), (2000,2), (2000,3),(2000,4),(2000,5),(2000,6),(2000,6),(2000,7),(2000,8),(2000,9),], names=["Generation", "Window"]))
+start_time = time.time()
 
 for t in np.unique(ind_met.time):
     sample = ind_met.nodes[ind_met.time == t]
     samples= list(itertools.chain(*sample))
-    ac_label = "".join([str(int(t)), "_ac"])
-    af_label = "".join([str(int(t)), "_af"])
+    #ac_label = "".join([str(int(t)), "_ac"])
+    #af_label = "".join([str(int(t)), "_af"])
     nalco = allele_counts(mut_ts, sample_sets = sample) ## ASSUMING IN RIGHT ORDER
-    mut_ud[ac_label] = nalco
-    mut_ud  = mut_ud.assign(af_label=lambda df: ((n_met.allele_count/(2*popnSize))))
+    mut_ud[allele_count] = nalco
+    mut_ud  = mut_ud.assign(allele_freq=lambda df:((mut_ud.allele_count/(2*popnSize))))
 
     df = sum_stats(ts = stat_ts, wins = nWin, sample_sets = [samples])
     df['Gen']=t
@@ -260,16 +263,15 @@ for t in np.unique(ind_met.time):
     
 print("Time for sum stats = ", (time.time()- start_time))
 
+
 samp_list = []
 for t in np.unique(ind_met.time):
     sample = ind_met.nodes[ind_met.time == t]
     samples= list(itertools.chain(*sample))
     samp_list.append(samples)
-nalco = allele_counts(mut_ts, sample_sets = samp_list) ## ASSUMING IN RIGHT ORDER
-   
+nalco = allele_counts(mut_ts, sample_sets = samp_list) 
+nfreq = nalco/popnSize
 
-    mut_ud[ac_label] = nalco
-    mut_ud  = mut_ud.assign(af_label=lambda df: ((n_met.allele_count/(2*popnSize))))
 
 plt.scatter(n_met.nearest_dist[n_met.mut_type == "neutral"], n_met.allele_freq[n_met.mut_type == "neutral"], s=2)
 plt.show()
