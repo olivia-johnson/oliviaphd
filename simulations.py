@@ -192,16 +192,10 @@ else:
 
    
 ## SUMMARY STATISTICS
-##Tajima's D - make sample_sets list of lists when sampling over time
-#win = np.linspace(0, genomeSize, num=wins+1)
-#win = win.astype(int)
 
-
-#sum_stats = pd.DataFrame({"generation": [],  "win_start": [], "win_end" :[], "tajimas_d": [], "afs":[], "diversity":[]})
-#"allele_freq":[],
-#"win_num":[],
-
-
+list_m = n_met.mut_id[n_met.mut_pos=="fluctuating"]
+list_mu = list_m.tolist()
+stat_ts = mut_ts.delete_sites(list_mu, record_provenance=True)
 
 start_time = time.time()
 def sum_stats(ts, wins, sample_sets=None):
@@ -257,7 +251,7 @@ for t in np.unique(ind_met.time):
     mut_ud[ac_label] = nalco
     mut_ud  = mut_ud.assign(af_label=lambda df: ((n_met.allele_count/(2*popnSize))))
 
-    df = sum_stats(ts = mut_ts, wins = nWin, sample_sets = [samples])
+    df = sum_stats(ts = stat_ts, wins = nWin, sample_sets = [samples])
     df['Gen']=t
     if t == ind_met.time[0]:
         s_stat = df
