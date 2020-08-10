@@ -7,7 +7,7 @@ initialize() {
 	{defineConstant("L", 100); }// no. selected seasonal loci
 	
 	if (!exists("y"))
-	{defineConstant("y", 1); }// exponent of fitness function
+	{defineConstant("y", 2); }// exponent of fitness function
 	
 	if (!exists("N"))
 	{defineConstant("N", 100); }// population size
@@ -61,7 +61,7 @@ initialize() {
 	writeFile("~/oliviaphd/sim_data.txt", line1, append = F);
 	
 	
-	sim.readFromPopulationFile("/Users/olivia/oliviaphd/burnin.trees");
+	sim.readFromPopulationFile("/Users/olivia/oliviaphd/burnin_seglift.trees");
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	
@@ -128,6 +128,6 @@ s2 fitness(NULL) { //winter
 	
 	line4 = paste("winter_fixed:" + loss + "\n summer_fixed:" + fix);
 	writeFile("~/oliviaphd/sim_data.txt", line4, append = T);
-	sim.treeSeqOutput("./treeseq.trees");
+	sim.treeSeqOutput("./treeseq_seglift.trees");
 }
 
