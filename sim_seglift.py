@@ -13,12 +13,12 @@ import itertools
 
 genomeSize = int(1e6)
 popnSize = int(1e4)
-mutRate = 1e-5
+mutRate = 1e-6
 recRate = 1e-8
 l = 20
 y = 2.0
 d = 0.6
-nWin = 100
+nWin = 20
 rGen = 100
 sum_gen = 8#no. summer generations
 win_gen = 3#no. winter generations
@@ -29,7 +29,7 @@ win_gen = 3#no. winter generations
 # issue is having mutations in this tree. Turn mut rate to 0. ALso, makes sense, as we only need the geneaology from the burn in, and we add all muations at the end of combined coalescent + forward time.
 burnin = msprime.simulate(sample_size=popnSize,Ne=int(1e6), length=genomeSize, mutation_rate=0, recombination_rate=recRate)
 burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
-burnin_ts.dump("burnin.trees")
+burnin_ts.dump("burnin_seglift.trees")
 
 ## FORWARD SIMULATION
 # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
@@ -37,7 +37,7 @@ cmd = "slim -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N="
 print(cmd)
 os.system(cmd)
 
-slim_ts = pyslim.load("./treeseq.trees").simplify()
+slim_ts = pyslim.load("./treeseq_seglift.trees").simplify()
 
 ## mutation check
 if (slim_ts.num_sites != l):
@@ -54,7 +54,7 @@ for mut in slim_ts.mutations():
 
 mut_met = mut_met.loc[mut_met.astype(str).drop_duplicates(subset=("mut_num")).index]
     
-print("Time for intial mut info = ", (time.time()- start_time))
+print("Time for initial mut info = ", (time.time()- start_time))
 
 
 def allele_counts(ts, sample_sets=None):
@@ -190,9 +190,8 @@ else:
    
 ## REMOVE SELECTED SITES FROM TS
 
-#list_m = mut_ud.mut_pos[mut_ud.mut_type=="fluctuating"].astype(int)
-LIST_M = mut_met.mut_pos.astype(int)
-list_mu = LIST_M .tolist()
+list_m = mut_ud.mut_pos[mut_ud.mut_type=="fluctuating"].astype(int)
+list_mu = list_m .tolist()
 stat_ts = pyslim.SlimTreeSequence(mut_ts.delete_sites(list_mu, record_provenance=True))
 
 ## SUM MARY STATISTICS FUNCTION
@@ -211,16 +210,15 @@ def sum_stats(ts, wins, sample_sets=None):
 
     div = ts.diversity(sample_sets = sample_sets, windows = win)
     for w in range(wins):
-        s_mutcount = 0
-        for m in mut_met:
-            if mut_met.mut_pos[m] >= win[w] and mut_met.mut_pos[m] < win[w+1]-1:
-                s_mutcount = s_mutcount + 1
+        s_mutcount = np.sum((mut_met.mut_pos >= win[w]) & (mut_met.mut_pos < (win[w+1]-1)))
+        n_mutcount = np.sum((mut_ud.mut_pos[mut_ud.mut_type=="neutral"] >= win[w]) & (mut_ud.mut_pos[mut_ud.mut_type=="neutral"] < (win[w+1]-1)))
        # print(w)
         dict3={}
         dict3.update({"n_win":w})
         dict3.update({"win_start" : win[w]})
         dict3.update({"win_end" : win[w+1]-1})
         dict3.update({"n_s_mut" : s_mutcount})
+        dict3.update({"n_n_mut" : n_mutcount})
         dict3.update({"tajimas_d_site":tajds[w]})
         dict3.update({"tajimas_d_branch":tajdb[w]})
         dict3.update({"diversity": div[w]})
@@ -237,22 +235,22 @@ def sum_stats(ts, wins, sample_sets=None):
     return(s_stats)
   
     
-## CALCULATE ALLELE COUNTS AND FREQS THROUGH TIME
-samp_list = []
-for t in np.unique(ind_met.time):
-    sample = ind_met.nodes[ind_met.time == t]
-    samples= list(itertools.chain(*sample))
-    samp_ts = stat_ts.subset(samples)
-    # samp_list.append(samples)
-nalco = allele_counts(mut_ts, sample_sets = samp_list) 
-nfreq = nalco/popnSize
+# ## CALCULATE ALLELE COUNTS AND FREQS THROUGH TIME
+# samp_list = []
+# for t in np.unique(ind_met.time):
+#     sample = ind_met.nodes[ind_met.time == t]
+#     samples= list(itertools.chain(*sample))
+#     samp_ts = stat_ts.subset(samples)
+#     # samp_list.append(samples)
+# nalco = allele_counts(mut_ts, sample_sets = samp_list) 
+# nfreq = nalco/popnSize
 
-rows_list4 = []
-for i in len(nfreq[1]):
-    g_time = ind_met.time[i]
-    g_var = list(nfreq[:,i])
-    dict4 = {}
-    dict4.update({g_time.astype(str):g_var})
+# rows_list4 = []
+# for i in len(nfreq[1]):
+#     g_time = ind_met.time[i]
+#     g_var = list(nfreq[:,i])
+#     dict4 = {}
+#     dict4.update({g_time.astype(str):g_var})
     
         
 
@@ -275,12 +273,12 @@ for t in np.unique(ind_met.time):
     else:
         s_stat = pd.concat([s_stat, df])
     
-print("Time for sum stats = ", (time.time()- start_time))
+# print("Time for sum stats = ", (time.time()- start_time))
 
-s_stat.to_string(buf = "~/oliviaphd/data/sim_s_stat.txt")
+# s_stat.to_string(buf = "~/oliviaphd/data/sim_s_stat.txt")
 
-plt.scatter(s_stat.n_win[s_stat.Gen==9800.0], s_stat.tajimas_d_branch[s_stat.Gen==9800.0], s=2)
+# plt.scatter(s_stat.n_win[s_stat.Gen==9800.0], s_stat.tajimas_d_branch[s_stat.Gen==9800.0], s=2)
 
 
-plt.scatter(n_met.nearest_dist[n_met.mut_type == "neutral"], n_met.allele_freq[n_met.mut_type == "neutral"], s=2)
-plt.show()
+# plt.scatter(n_met.nearest_dist[n_met.mut_type == "neutral"], n_met.allele_freq[n_met.mut_type == "neutral"], s=2)
+# plt.show()
