@@ -12,8 +12,8 @@ import itertools
 import random
 
 
-genomeSize = int(1e4)
-popnSize = int(1e3)
+genomeSize = int(1e6)
+popnSize = int(1e4)
 mutRate = 1e-6
 recRate = 1e-8
 l = 20
@@ -33,7 +33,7 @@ runID = random.random()
 # issue is having mutations in this tree. Turn mut rate to 0. ALso, makes sense, as we only need the geneaology from the burn in, and we add all muations at the end of combined coalescent + forward time.
 burnin = msprime.simulate(sample_size=popnSize,Ne=int(1e6), length=genomeSize, mutation_rate=0, recombination_rate=recRate)
 burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
-burnin_ts.dump("burnin_seglift.trees")
+burnin_ts.dump("burnin_seglift_ts.trees")
 
 ## FORWARD SIMULATION
 # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
@@ -43,7 +43,7 @@ cmd = "slim -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N="
 print(cmd)
 os.system(cmd)
 
-slim_ts = pyslim.load("./treeseq_seglift.trees").simplify()
+slim_ts = pyslim.load("./treeseq_seglift_ts.trees").simplify()
 
 ## mutation check
 if (slim_ts.num_sites != l):
@@ -52,6 +52,8 @@ else:
     print (str(l) + " introduced mutations")
     
 ## SUMMARISE MUTATIONS
+
+mut_freq = np.loadtxt("sim_data.txt", delimiter = ",", skiprows=(7 + l)) ## import freqs from SLiM
 start_time = time.time()
 mut_met = pd.DataFrame({"mut_num": [], "mut_pos": []})
 for mut in slim_ts.mutations():
@@ -59,8 +61,18 @@ for mut in slim_ts.mutations():
     mut_met = mut_met.append({"mut_num" : mut.site, "mut_pos" : mut.position}, ignore_index=True)
 
 mut_met = mut_met.loc[mut_met.astype(str).drop_duplicates(subset=("mut_num")).index]
-    
+
+
+for pos in mut_met.mut_pos:
+    print(pos)
+    mts = mut_freq[:,2 == pos]
+    if mut_freq[i,2] == 0 | mut_freq[i,2] == 1:
+        
 print("Time for initial mut info = ", (time.time()- start_time))
+
+
+
+#if mut_freq[:,2] == 0 | mut_freq[:,2] == 1 ## extract mutations that are not segregating
 
 
 def allele_counts(ts, sample_sets=None):
