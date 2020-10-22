@@ -10,7 +10,7 @@ initialize() {
 	{defineConstant("y", 2); }// exponent of fitness function
 	
 	if (!exists("N"))
-	{defineConstant("N", 100); }// population size
+	{defineConstant("N", 1e4); }// population size
 	
 	if (!exists("d"))
 	{defineConstant("d", 0.6); } // dominance
@@ -65,9 +65,7 @@ initialize() {
 	writeFile("~/oliviaphd/data/seglift_ts/sim_data.txt", line1, append = F);
 	
 	
-	
-	
-	sim.readFromPopulationFile("/Users/olivia/oliviaphd/data/seglift_ts/burnin_seglift_ts.trees");
+	sim.readFromPopulationFile("~/oliviaphd/data/seglift_ts/burnin_seglift_ts.trees");
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	
@@ -77,7 +75,7 @@ initialize() {
 	writeFile("~/oliviaphd/data/seglift_ts/sim_data.txt", c(line2, positions, line3), append = T);
 	
 	for (pos in positions){
-		target = sample(p0.genomes, N);
+		target = sample(p0.genomes, asInteger(N/2));
 		target.addNewDrawnMutation(m2, pos);
 		
 	}
