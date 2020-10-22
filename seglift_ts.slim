@@ -4,7 +4,7 @@ initialize() {
 	{defineConstant("GenomeSize", 1e6); } // genome size
 	
 	if (!exists("L"))
-	{defineConstant("L", 100); }// no. selected seasonal loci
+	{defineConstant("L", 20); }// no. selected seasonal loci
 	
 	if (!exists("y"))
 	{defineConstant("y", 2); }// exponent of fitness function
@@ -65,17 +65,26 @@ initialize() {
 	writeFile("~/oliviaphd/sim_data.txt", line1, append = F);
 	
 	
-	sim.readFromPopulationFile("/Users/olivia/oliviaphd/burnin_seglift.trees");
+	
+	
+	sim.readFromPopulationFile("/Users/olivia/oliviaphd/burnin_seglift_ts.trees");
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	
 	
 	line2 = paste("Summer positions:");
-	writeFile("~/oliviaphd/sim_data.txt", c(line2, positions), append = T);
+	line3 = "\n\n FREQUENCIES \nGen,mut_pos,mut_freq";
+	writeFile("~/oliviaphd/sim_data.txt", c(line2, positions, line3), append = T);
 	
 	for (pos in positions){
 		target = sample(p0.genomes, N);
 		target.addNewDrawnMutation(m2, pos);
+		
+	}
+	
+	for (i in 1:size(sim.mutations)-1){
+		tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+		writeFile("~/oliviaphd/sim_data.txt", tab_line, append = T);
 	}
 
 }
@@ -112,13 +121,18 @@ s2 fitness(NULL) { //winter
 	
 	if (modValue10 >= 0 & modValue10 < g_s) { //summer
 		if (exists("slimgui")) {cat("Summer\n");}
-		s1;
+		s1;	
 	}
 	if (modValue10 >= g_s) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
 		s2;
 	}
-	if (modValuerGen == 0 | modValuerGen == (g_s)) {// sample
+	if (modValuerGen == 0) {// sample | modValuerGen == (g_s)
+	for (i in 1:size(sim.mutations)-1){
+			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+			writeFile("~/oliviaphd/sim_data.txt", tab_line, append = T);
+		}
+		
 		rInd= sample(p0.individuals, 100);
 		sim.treeSeqRememberIndividuals(rInd);
 	}
@@ -126,12 +140,14 @@ s2 fitness(NULL) { //winter
 }
 
 5000 late() {
+	
 	e_mc = sim.countOfMutationsOfType(m2);
 	fix = sum(sim.mutationFrequencies(p0)== 1);
-	loss = 100 - e_mc;
+	loss = L - e_mc;
 	
-	//line4 = paste("winter_fixed:" + loss + "\n summer_fixed:" + fix);
+	line4 = paste("winter_fixed:" + loss + "\n summer_fixed:" + fix);
+	catn(line4);
 	//writeFile("~/oliviaphd/sim_data.txt", line4, append = T);
-	sim.treeSeqOutput("./treeseq_seglift.trees");
+	sim.treeSeqOutput("./treeseq_seglift_ts.trees");
 }
 
