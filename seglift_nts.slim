@@ -4,13 +4,13 @@ initialize() {
 	{defineConstant("GenomeSize", 1e6); } // genome size
 	
 	if (!exists("L"))
-	{defineConstant("L", 100); }// no. selected seasonal loci
+	{defineConstant("L", 20); }// no. selected seasonal loci
 	
 	if (!exists("y"))
 	{defineConstant("y", 2); }// exponent of fitness function
 	
 	if (!exists("N"))
-	{defineConstant("N", 1000); }// population size
+	{defineConstant("N", 1e4); }// population size
 	
 	if (!exists("d"))
 	{defineConstant("d", 0.6); } // dominance
@@ -33,6 +33,8 @@ initialize() {
 	if (!exists("rGen"))
 	{defineConstant("rGen", 100);} // remember individuals gen call
 	
+	initializeTreeSeq();
+	
 //	if (!exists("simID"))
 //	{defineConstant("simID", getSeed());} // sim run
 	
@@ -54,9 +56,13 @@ initialize() {
 	line1 = paste(c("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr));
 	writeFile("~/oliviaphd/sim_data.txt", line1, append = F);
 	
-	sim.addSubpop("p0", N);
-	p0.outputMSSample(N, replace=F, filePath="~/oliviaphd/burnin_seglift_nts.txt");
+	sim.readFromPopulationFile("/Users/olivia/oliviaphd/burnin_seglift_nts.trees");
+}
 	
+	//sim.addSubpop("p0", N);
+	//p0.outputMSSample(N, replace=F, filePath="~/oliviaphd/burnin_seglift_nts.txt");
+	
+2 late() {
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	
