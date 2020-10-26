@@ -1,0 +1,32 @@
+initialize() {
+	if (!exists("GenomeSize"))
+	{defineConstant("GenomeSize", 1e6); } // genome size
+	
+	if (!exists("N"))
+	{defineConstant("N", 1e4); }// population size
+	
+	if (!exists("mut"))
+	{defineConstant("mut", 1e-6);} // mutation rate
+	
+	if (!exists("rr"))
+	{defineConstant("rr", 1e-8);} // recombination rate
+	
+	if (!exists("sim_run"))
+	{defineConstant("sim_run", 0);} // sim run
+	
+	initializeMutationRate(mut);
+	initializeRecombinationRate(rr);
+	initializeMutationType("m1", 0.0, "f", 0.0); // neutral
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, GenomeSize-1);
+	m1.color = "yellow";
+}
+
+
+1 {
+	sim.addSubpop("p0", N);
+}
+
+10000 late() {
+sim.outputFull(paste("~/oliviaphd/data/seglift_nts/slim_burnin_"+ asString(sim_run)+".txt"));
+}
