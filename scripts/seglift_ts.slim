@@ -20,7 +20,7 @@ initialize() {
 	
 	if (!exists("g_w"))
 	{defineConstant("g_w", 5); } // generations per winter 
-	    
+	
 	if (!exists("g"))
 	{defineConstant("g", (g_s + g_w)); } // generations per seasonal cycle     
 	
@@ -77,7 +77,7 @@ initialize() {
 	for (pos in positions){
 		target = sample(p0.genomes, asInteger(N/2));
 		target.addNewDrawnMutation(m2, pos);
-		
+	
 	}
 	
 	for (i in 1:size(sim.mutations)-1){
@@ -119,17 +119,17 @@ s2 fitness(NULL) { //winter
 	
 	if (modValue10 >= 0 & modValue10 < g_s) { //summer
 		if (exists("slimgui")) {cat("Summer\n");}
-		s1;	
+		s1;
 	}
 	if (modValue10 >= g_s) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
 		s2;
 	}
 	if (modValuerGen == 0) {// sample | modValuerGen == (g_s)
-	for (i in 1:size(sim.mutations)-1){
-			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-			//writeFile(paste("~/oliviaphd/data/seglift_ts/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
-		}
+//		for (i in 1:size(sim.mutations)-1){
+//			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+//			//writeFile(paste("~/oliviaphd/data/seglift_ts/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
+//		}
 		
 		rInd= sample(p0.individuals, 100);
 		sim.treeSeqRememberIndividuals(rInd);
@@ -138,6 +138,11 @@ s2 fitness(NULL) { //winter
 }
 
 5000 late() {
+	gen = sim.generation;
+	for (i in 1:size(sim.mutations)-1){
+		tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+		writeFile(paste("~/oliviaphd/data/seglift_ts/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
+	}
 	
 	e_mc = sim.countOfMutationsOfType(m2);
 	fix = sum(sim.mutationFrequencies(p0)== 1);
