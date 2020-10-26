@@ -56,13 +56,12 @@ initialize() {
 	line1 = paste(c("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr));
 	writeFile("~/oliviaphd/sim_data.txt", line1, append = F);
 	
-	sim.readFromPopulationFile("/Users/olivia/oliviaphd/burnin_seglift_nts.trees");
-}
+//	sim.readFromPopulationFile("/Users/olivia/oliviaphd/burnin_seglift_nts.trees");
+
 	
-	//sim.addSubpop("p0", N);
-	//p0.outputMSSample(N, replace=F, filePath="~/oliviaphd/burnin_seglift_nts.txt");
-	
-2 late() {
+	sim.addSubpop("p0", N);
+	p0.outputMSSample(N, replace=F, filePath="~/oliviaphd/burnin_seglift_nts.txt");
+
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	
