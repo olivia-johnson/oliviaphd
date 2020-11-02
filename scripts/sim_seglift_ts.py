@@ -1,5 +1,5 @@
 import os
-os.chdir("/Users/olivia/oliviaphd/")
+os.chdir("/Users/olivia/oliviaphd/seglift_treeseq/")
 
 import msprime
 import pyslim
@@ -93,7 +93,7 @@ for x in range(runs):
     # issue is having mutations in this tree. Turn mut rate to 0. ALso, makes sense, as we only need the geneaology from the burn in, and we add all muations at the end of combined coalescent + forward time.
     burnin = msprime.simulate(sample_size=popnSize,Ne=int(1e6), length=genomeSize, mutation_rate=0, recombination_rate=recRate)
     burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
-    burnin_ts.dump("./data/seglift_ts/burnin_seglift_ts_{0}.trees".format(sim_run))
+    burnin_ts.dump("./burnin/burnin_seglift_ts_{0}.trees".format(sim_run))
     
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
@@ -101,7 +101,7 @@ for x in range(runs):
     print(cmd)
     os.system(cmd)
     
-    slim_ts = pyslim.load("./data/seglift_ts/treeseq_seglift_ts_{0}.trees".format(sim_run)).simplify()
+    slim_ts = pyslim.load("./slim_out/treeseq_seglift_ts_{0}.trees".format(sim_run)).simplify()
     
     ## mutation check
     if (slim_ts.num_sites != l):
@@ -119,7 +119,7 @@ for x in range(runs):
     
     mut_met = mut_met.loc[mut_met.astype(str).drop_duplicates(subset=("mut_num")).index]
     
-    mut_freq= np.loadtxt("./data/seglift_ts/sim_data_{0}.txt".format(sim_run), delimiter = ",", skiprows=(7 + l)) ## import freqs from SLiM
+    mut_freq= np.loadtxt("./slim_out/sim_data_{0}.txt".format(sim_run), delimiter = ",", skiprows=(7 + l)) ## import freqs from SLiM
     #for pos in mut_met.mut_pos:  ## label non-segregating seasonal loci
         #print(pos)
        #mts = mut_freq[:,2 == pos]
@@ -226,7 +226,7 @@ for x in range(runs):
     s_stat = sum_stats(stat_ts, nWin, ind_met, mut_ud, sample_sets=None)
     print("Time for sum stats = ", (time.time()- start_time))
     
-    s_stat.to_string(buf = "~/oliviaphd/data/seglift_ts/sim_s_stat_{0}.txt".format(sim_run))
+    s_stat.to_string(buf = "~/oliviaphd/seglift_treeseq/py_out/sim_s_stat_{0}.txt".format(sim_run))
     
     print("Time for sim run = ", (time.time()- sim_runt))
 

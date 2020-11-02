@@ -25,22 +25,19 @@ rGen = 100
 sum_gen = 8#no. summer generations
 win_gen = 3#no. winter generations
 
-random.seed()
-runID = random.random()
-## COALESCENT BURN IN
 
+## BURN IN ##
 
-#burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, length=genomeSize, mutation_rate=mutRate, recombination_rate=recRate)
-# issue is having mutations in this tree. Turn mut rate to 0. ALso, makes sense, as we only need the geneaology from the burn in, and we add all muations at the end of combined coalescent + forward time.
-burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, length=genomeSize, mutation_rate=int(mutRate), recombination_rate=recRate)
-burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
-burnin_ts.dump("burnin_seglift_nts.trees")
+cmd = "slim -d GenomeSize=" + str(int(genomeSize)) + " -d N=" + str(int(popnSize/10)) + " -d mut=0.0 -d rr=" + str(recRate) +" ~/oliviaphd/scripts/sim_burnin.slim"
+print(cmd)
+os.system(cmd)
+
 
 ## FORWARD SIMULATION
 # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
 
 ## -d simID=
-cmd = "slim -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N=" + str(int(popnSize)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +" ~/oliviaphd/seglift_nts.slim"
+cmd = "slim -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N=" + str(int(popnSize)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=" + str(int(mutRate*10)) + " -d rr=" + str(int(10*recRate)) +" ~/oliviaphd/scripts/seglift_nts.slim"
 print(cmd)
 os.system(cmd)
 
