@@ -1,5 +1,5 @@
 import os
-os.chdir("/Users/olivia/oliviaphd/")
+os.chdir("/Users/olivia/oliviaphd/seglift_treeseq/")
 
 import msprime
 import pyslim
@@ -35,49 +35,6 @@ def allele_counts(ts, sample_sets=None):
     return ts.sample_count_stat(sample_sets, f, len(sample_sets),
                        span_normalise=False, windows='sites',
                        polarised=True, mode='site', strict=False)
-
-
-def sum_stats(ts, wins, inds, mut_tab, sample_sets=None):
-        if sample_sets is None:
-           sample_sets = [ts.samples()]
-        rows_list3 = []
-       
-        #create windows
-        win = np.linspace(0, ts.sequence_length, num=wins+1)
-        
-        ## seperated into ts for each timepoint
-        for t in np.unique(inds.time):
-            sample = inds.nodes[inds.time == t]
-            samples= list(itertools.chain(*sample))
-            # samp_ts = ts.subset(samples) ## may not be keeping history of nodes
-            samp_ts = ts.simplify(samples = samples) ## should keep history of nodes
-            
-        # calculate Tajima's D for windows
-            tajds =  samp_ts.Tajimas_D(sample_sets=None, windows=win, mode="site")
-            tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win, mode="branch") ## doesn change between windows by site more informative
-    
-    
-            div = samp_ts.diversity(sample_sets = None, windows = win)
-            for w in range(wins):
-                # print(w)
-                s_mutcount = np.sum((mut_tab.mut_pos[mut_tab.mut_type=="fluctuating"] >= win[w]) & (mut_tab.mut_pos[mut_tab.mut_type=="fluctuating"] < (win[w+1]-1)))
-                n_mutcount = np.sum((mut_tab.mut_pos[mut_tab.mut_type=="neutral"] >= win[w]) & (mut_tab.mut_pos[mut_tab.mut_type=="neutral"] < (win[w+1]-1)))
-               
-                dict3={}
-                dict3.update({"time":t})
-                dict3.update({"n_win":w})
-                dict3.update({"win_start" : win[w]})
-                dict3.update({"win_end" : win[w+1]-1})
-                dict3.update({"n_s_mut" : s_mutcount})
-                dict3.update({"n_n_mut" : n_mutcount})
-                dict3.update({"tajimas_d_site":tajds[w]})
-                dict3.update({"tajimas_d_branch":tajdb[w]})
-                dict3.update({"diversity": div[w]})
-                rows_list3.append(dict3)
-    ### REMOVE BRACKETS
-        s_stats = pd.DataFrame(rows_list3) 
-
-        return(s_stats)
     
 
 ##  RUN ##
@@ -93,15 +50,15 @@ for x in range(runs):
     # issue is having mutations in this tree. Turn mut rate to 0. ALso, makes sense, as we only need the geneaology from the burn in, and we add all muations at the end of combined coalescent + forward time.
     burnin = msprime.simulate(sample_size=popnSize,Ne=int(1e6), length=genomeSize, mutation_rate=0, recombination_rate=recRate)
     burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
-    burnin_ts.dump("./data/seglift_ts/burnin_seglift_ts_{0}.trees".format(sim_run))
+    burnin_ts.dump("./burnin/burnin_seglift_ts_{0}.trees".format(sim_run))
     
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
-    cmd = "slim -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N=" + str(int(popnSize)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +" ~/oliviaphd/scripts/seglift_ts.slim"
+    cmd = "slim -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N=" + str(int(popnSize)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +" ~/oliviaphd/seglift_treeseq/seglift_ts.slim"
     print(cmd)
     os.system(cmd)
     
-    slim_ts = pyslim.load("./data/seglift_ts/treeseq_seglift_ts_{0}.trees".format(sim_run)).simplify()
+    slim_ts = pyslim.load("./slim_out/treeseq_seglift_ts_{0}.trees".format(sim_run)).simplify()
     
     ## mutation check
     if (slim_ts.num_sites != l):
@@ -119,7 +76,7 @@ for x in range(runs):
     
     mut_met = mut_met.loc[mut_met.astype(str).drop_duplicates(subset=("mut_num")).index]
     
-    mut_freq= np.loadtxt("./data/seglift_ts/sim_data_{0}.txt".format(sim_run), delimiter = ",", skiprows=(7 + l)) ## import freqs from SLiM
+    mut_freq= np.loadtxt("./slim_out/sim_data_{0}.txt".format(sim_run), delimiter = ",", skiprows=(7 + l)) ## import freqs from SLiM
     #for pos in mut_met.mut_pos:  ## label non-segregating seasonal loci
         #print(pos)
        #mts = mut_freq[:,2 == pos]
@@ -222,11 +179,59 @@ for x in range(runs):
     stat_ts = pyslim.SlimTreeSequence(mut_ts.delete_sites(list_mu, record_provenance=True))
       
     ## CALCULATE SUMMARY STATISTICS
-    start_time = time.time()
-    s_stat = sum_stats(stat_ts, nWin, ind_met, mut_ud, sample_sets=None)
-    print("Time for sum stats = ", (time.time()- start_time))
     
-    s_stat.to_string(buf = "~/oliviaphd/data/seglift_ts/sim_s_stat_{0}.txt".format(sim_run))
+    rows_list3 = []
+   
+    #create windows
+    start_time = time.time()
+    win = np.linspace(0, stat_ts.sequence_length, num=nWin+1)
+    print("create windows = ", (time.time()- start_time))
+    ## seperated into ts for each timepoint
+    start_time = time.time()
+    
+    times = 0, 1000, 2000,  3000,  4000,  5000, 6000,  7000,  8000,  9000,  10000
+    #for t in np.unique(ind_met.time):
+    for t in times:
+        #s_t = time.time()
+        sample = ind_met.nodes[ind_met.time == t]
+        samples= list(itertools.chain(*sample))
+        samp_ts = stat_ts.subset(samples) ## may not be keeping history of nodes
+        #samp_ts = stat_ts.simplify(samples = samples) ## should keep history of nodes
+        #print("get samples = ", (time.time()- s_t))
+    # calculate Tajima's D for windows
+        tajds =  samp_ts.Tajimas_D(sample_sets=None, windows=win, mode="site")
+        tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win, mode="branch") ## doesn change between windows by site more informative
+
+
+        div = samp_ts.diversity(sample_sets = None, windows = win)
+        for w in range(nWin):
+            #w_t = time.time()
+            # print(w)
+            s_mutcount = np.sum((mut_ud.mut_pos[mut_ud.mut_type=="fluctuating"] >= win[w]) & (mut_ud.mut_pos[mut_ud.mut_type=="fluctuating"] < (win[w+1]-1)))
+            n_mutcount = np.sum((mut_ud.mut_pos[mut_ud.mut_type=="neutral"] >= win[w]) & (mut_ud.mut_pos[mut_ud.mut_type=="neutral"] < (win[w+1]-1)))
+           
+            dict3={}
+            dict3.update({"time":t})
+            dict3.update({"n_win":w})
+            dict3.update({"win_start" : win[w]})
+            dict3.update({"win_end" : win[w+1]-1})
+            dict3.update({"n_s_mut" : s_mutcount})
+            dict3.update({"n_n_mut" : n_mutcount})
+            dict3.update({"tajimas_d_site":tajds[w]})
+            dict3.update({"tajimas_d_branch":tajdb[w]})
+            dict3.update({"diversity": div[w]})
+            rows_list3.append(dict3)
+            #print("per win = ", (time.time()- w_t))
+        #print("per time point = ", (time.time()- s_t))
+### REMOVE BRACKETS
+    start_time = time.time()   
+    s_stats = pd.DataFrame(rows_list3) 
+    print("convert to pd = ", (time.time()- start_time))
+    
+    
+    start_time = time.time()   
+    s_stats.to_string(buf = "~/oliviaphd/seglift_treeseq/py_out/sim_s_stat_{0}.txt".format(sim_run))
+    print("pd to txt = ", (time.time()- start_time))
     
     print("Time for sim run = ", (time.time()- sim_runt))
 

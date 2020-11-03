@@ -31,10 +31,10 @@ initialize() {
 	{defineConstant("rr", 1e-8);} // recombination rate
 	
 	if (!exists("rGen"))
-	{defineConstant("rGen", 100);} // remember individuals gen call
+	{defineConstant("rGen", 200);} // remember individuals gen call
 	
 	if (!exists("sim_run"))
-	{defineConstant("sim_run", 0);} // sim run
+	{defineConstant("sim_run", 00);} // sim run
 	
 	initializeMutationRate(mut);
 	initializeRecombinationRate(rr);
@@ -62,17 +62,17 @@ initialize() {
 1 late() {
 	cat(sim_run);
 	line1 = paste(c("SimID:" + sim_run +"\n" +"N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr + ", g=" + g));
-	writeFile(paste("~/oliviaphd/data/seglift_ts/sim_data_"+ asString(sim_run)+".txt"), line1, append = F);
+	writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), line1, append = F);
 	
 	
-	sim.readFromPopulationFile(paste("~/oliviaphd/data/seglift_ts/burnin_seglift_ts_"+ asString(sim_run) + ".trees"));
+	sim.readFromPopulationFile(paste("~/oliviaphd/seglift_treeseq/burnin/burnin_seglift_ts_"+ asString(sim_run) + ".trees"));
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	
 	
 	line2 = paste("Summer positions:");
 	line3 = "\n\n FREQUENCIES \nGen,mut_pos,mut_freq";
-	writeFile(paste("~/oliviaphd/data/seglift_ts/sim_data_"+ asString(sim_run)+".txt"), c(line2, positions, line3), append = T);
+	writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), c(line2, positions, line3), append = T);
 	
 	for (pos in positions){
 		target = sample(p0.genomes, asInteger(N/2));
@@ -82,7 +82,7 @@ initialize() {
 	
 	for (i in 1:size(sim.mutations)-1){
 		tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-		writeFile(paste("~/oliviaphd/data/seglift_ts/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
 	}
 
 }
@@ -109,7 +109,7 @@ s2 fitness(NULL) { //winter
 }
 
 
-1:5000 late(){ // have change 10000 to 5k
+1:10000 late(){ // have change 10000 to 5k
 	if (sim.countOfMutationsOfType(m2) == 0) {
 		sim.simulationFinished();
 	}
@@ -128,7 +128,7 @@ s2 fitness(NULL) { //winter
 	if (modValuerGen == 0) {// sample | modValuerGen == (g_s)
 //		for (i in 1:size(sim.mutations)-1){
 //			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-//			//writeFile(paste("~/oliviaphd/data/seglift_ts/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
+//			//writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
 //		}
 		
 		rInd= sample(p0.individuals, 100);
@@ -137,11 +137,11 @@ s2 fitness(NULL) { //winter
 
 }
 
-5000 late() {
+10000 late() {
 	gen = sim.generation;
 	for (i in 1:size(sim.mutations)-1){
 		tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-		writeFile(paste("~/oliviaphd/data/seglift_ts/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
 	}
 	
 	e_mc = sim.countOfMutationsOfType(m2);
@@ -150,7 +150,7 @@ s2 fitness(NULL) { //winter
 	
 	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fix);
 	catn(line4);
-	//writeFile(paste("~/oliviaphd/data/seglift_ts/sim_data_"+ asString(sim_run)+".txt"), line4, append = T);
-	sim.treeSeqOutput(paste("~/oliviaphd/data/seglift_ts/treeseq_seglift_ts_" + asString(sim_run) + ".trees"));
+	//writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), line4, append = T);
+	sim.treeSeqOutput(paste("~/oliviaphd/seglift_treeseq/slim_out/treeseq_seglift_ts_" + asString(sim_run) + ".trees"));
 }
 

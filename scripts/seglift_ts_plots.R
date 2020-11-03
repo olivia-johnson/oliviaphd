@@ -48,9 +48,9 @@ ggplot(stat_tajd, aes(x = time, y = tajd_branch_1, col = win_mid)) +
 dev.off()
 
 pdf(file="~/oliviaphd/seglift_treeseq/plots/win_vs_tajd_branch_mean.pdf", width = 10, height = 5)
-ggplot(stat_tajd, aes(x = win_mid, y = branch_mean, col = time)) +
-  geom_point()+
-  scale_color_viridis()+
+ggplot(stat_tajd, aes(x = win_mid, y = branch_mean)) +
+  geom_area()+
+  facet_wrap(~time)+
   xlab("Position (bp)")+
   ylab("Tajima's D (mean)")+
   ggtitle("win_vs_tajd_branch_mean")
@@ -70,3 +70,7 @@ dev.off()
 #ggplot(stat_tajd, aes(x = factor(time), y = branch_mean)) +
   geom_boxplot()
 
+  
+ggplot(data=output, aes(n_win, tajimas_d_branch))+
+  geom_area()+
+  facet_wrap(~time)
