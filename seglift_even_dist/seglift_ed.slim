@@ -1,0 +1,163 @@
+
+initialize() {
+	if (!exists("GenomeSize"))
+	{defineConstant("GenomeSize", 1e6); } // genome size
+	
+	if (!exists("L"))
+	{defineConstant("L", 20); }// no. selected seasonal loci
+	
+	if (!exists("y"))
+	{defineConstant("y", 2); }// exponent of fitness function
+	
+	if (!exists("N"))
+	{defineConstant("N", 1e4); }// population size
+	
+	if (!exists("d"))
+	{defineConstant("d", 0.6); } // dominance
+	
+	if (!exists("g_s"))
+	{defineConstant("g_s", 5); } // generations per summer
+	
+	if (!exists("g_w"))
+	{defineConstant("g_w", 5); } // generations per winter 
+	
+	if (!exists("g"))
+	{defineConstant("g", (g_s + g_w)); } // generations per seasonal cycle     
+	
+	if (!exists("mut"))
+	{defineConstant("mut", 0.0);} // mutation rate
+	
+	if (!exists("rr"))
+	{defineConstant("rr", 1e-8);} // recombination rate
+	
+	if (!exists("rGen"))
+	{defineConstant("rGen", 500);} // remember individuals gen call
+	
+	if (!exists("group"))
+	{defineConstant("group", 1);} // group of parameters
+	
+	if (!exists("sim_run"))
+	{defineConstant("sim_run", 0);} // sim run
+	
+	initializeMutationRate(mut);
+	initializeRecombinationRate(rr);
+	initializeMutationType("m1", 0.0, "f", 0.0); // neutral
+	initializeMutationType("m2", 0.5, "f", 0.0); // summer
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, GenomeSize-1);
+	m2.color = "pink";
+	m2.convertToSubstitution = F;
+	
+	initializeTreeSeq();
+}
+
+
+// the information for the initial pop is included in the treesqe file, and i think this step is not in the SLiM manual recipe.
+// this is not needed, and anyway its effect is over written once the burnin.tress file is read in.
+// NOTE: p0 is the first pop in treeseq ferom msprime.
+//1 {
+//	sim.addSubpop("p1", N);
+//	catn("N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr);
+
+//}
+
+
+1 late() {
+	cat(sim_run + "/n");
+	line1 = paste(c("SimID:" + sim_run +"\n" +"N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr + ", g=" + g));
+	writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/sim_data_"+ asString(group) + "_"
+	+ asString(sim_run)+".txt"), line1, append = F);
+	
+	
+	sim.readFromPopulationFile(paste("~/oliviaphd/seglift_even_dist/burnin/burnin_seglift_ed_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
+	
+	win = GenomeSize/L;
+	win_mid = win/2;
+	
+	line2 = paste("Summer positions:");
+	writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line2, append = T);
+	
+	
+	for (i in 1:L){
+		pos = (i*win)-win_mid;
+	writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), asString(pos), append = T);
+		target = sample(p0.genomes, asInteger(N/2));
+		target.addNewDrawnMutation(m2, asInteger(pos));
+	}
+	
+	
+	line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
+	writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
+	for (i in 1:size(sim.mutations)-1){
+		tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+		writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+	}
+
+}
+
+s1 fitness(NULL) { //summer
+	gnm1 = genome1.mutationsOfType(m2);
+	gnm2 = genome2.mutationsOfType(m2);
+	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
+	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
+	zs = ns + (d * nhet);
+	
+	return (1 + zs)^y;
+}
+
+s2 fitness(NULL) { //winter
+	gnm1 = genome1.mutationsOfType(m2);
+	gnm2 = genome2.mutationsOfType(m2);
+	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
+	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
+	nw = L-(ns+nhet);
+	zw = nw + (d * nhet);
+	
+	return (1 + zw)^y;
+}
+
+
+1:10000 late(){ // have change 10000 to 5k
+	if (sim.countOfMutationsOfType(m2) == 0) {
+		sim.simulationFinished();
+	}
+	gen = sim.generation;
+	modValue10 = integerMod(gen, (g));
+	modValuerGen = integerMod(gen, rGen);
+	
+	if (modValue10 >= 0 & modValue10 < g_s) { //summer
+		if (exists("slimgui")) {cat("Summer\n");}
+		s1;
+	}
+	if (modValue10 >= g_s) { //winter
+		if (exists("slimgui")) {cat("Winter\n");}
+		s2;
+	}
+	if (modValuerGen == 0 | modValuerGen == (g_s)) {// sample | modValuerGen == (g_s)
+		for (i in 1:size(sim.mutations)-1){
+			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+			writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		}
+		
+		rInd= sample(p0.individuals, 100);
+		sim.treeSeqRememberIndividuals(rInd);
+	}
+
+}
+
+10000 late() {
+	gen = sim.generation;
+	for (i in 1:size(sim.mutations)-1){
+		tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+		writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+	}
+	
+	e_mc = sim.countOfMutationsOfType(m2);
+	fix = sum(sim.mutationFrequencies(p0)== 1);
+	loss = L - e_mc;
+	
+	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fix);
+	catn(line4);
+	sim.treeSeqOutput(paste("~/oliviaphd/seglift_even_dist/slim_out/treeseq_seglift_ed_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+}
+
