@@ -2,55 +2,65 @@ library(data.table)
 library(ggplot2)
 library(viridis)
 
-setwd("~/oliviaphd/data/seglift_ts/")
+setwd("~/oliviaphd/seglift_treeseq/")
 
 ## set number of runs -- call in from python?
-runs = 10
+group = 1
 
 ## list of s_stat files
-f_list <- list.files(pattern="sim_s_stat_")
+f_list <- list.files(path = "~/oliviaphd/seglift_treeseq/py_out/", pattern=paste0("sim_s_stat_", group, "_"))
 
-## cycle throu 
-for (i in 0:(runs-1)){
+## merge output files
+s_stat = NULL
+for (i in 1:(length(f_list))){
   file_name = f_list[i+1]
-  if (i == 0){
-    stat_tajd = fread(file = file_name, select = 2:5)
-    stat_div = fread(file = file_name, select = 2:5)
-    }
-  else{
-    output = fread(file = file_name)
-    stat_tajd[, paste("sel_mut", i, sep="_"):=output$n_s_mut]
-    stat_tajd[, paste("neut_mut", i, sep="_"):=output$n_n_mut]
-    stat_tajd[, paste("tajd_branch", i, sep="_"):=output$tajimas_d_branch]
-    stat_tajd[, paste("tajd_site", i, sep="_"):=output$tajimas_d_site]
-    stat_div[, paste("sel_mut", i, sep="_"):=output$n_s_mut]
-    stat_div[, paste("neut_mut", i, sep="_"):=output$n_n_mut]
-    stat_div[, paste("div", i, sep="_"):=output$diversity]
-  }
+  output = fread(file = paste0("~/oliviaphd/seglift_treeseq/py_out/",file_name))
+  output[,run = i]
+  rbind(s_stat, output)
 }
 
-stat_tajd[, branch_mean := rowMeans(.SD), .SDcols = patterns("tajd_branch"),by = c("time", "n_win")]
-stat_tajd[, site_mean := rowMeans(.SD), .SDcols = patterns("tajd_site"),by = c("time", "n_win")]
-stat_tajd[, win_mid := (stat_tajd$win_start + (stat_tajd$win_end - stat_tajd$win_start)/2)]
-stat_tajd[, branch_min := pmin(.SD, na.rm=TRUE ), .SDcols = branch_idx,by = c("time", "n_win")]
-stat_tajd[, branch_max := pmax(.SD, na.rm=TRUE ), .SDcols = branch_idx,by = c("time", "n_win")]
+stat_tajd[, midpoint := (stat_tajd$win_start + (stat_tajd$win_end - stat_tajd$win_start)/2)]
 
 
 ## PLOTS ##
 
-ggplot(stat_tajd, aes(x = win_mid, y = branch_mean, col = time)) +
-  geom_point()+
-  scale_color_viridis()+
-  xlab("Position (bp)")+
-  ylab("Tajima's D (mean)")
-
-ggplot(stat_tajd, aes(x = time, y = branch_mean)) +
-  geom_point()+
+pdf(file="~/oliviaphd/seglift_treeseq/plots/t_vs_tajd_branch_1.pdf", width = 10, height = 5)
+ggplot(stat_tajd, aes(x = time, y = tajd_branch_1)) +
+  geom_area()+
   scale_color_viridis()+
   xlab("Time (generations)")+
-  ylab("Tajima's D (mean)")
+  ylab("Tajima's D (mean)")+
+  ggtitle("t_vs_tajd_branch_1")
+dev.off()
+
+pdf(file="~/oliviaphd/seglift_treeseq/plots/win_vs_tajd_branch_mean.pdf", width = 10, height = 5)
+ggplot(stat_tajd, aes(x = win_mid, y = branch_mean)) +
+  geom_area()+
+  facet_wrap(~time)+
+  xlab("Position (bp)")+
+  ylab("Tajima's D (mean)")+
+  ggtitle("win_vs_tajd_branch_mean")
+dev.off()
 
 
-ggplot(stat_tajd, aes(x = factor(time), y = branch_mean)) +
+pdf(file="~/oliviaphd/seglift_treeseq/plots/t_vs_tajd_branch_mean.pdf", width = 10, height = 5)
+ggplot(stat_tajd, aes(x = time, y = branch_mean)) +
+  geom_area()+
+  facet_wrap(~n_win)+
+  xlab("Time (generations)")+
+  ylab("Tajima's D (mean)") +
+  ggtitle("t_vs_tajd_branch_mean")
+dev.off()
+
+
+#ggplot(stat_tajd, aes(x = factor(time), y = branch_mean)) +
   geom_boxplot()
 
+  
+ggplot(data=output, aes(n_win, tajimas_d_branch))+
+  geom_area()+
+  facet_wrap(~time)
+
+ggplot(data=stat_tajd, aes(n_win, tajimas_d_branch))+
+  geom_area()+
+  facet_wrap(~time)
