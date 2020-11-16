@@ -31,10 +31,13 @@ initialize() {
 	{defineConstant("rr", 1e-8);} // recombination rate
 	
 	if (!exists("rGen"))
-	{defineConstant("rGen", 200);} // remember individuals gen call
+	{defineConstant("rGen", 500);} // remember individuals gen call
+	
+	if (!exists("group"))
+	{defineConstant("group", 2);} // group of parameters
 	
 	if (!exists("sim_run"))
-	{defineConstant("sim_run", 00);} // sim run
+	{defineConstant("sim_run", 0);} // sim run
 	
 	initializeMutationRate(mut);
 	initializeRecombinationRate(rr);
@@ -62,27 +65,28 @@ initialize() {
 1 late() {
 	cat(sim_run);
 	line1 = paste(c("SimID:" + sim_run +"\n" +"N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr + ", g=" + g));
-	writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), line1, append = F);
+	writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(group) + "_"
+	+ asString(sim_run)+".txt"), line1, append = F);
 	
 	
-	sim.readFromPopulationFile(paste("~/oliviaphd/seglift_treeseq/burnin/burnin_seglift_ts_"+ asString(sim_run) + ".trees"));
+	sim.readFromPopulationFile(paste("~/oliviaphd/seglift_treeseq/burnin/burnin_seglift_ts_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
 	val = asInteger(round(runif(L*2, min = 0, max = GenomeSize)));
 	positions = sample(unique(val), L);
 	
 	
 	line2 = paste("Summer positions:");
 	line3 = "\n\n FREQUENCIES \nGen,mut_pos,mut_freq";
-	writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), c(line2, positions, line3), append = T);
+	writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/al_freq"+ asString(group) + "_"+ asString(sim_run)+".txt"), c(line2, positions, line3), append = T);
 	
 	for (pos in positions){
-		target = sample(p0.genomes, asInteger(N/2));
+		target = sample(p0.genomes, N);
 		target.addNewDrawnMutation(m2, pos);
 	
 	}
 	
 	for (i in 1:size(sim.mutations)-1){
 		tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-		writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/al_freq"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 	}
 
 }
@@ -125,11 +129,11 @@ s2 fitness(NULL) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
 		s2;
 	}
-	if (modValuerGen == 0) {// sample | modValuerGen == (g_s)
-//		for (i in 1:size(sim.mutations)-1){
-//			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-//			//writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
-//		}
+	if (modValuerGen == 0 | modValuerGen == (g_s)) {// sample | modValuerGen == (g_s)
+		for (i in 1:size(sim.mutations)-1){
+			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+			writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/al_freq"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		}
 		
 		rInd= sample(p0.individuals, 100);
 		sim.treeSeqRememberIndividuals(rInd);
@@ -141,7 +145,7 @@ s2 fitness(NULL) { //winter
 	gen = sim.generation;
 	for (i in 1:size(sim.mutations)-1){
 		tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-		writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/al_freq"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 	}
 	
 	e_mc = sim.countOfMutationsOfType(m2);
@@ -150,7 +154,6 @@ s2 fitness(NULL) { //winter
 	
 	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fix);
 	catn(line4);
-	//writeFile(paste("~/oliviaphd/seglift_treeseq/slim_out/sim_data_"+ asString(sim_run)+".txt"), line4, append = T);
-	sim.treeSeqOutput(paste("~/oliviaphd/seglift_treeseq/slim_out/treeseq_seglift_ts_" + asString(sim_run) + ".trees"));
+	sim.treeSeqOutput(paste("~/oliviaphd/seglift_treeseq/slim_out/treeseq_seglift_ts_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
 }
 
