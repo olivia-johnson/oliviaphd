@@ -1,9 +1,7 @@
 import os
-os.chdir("/Users/olivia/oliviaphd/")
+os.chdir("/Users/olivia/oliviaphd/seligt_no_treeseq/")
 
-import msprime
-import pyslim
-import tskit
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -12,17 +10,16 @@ import itertools
 import random
 
 
-group=2
-runs = 5
+group=1
+runs = 1
 genomeSize = int(1e6)
-popnSize = int(1e4)
+popnSize = int(5e3)
 mutRate = 1e-6
 recRate = 1e-8
 l = 20
 y = 2.0
 d = 0.6
 nWin = 20
-rGen = 100
 sum_gen = 8#no. summer generations
 win_gen = 3#no. winter generations
 
