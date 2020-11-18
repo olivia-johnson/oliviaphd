@@ -28,16 +28,16 @@ initialize() {
 	{defineConstant("mut", 0.0);} // mutation rate
 	
 	if (!exists("rr"))
-	{defineConstant("rr", 1e-8);} // recombination rate
+	{defineConstant("rr", 1e-7);} // recombination rate
 	
 	if (!exists("rGen"))
 	{defineConstant("rGen", 500);} // remember individuals gen call
 	
 	if (!exists("group"))
-	{defineConstant("group", 1);} // group of parameters
+	{defineConstant("group", 0);} // group of parameters
 	
 	if (!exists("sim_run"))
-	{defineConstant("sim_run", 0);} // sim run
+	{defineConstant("sim_run", 1);} // sim run
 	
 	initializeMutationRate(mut);
 	initializeRecombinationRate(rr);
@@ -66,7 +66,7 @@ initialize() {
 	cat(sim_run + "\n");
 	line1 = paste(c("SimID:" + sim_run +"\n" +"N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr + ", g=" + g));
 	writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/sim_data_"+ asString(group) + "_"
-	+ asString(sim_run)+".txt"), line1, append = F);
+		+ asString(sim_run)+".txt"), line1, append = F);
 	
 	
 	sim.readFromPopulationFile(paste("~/oliviaphd/seglift_even_dist/burnin/burnin_seglift_ed_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
@@ -80,11 +80,15 @@ initialize() {
 	
 	for (i in 1:L){
 		pos = (i*win)-win_mid;
-	writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), asString(pos), append = T);
-		target = sample(p0.genomes, asInteger(N/2));
+		writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), asString(pos), append = T);
+		target = sample(p0.genomes, asInteger(N));
 		target.addNewDrawnMutation(m2, asInteger(pos));
 	}
 	
+	if (sim.mutationFrequencies(p0)[1] != 0.5){
+		sim.simulationFinished();
+		catn("ERROR: SELECTED MUTATIONS NOT AT 0.5 STARTING FREQUENCY");
+	}
 	
 	line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 	writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
