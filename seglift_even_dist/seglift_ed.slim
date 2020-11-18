@@ -63,7 +63,7 @@ initialize() {
 
 
 1 late() {
-	cat(sim_run + "/n");
+	cat(sim_run + "\n");
 	line1 = paste(c("SimID:" + sim_run +"\n" +"N=" + N + ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", mut_rate=" + mut + ", rec_rate=" + rr + ", g=" + g));
 	writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/sim_data_"+ asString(group) + "_"
 	+ asString(sim_run)+".txt"), line1, append = F);

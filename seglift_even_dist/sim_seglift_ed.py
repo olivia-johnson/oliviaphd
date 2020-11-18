@@ -1,5 +1,5 @@
 import os
-os.chdir("/Users/olivia/oliviaphd/seglift_treeseq/")
+os.chdir("/Users/olivia/oliviaphd/seglift_even_dist/")
 
 import msprime
 import pyslim
@@ -11,14 +11,14 @@ import time
 import itertools
 import random
 
-group = 1 ## identifier for a set of parameters
-runs = 5
+group = 3 ## identifier for a set of parameters
+runs = 10
 genomeSize = int(1e6)
 popnSize = int(1e4)
 
 mutRate = 1e-6
-recRate = 5e-8
-l = 10
+recRate = 1e-7
+l = 2
 y = 2.0
 d = 0.6
 nWin = 20
@@ -52,15 +52,15 @@ for x in range(runs):
     # issue is having mutations in this tree. Turn mut rate to 0. ALso, makes sense, as we only need the geneaology from the burn in, and we add all muations at the end of combined coalescent + forward time.
     burnin = msprime.simulate(sample_size=popnSize,Ne=int(1e6), length=genomeSize, mutation_rate=0, recombination_rate=recRate)
     burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
-    burnin_ts.dump("./burnin/burnin_seglift_ts_{0}_{1}.trees".format(group,sim_run))
+    burnin_ts.dump("./burnin/burnin_seglift_ed_{0}_{1}.trees".format(group,sim_run))
     
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
-    cmd = "slim -d group=" + str(group) + " -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N=" + str(int(popnSize)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +" ~/oliviaphd/seglift_treeseq/seglift_ts.slim"
+    cmd = "slim -d group=" + str(group) + " -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N=" + str(int(popnSize)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +" ~/oliviaphd/seglift_even_dist/seglift_ed.slim"
     print(cmd)
     os.system(cmd)
     
-    slim_ts = pyslim.load("./slim_out/treeseq_seglift_ts_{0}_{1}.trees".format(group,sim_run)).simplify()
+    slim_ts = pyslim.load("./slim_out/treeseq_seglift_ed_{0}_{1}.trees".format(group,sim_run)).simplify()
     
     ## mutation check
     if (slim_ts.num_sites != l):
@@ -231,7 +231,7 @@ for x in range(runs):
     
     
     start_time = time.time()   
-    s_stats.to_string(buf = "~/oliviaphd/seglift_treeseq/py_out/sim_s_stat_{0}_{1}.txt".format(group, sim_run), index=False)
+    s_stats.to_string(buf = "~/oliviaphd/seglift_even_dist/py_out/sim_s_stat_{0}_{1}.txt".format(group, sim_run), index=False)
     print("pd to txt = ", (time.time()- start_time))
     
     print("Time for sim run = ", (time.time()- sim_runt), "\n")
