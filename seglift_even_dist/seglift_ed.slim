@@ -4,7 +4,7 @@ initialize() {
 	{defineConstant("GenomeSize", 1e6); } // genome size
 	
 	if (!exists("L"))
-	{defineConstant("L", 20); }// no. selected seasonal loci
+	{defineConstant("L", 0); }// no. selected seasonal loci
 	
 	if (!exists("y"))
 	{defineConstant("y", 2); }// exponent of fitness function
@@ -31,7 +31,7 @@ initialize() {
 	{defineConstant("rr", 1e-7);} // recombination rate
 	
 	if (!exists("rGen"))
-	{defineConstant("rGen", 500);} // remember individuals gen call
+	{defineConstant("rGen", 100);} // remember individuals gen call
 	
 	if (!exists("group"))
 	{defineConstant("group", 0);} // group of parameters
@@ -70,7 +70,6 @@ initialize() {
 	
 	
 	sim.readFromPopulationFile(paste("~/oliviaphd/seglift_even_dist/burnin/burnin_seglift_ed_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
-	
 	win = GenomeSize/L;
 	win_mid = win/2;
 	
@@ -90,13 +89,13 @@ initialize() {
 		catn("ERROR: SELECTED MUTATIONS NOT AT 0.5 STARTING FREQUENCY");
 	}
 	
+	
 	line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 	writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
 	for (i in 1:size(sim.mutations)-1){
 		tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 		writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 	}
-
 }
 
 s1 fitness(NULL) { //summer
@@ -121,26 +120,30 @@ s2 fitness(NULL) { //winter
 }
 
 
-1:10000 late(){ // have change 10000 to 5k
-	if (sim.countOfMutationsOfType(m2) == 0) {
-		sim.simulationFinished();
-	}
+1:10000 late(){
 	gen = sim.generation;
 	modValue10 = integerMod(gen, (g));
 	modValuerGen = integerMod(gen, rGen);
 	
 	if (modValue10 >= 0 & modValue10 < g_s) { //summer
 		if (exists("slimgui")) {cat("Summer\n");}
-		s1;
+		if (L>0){
+			s1;
+		}
 	}
 	if (modValue10 >= g_s) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
-		s2;
+		if (L>0){
+			s2;
+		}
 	}
 	if (modValuerGen == 0 | modValuerGen == (g_s)) {// sample | modValuerGen == (g_s)
+		
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 			writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+			
+			p0.outputMSSample(N, replace = F, filePath = paste("~/oliviaphd/seglift_even_dist/slim_out/ms_out_"+ asString(group) + "_"+ asString(sim_run)+"_"+ asString(gen)+".txt"), append = F);
 		}
 		
 		rInd= sample(p0.individuals, 100);
@@ -151,6 +154,7 @@ s2 fitness(NULL) { //winter
 
 10000 late() {
 	gen = sim.generation;
+	
 	for (i in 1:size(sim.mutations)-1){
 		tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 		writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
