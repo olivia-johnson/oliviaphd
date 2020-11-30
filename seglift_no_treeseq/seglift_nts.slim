@@ -10,7 +10,7 @@ initialize() {
 	{defineConstant("y", 2); }// exponent of fitness function
 	
 	if (!exists("N"))
-	{defineConstant("N", 5e3); }// population size
+	{defineConstant("N", 1e4); }// population size
 	
 	if (!exists("d"))
 	{defineConstant("d", 0.6); } // dominance
@@ -28,7 +28,7 @@ initialize() {
 	{defineConstant("mut", 1e-6);} // mutation rate
 	
 	if (!exists("rr"))
-	{defineConstant("rr", 5e-8);} // recombination rate
+	{defineConstant("rr", 1e-8);} // recombination rate
 	
 	if (!exists("rGen"))
 	{defineConstant("rGen", 100);} // remember individuals gen call
