@@ -11,7 +11,7 @@ import time
 import itertools
 import random
 
-group = 1 ## identifier for a set of parameters
+group = 3 ## identifier for a set of parameters
 runs = 5
 genomeSize = int(1e6)
 popnSize = int(1e4)
@@ -50,9 +50,11 @@ for x in range(runs):
 ## COALESCENT BURN IN    
     #burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, length=genomeSize, mutation_rate=mutRate, recombination_rate=recRate)
     # issue is having mutations in this tree. Turn mut rate to 0. ALso, makes sense, as we only need the geneaology from the burn in, and we add all muations at the end of combined coalescent + forward time.
-    burnin = msprime.simulate(sample_size=2*popnSize,Ne=int(1e6), length=genomeSize, mutation_rate=0, recombination_rate=recRate)
+    start_time = time.time()
+    burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, length=genomeSize, mutation_rate=0, recombination_rate=recRate)
     burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
     burnin_ts.dump("./burnin/burnin_seglift_ts_{0}_{1}.trees".format(group,sim_run))
+    print("Time for burnin = ", (time.time()- start_time))
     
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)

@@ -4,19 +4,22 @@ library(viridis)
 
 setwd("~/oliviaphd/seglift_treeseq/")
 
-group = 2
+group = 3
 
 ## list of s_stat files
 f_list <- list.files(path = "~/oliviaphd/seglift_treeseq/py_out/", pattern=paste0("sim_s_stat_", group, "_"))
 
-sim_data = fread(file = ~/oliviaphd/seglift_treeseq/slim_out/sim_data )
 ## merge output files
+freq_data = NULL
 s_stat = NULL
 for (i in 1:(length(f_list))){
   file_name = f_list[i]
   output = fread(file = paste0("~/oliviaphd/seglift_treeseq/py_out/",file_name))
+  #al_freq = fread(file = paste0("~/oliviaphd/seglift_treeseq/slim_out/al_freq_", group, "_", i, ".txt"))
   output[,run := i]
+  #al_freq[,run := i]
   s_stat = rbind(s_stat, output)
+  #freq_data = rbind(freq_data, al_freq)
 }
 
 s_stat[, midpoint := (s_stat$win_start + (s_stat$win_end - s_stat$win_start)/2)]
@@ -42,7 +45,8 @@ ggplot(s_stat, aes(x = midpoint/1000, y = branch_mean)) +
   facet_wrap(~time)+
   xlab("Position (Kb)")+
   ylab("Tajima's D (mean)")+
-  ggtitle("win_vs_tajd_branch_mean")
+  ggtitle("win_vs_tajd_branch_mean")+
+  geom_vline(xintercept=unique(freq_data$mut_pos)/1000,color="red")
 dev.off()
 
 
