@@ -4,10 +4,10 @@ initialize() {
 	{defineConstant("GenomeSize", 1e6); } // genome size
 	
 	if (!exists("L"))
-	{defineConstant("L", 0); }// no. selected seasonal loci
+	{defineConstant("L", 10); }// no. selected seasonal loci
 	
 	if (!exists("y"))
-	{defineConstant("y", 2); }// exponent of fitness function
+	{defineConstant("y", 1.5); }// exponent of fitness function
 	
 	if (!exists("N"))
 	{defineConstant("N", 1e4); }// population size
@@ -28,21 +28,24 @@ initialize() {
 	{defineConstant("mut", 0.0);} // mutation rate
 	
 	if (!exists("rr"))
-	{defineConstant("rr", 1e-7);} // recombination rate
+	{defineConstant("rr", 1e-8,l.);} // recombination rate
 	
 	if (!exists("rGen"))
 	{defineConstant("rGen", 100);} // remember individuals gen call
 	
 	if (!exists("group"))
-	{defineConstant("group", 0);} // group of parameters
+	{defineConstant("group", 13);} // group of parameters
 	
 	if (!exists("sim_run"))
 	{defineConstant("sim_run", 1);} // sim run
 	
+	if (!exists("fit"))
+	{defineConstant("fit",1);} //if fit = 0 fitness function switched off
+	
 	initializeMutationRate(mut);
 	initializeRecombinationRate(rr);
 	initializeMutationType("m1", 0.0, "f", 0.0); // neutral
-	initializeMutationType("m2", 0.5, "f", 0.0); // summer
+	initializeMutationType("m2", 0.0, "f", 0.0); // summer
 	initializeGenomicElementType("g1", m1, 1.0);
 	initializeGenomicElement(g1, 0, GenomeSize-1);
 	m2.color = "pink";
@@ -99,56 +102,75 @@ initialize() {
 }
 
 s1 fitness(NULL) { //summer
+	
+	
+	gen = sim.generation;
+	modValue10 = integerMod(gen, (g));
+	
+
 	gnm1 = genome1.mutationsOfType(m2);
 	gnm2 = genome2.mutationsOfType(m2);
-	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
+	ns = sum(match(gnm1, gnm2)>=0); //homozygosity summer
 	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
-	zs = ns + (d * nhet);
+	nw = L-(ns+nhet);//homozygosity winter
+	if (modValue10 >= 0 & modValue10 < g_s) { //summer
+		zs = ns + (d * nhet);
+		return (1 + zs)^y; }
+		else { // winter
+		zw = nw + (d * nhet);
 	
-	return (1 + zs)^y;
+	return (1 + zw)^y;}
+
+	//return 10.0;
 }
 
-s2 fitness(NULL) { //winter
-	gnm1 = genome1.mutationsOfType(m2);
-	gnm2 = genome2.mutationsOfType(m2);
-	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
-	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
-	nw = L-(ns+nhet);
-	zw = nw + (d * nhet);
-	
-	return (1 + zw)^y;
-}
+//s2 fitness(NULL) { //winter
+//	
+//	
+//	gnm1 = genome1.mutationsOfType(m2);
+//	gnm2 = genome2.mutationsOfType(m2);
+//	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
+//	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
+//	nw = L-(ns+nhet);
+//	zw = nw + (d * nhet);
+//	
+//	//return (1 + zw)^y;
+//	return 2.0;
+//}
 
-
+2:10000 early(){
+cat(mean(p0.cachedFitness(NULL)) + "\n");}
 1:10000 late(){
+	
 	gen = sim.generation;
 	modValue10 = integerMod(gen, (g));
 	modValuerGen = integerMod(gen, rGen);
 	
 	if (modValue10 >= 0 & modValue10 < g_s) { //summer
 		if (exists("slimgui")) {cat("Summer\n");}
-		if (L>0){
-			s1;
-		}
+//		if (fit>0){
+//			//cat("running");
+//			s1;
+//		}
 	}
 	if (modValue10 >= g_s) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
-		if (L>0){
-			s2;
-		}
+//		if (fit>0){
+//			s2;
+//		}
 	}
-	if (modValuerGen == 0 | modValuerGen == (g_s)) {// sample | modValuerGen == (g_s)
-		
-		for (i in 1:size(sim.mutations)-1){
-			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-			writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
-			
-			p0.outputMSSample(N, replace = F, filePath = paste("~/oliviaphd/seglift_even_dist/slim_out/ms_out_"+ asString(group) + "_"+ asString(sim_run)+"_"+ asString(gen)+".txt"), append = F);
-		}
-		
-		rInd= sample(p0.individuals, 100);
-		sim.treeSeqRememberIndividuals(rInd);
-	}
+//	if (modValuerGen == 0 | modValuerGen == (g_s)) {// sample | modValuerGen == (g_s)
+//		
+//		for (i in 1:size(sim.mutations)-1){
+//			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+//			writeFile(paste("~/oliviaphd/seglift_even_dist/slim_out/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+//			
+//			p0.outputMSSample(N, replace = F, filePath = paste("~/oliviaphd/seglift_even_dist/slim_out/ms_out_"+ asString(group) + "_"+ asString(sim_run)+"_"+ asString(gen)+".txt"), append = F);
+//		}
+//		
+//		rInd= sample(p0.individuals, 100);
+//		sim.treeSeqRememberIndividuals(rInd);
+//	}
 
 }
 
