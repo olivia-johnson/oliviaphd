@@ -5,11 +5,11 @@ library(stringr)
 
 setwd("~/oliviaphd/seglift_even_dist/")
 
-group = 13
+group = 0
 
 ## list of s_stat files
 f_list <- list.files(path = "~/oliviaphd/seglift_even_dist/py_out/", pattern=paste0("sim_s_stat_", group, "_"))
-hap_list <- list.files(path = "~/oliviaphd/seglift_even_dist/slim_out/", pattern=paste0("ms_out_", group, "_", run, "_"))
+#hap_list <- list.files(path = "~/oliviaphd/seglift_even_dist/slim_out/", pattern=paste0("ms_out_", group, "_", run, "_"))
 
 ## merge output files
 s_stat = NULL
@@ -50,21 +50,6 @@ for (i in 1:(length(f_list))){
   al_freq[,run := i]
   s_stat = rbind(s_stat, output)
   freq_data = rbind(freq_data, al_freq)
-  
-  for (j in (unique(output$time))){
-    hapout = fread(file = paste0("~/oliviaphd/seglift_even_dist/slim_out/","ms_out_", group, "_", run, "_", j, ".txt"))
-    hapout = hapout[-(1:2),.N, by="//"]
-    setnames(hapout, "//", "hap")
-    setnames(hapout, "N", "hap_count")
-    hapout[, n_sel:= str_count(hap, "1")]
-    haps = hapout[, .N, by=n_sel]
-    haps$run = run
-    haps$gen = j
-    hapout$run = run
-    hapout$gen = j
-    haplotypes = rbind(haplotypes, hapout)
-    hap_stats = rbind(haps, hap_stats)
-  }
 }
 
 s_stat[, midpoint := (s_stat$win_start + (s_stat$win_end - s_stat$win_start)/2)]
