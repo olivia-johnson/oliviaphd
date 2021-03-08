@@ -14,15 +14,15 @@ import time
 import itertools
 import allel
 
-groups = (6, 7)
-group =2 ## identifier for a set of parameters
-runs = 5
+groups = (4, 5)
+group =6 ## identifier for a set of parameters
+runs = 2
 genomeSize = int(1e6)
 popnSize = int(1e4)
 mutRate = 1e-6
 recRate = 1e-8
 l = 10
-nWin = 210
+nWin = 1010
 sum_gen = 15#no. summer generations
 win_gen = 15#no. winter generations
 
