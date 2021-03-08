@@ -5,7 +5,9 @@ library(stringr)
 library(egg)
 setwd("~/oliviaphd/seglift_long")
 
-groups = c("1", "2")
+groups = c("5", "6")
+windows=101
+chromsize=5e5
 
 #ID = "L=10, d = 0.65, y=0.5"
   ##"L=10, d = 0.65, y=4"
@@ -44,16 +46,16 @@ for (g in groups){
 
 freq_data_100kg[, mean_freq:=mean(mut_freq), by=c("Gen", "mut_pos", "group")]
 #freq_data_100kg[, Season:= ifelse((Gen/2)%%15==0, "Winter", "Summer")]
-freq_data_100kg[, block :=paste0(group, "_", run, "_",(mut_pos/1e5)+.5)]
+freq_data_100kg[, block :=paste0(group, "_", run, "_",(mut_pos/5e5)+.5)]
 
-sum_stats_100kg[, win_pos:=n_win%%21]
+sum_stats_100kg[, win_pos:=n_win%%windows]
 sum_stats_100kg[, theta_w_corr:= theta_w*1e15]
 sum_stats_100kg[, mean_tajd:=mean(tajimas_d_branch), by=c("time", "win_pos", "group")]
 sum_stats_100kg[, mean_div:=mean(diversity), by=c("time", "win_pos", "group")]
 sum_stats_100kg[, mean_thetaw:=mean(theta_w_corr), by=c("time", "win_pos", "group")]
 sum_stats_100kg[, midpoint:= (win_end-win_start)/2 + win_start]
-sum_stats_100kg[, block :=paste0(group, "_", run, "_",(n_win%/%21))]
-sum_stats_100kg[, dist:=49999-(midpoint-(n_win%/%21)*1e5), by="n_win"]
+sum_stats_100kg[, block :=paste0(group, "_", run, "_",(n_win%/%windows))]
+sum_stats_100kg[, dist:=(chromsize/2)-(midpoint-(n_win%/%windows)*5e5)-1, by="n_win"]
 setnames(sum_stats_100kg, "H2/H1", "H2H1")
 
 
@@ -68,6 +70,7 @@ plot = ggplot(freq_data_100kg[run==4],aes( x = Gen, y= mut_freq))+
 
 group.labs <- c("1"= "y=0.5, d=0.65", "2" = "y=4, d=0.65")
 
+group.labs <- c("5" = "Diminishing returns", "6"= "Positive")
 
 allele_plot_100kg=ggplot(freq_data_100kg,aes( x = Gen, y= mut_freq, group = block))+
   geom_line(aes(col=as.factor(group)),alpha = 0.3) +
@@ -88,7 +91,10 @@ allele_plot_100kg=ggplot(freq_data_100kg,aes( x = Gen, y= mut_freq, group = bloc
 #   ylab("Mean Allele Frequency")+
 #   labs(col= "Seasonal Mutation")
 
-times_100kg = c(8, 15, 23,12000, 12008, 12015, 12023,42000,42008,42015, 42023, 81000, 81008,81015,81023, 117000, 117008, 117015, 117023)
+times_100kg = c(8, 15, 23,,50000,50008,50015, 50023, 110000, 110008, 110015, 110023)
+#times_100kg = c(8, 15, 23,10000, 10008, 10015, 10023,50000,50008,50015, 50023, 80000, 80008,80015,80023, 110000, 110008, 110015, 110023)
+
+
 # plot_2=ggplot(sum_stats[time %in% times], aes(x = win_end/1000, y = tajimas_d_branch, group=run)) +
 #   geom_line(alpha = 0.5)+
 #   #geom_line(aes(col = as.factor(run)), alpha = 0.8)+
@@ -157,10 +163,10 @@ theta_w_plot_100kg = ggplot(sum_stats_100kg[time %in% times_100kg], aes(x = dist
 ggsave(filename =paste0("plots/theta_plot_2_100kg.jpg"), plot = theta_w_plot_100kg, width = 15, height = 10)
 
 plot = ggarrange(taj_plot_2_100kg, div_plot_100kg, theta_w_plot_100kg, nrow = 3)
-ggsave(filename =paste0("plots/summary_plot_both.jpg"), plot = plot, width = 25, height = 20)
+ggsave(filename =paste0("plots/summary_plot_500kb.jpg"), plot = plot, width = 25, height = 20)
 
 
-h1_plot_100kg = ggplot(sum_stats_100kg[time %in% times & block == "1_1_6"], aes(x = dist/1000, y = H1, group = block))+
+h1_plot_100kg = ggplot(sum_stats_100kg[time %in% times_100kg], aes(x = dist/1000, y = H1, group = block))+
   geom_vline(aes(xintercept = 0), col= "black")+
   geom_dotplot(aes(x = dist/1000, y = H1, col = group),alpha = 0.4)+
   #geom_smooth(data = sum_stats[time %in% times],aes(group = time), col = "black")+
@@ -171,7 +177,7 @@ h1_plot_100kg = ggplot(sum_stats_100kg[time %in% times & block == "1_1_6"], aes(
   theme(legend.position = "none")
 
 
-h12_plot_100kg = ggplot(sum_stats_100kg[time %in% times & run == 1], aes(x = dist/1000, y = H12, group = block))+
+h12_plot_100kg = ggplot(sum_stats_100kg[time %in% times_100kg & run == 1], aes(x = dist/1000, y = H12, group = block))+
   geom_vline(aes(xintercept = 0), col= "black")+
   geom_jitter(aes(x = dist/1000, y = H12, col = group),alpha = 0.4)+
   #geom_smooth(data = sum_stats[time %in% times],aes(group = time), col = "black")+

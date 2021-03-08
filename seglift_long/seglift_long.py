@@ -12,8 +12,8 @@ import itertools
 import random
 import allel
 
-group =3 ## identifier for a set of parameters
-runs = 5
+group =6 ## identifier for a set of parameters
+runs = 2
 chrom = 5
 chrom_size =int(5e5)
 genomeSize = chrom_size*chrom
@@ -21,7 +21,7 @@ popnSize = int(1e4)
 mutRate = 1e-6
 recRate = 1e-8
 l = 5
-y = 0.5
+y = 4
 d = 0.65
 rGen = 10000
 fitness_on = 1
