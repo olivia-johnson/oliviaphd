@@ -5,6 +5,7 @@ sim_type = "seglift_long"
 import os
 os.chdir("/Users/olivia/oliviaphd/{0}".format(sim_type))
 
+import multiprocess as mp
 import msprime
 import pyslim
 import numpy as np
@@ -14,10 +15,10 @@ import time
 import itertools
 import allel
 
-groups = (4, 5)
-group =6 ## identifier for a set of parameters
-runs = 2
-genomeSize = int(1e6)
+#groups = (4, 5)
+group =8 ## identifier for a set of parameters
+runs = 8
+#genomeSize = int(1e6)
 popnSize = int(1e4)
 mutRate = 1e-6
 recRate = 1e-8
@@ -46,17 +47,18 @@ sim_run = 1
 
 
 ####   LOAD IN  TS
-for group in groups:
-    print("Group:" + str(group))
-    for x in range(runs):
-        #print(x)
+# for group in groups:
+#     print("Group:" + str(group))
+#     for x in range(runs):
+#         #print(x)
         
-        start_time = time.time() 
-        sim_run = str(x+1)
-        print(sim_run)
+#         start_time = time.time() 
+#         sim_run = str(x+1)
+#         print(sim_run)
         
+def ts_analysis(sim_run):
         slim_ts = pyslim.load("./group_{0}/treeseq_{1}_{2}_{3}.trees".format(group,sim_type,group,sim_run)).simplify()
-        
+        genomeSize = slim_ts.sequence_length
         ## Check number of mutations that were introduced
         if (slim_ts.num_sites != l):
             print("Less than " + str(l) + "introduced mutations")
@@ -122,7 +124,7 @@ for group in groups:
         ## SUMMARISE NEUTRAL MUTATIONS
         
         rows_list2 = []
-        a_list = list(mut_met.mut_pos)
+       # a_list = list(mut_met.mut_pos)
             ## obtain data for neutral mutations added to ts
         for mut in mut_ts.mutations(): ## run through muts in ts
             #print(mut)
@@ -279,6 +281,15 @@ for group in groups:
         #print("Time for sim run = ", (time.time()- sim_runt), "\n")
     
 
+processes=[]
+
+for sim_run in range(runs):
+    p=mp.Process(target=ts_analysis, args=[sim_run])
+    p.start()
+    processes.append(p)
+    
+for process in processes:
+    process.join()
 
 
 
