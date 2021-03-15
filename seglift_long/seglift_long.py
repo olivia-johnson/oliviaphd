@@ -1,6 +1,7 @@
 import os
 os.chdir("/Users/olivia/oliviaphd/seglift_long")
 
+import multiprocess as mp
 import msprime
 import pyslim
 import tskit
@@ -12,16 +13,16 @@ import itertools
 import random
 import allel
 
-group =6 ## identifier for a set of parameters
-runs = 2
-chrom = 5
+group =8 ## identifier for a set of parameters
+runs = 8
+chrom = 10
 chrom_size =int(5e5)
 genomeSize = chrom_size*chrom
 popnSize = int(1e4)
 mutRate = 1e-6
 recRate = 1e-8
-l = 5
-y = 4
+l = 10
+y = 2
 d = 0.65
 rGen = 10000
 fitness_on = 1
@@ -63,13 +64,12 @@ rec_map = msprime.RecombinationMap(positions = list(rec_data.positions), rates= 
 
 slim_rec.to_csv("./group_{0}/rec_map.txt".format(group), index=False, header = False, sep = "\t")
 
-for x in range(runs): 
-    #print(x)
-    sim_run = str(x+1)
-    sim_runt = time.time()
-    #print("./data/seglift_ts/burnin_seglift_ts{0}.trees".format(sim_run))
-    
-    
+# for x in range(runs): 
+#     #print(x)
+#     sim_run = str(x+1)
+#     sim_runt = time.time()
+#     #print("./data/seglift_ts/burnin_seglift_ts{0}.trees".format(sim_run))
+def simulate_seglift(sim_run): 
     ## COALESCENT BURN IN    
     start_time = time.time()
     burnin = msprime.simulate(sample_size=2*popnSize,Ne=popnSize, mutation_rate=0, recombination_map=rec_map)
@@ -79,10 +79,21 @@ for x in range(runs):
     
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
-    start_time = time.time()
+    #start_time = time.time()
     cmd = "slim -d fit="+ str(fitness_on)+" -d group=" + str(group) + " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N=" + str(int(popnSize)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) + " -d rGen="+ str(rGen) +" ~/oliviaphd/seglift_long/seglift_long.slim"
     print(cmd)
     os.system(cmd)
-    print("Time for SLiM sim = ", (time.time()- start_time))
+    #print("Time for SLiM sim = ", (time.time()- start_time))
+    print("Simulations took ", (time.time()-start_time) ,  " seconds")
     
+
+processes=[]
+
+for sim_run in range(runs):
+    p=mp.Process(target=simulate_seglift, args=[sim_run])
+    p.start()
+    processes.append(p)
+    
+for process in processes:
+    process.join()
   
