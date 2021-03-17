@@ -1,7 +1,10 @@
 
 initialize() {
 	if (!exists("GenomeSize"))
-	{defineConstant("GenomeSize", 1e6); } // genome size
+	{defineConstant("GenomeSize", 105e5); } // genome size
+	
+	if (!exists("nChrom"))
+	{defineConstant("nChrom", 21); } // number of chromosomes
 	
 	if (!exists("L"))
 	{defineConstant("L", 10); }// no. selected seasonal loci
@@ -37,7 +40,7 @@ initialize() {
 	{defineConstant("rGen", 150);} // remember individuals gen call
 	
 	if (!exists("group"))
-	{defineConstant("group", 0);} // group of parameters
+	{defineConstant("group", 9);} // group of parameters
 	
 	if (!exists("sim_run"))
 	{defineConstant("sim_run", 1);} // sim run
@@ -80,7 +83,7 @@ initialize() {
 	//sim.readFromPopulationFile("~/oliviaphd/seglift_long/group_0/burnin_seglift_long_0_0.trees");
 	
 	if (L > 0){
-		win = GenomeSize/L;
+		win = GenomeSize/nChrom;
 		win_mid = win/2;
 		
 		line2 = paste("Summer positions:");
@@ -88,7 +91,8 @@ initialize() {
 		
 		
 		for (i in 1:L){
-			pos = (i*win)-win_mid;
+			//pos = (i*(2*win))-win_mid; // i selected site every second chromsome
+			pos = (i*win)-win_mid; // 1 selected site per chromosome
 			writeFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), asString(pos), append = T);
 			target = sample(p0.genomes, asInteger(N));
 			target.addNewDrawnMutation(m2, asInteger(pos));
