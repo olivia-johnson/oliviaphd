@@ -13,16 +13,16 @@ import itertools
 import random
 import allel
 
-group =8 ## identifier for a set of parameters
+group =9 ## identifier for a set of parameters
 runs = 8
-chrom = 10
+chrom = 21
 chrom_size =int(5e5)
 genomeSize = chrom_size*chrom
 popnSize = int(1e4)
 mutRate = 1e-6
 recRate = 1e-8
 l = 10
-y = 2
+y = 4
 d = 0.65
 rGen = 10000
 fitness_on = 1
@@ -80,7 +80,7 @@ def simulate_seglift(sim_run):
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
     #start_time = time.time()
-    cmd = "slim -d fit="+ str(fitness_on)+" -d group=" + str(group) + " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N=" + str(int(popnSize)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) + " -d rGen="+ str(rGen) +" ~/oliviaphd/seglift_long/seglift_long.slim"
+    cmd = "slim -d fit="+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(chrom)+" -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d N=" + str(int(popnSize)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) + " -d rGen="+ str(rGen) +" ~/oliviaphd/seglift_long/seglift_long.slim"
     print(cmd)
     os.system(cmd)
     #print("Time for SLiM sim = ", (time.time()- start_time))
