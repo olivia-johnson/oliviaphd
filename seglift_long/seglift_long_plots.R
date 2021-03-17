@@ -5,7 +5,7 @@ library(stringr)
 library(egg)
 setwd("~/oliviaphd/seglift_long")
 
-groups = c("5", "6")
+groups = c("4","5", "6", "7")
 windows=101
 chromsize=5e5
 
@@ -70,7 +70,7 @@ plot = ggplot(freq_data_100kg[run==4],aes( x = Gen, y= mut_freq))+
 
 group.labs <- c("1"= "y=0.5, d=0.65", "2" = "y=4, d=0.65")
 
-group.labs <- c("5" = "Diminishing returns", "6"= "Positive")
+group.labs <- c("4"= "Diminishing returns","5" = "Diminishing returns", "6"= "Positive", "7"= "Positive")
 
 allele_plot_100kg=ggplot(freq_data_100kg,aes( x = Gen, y= mut_freq, group = block))+
   geom_line(aes(col=as.factor(group)),alpha = 0.3) +
@@ -91,7 +91,7 @@ allele_plot_100kg=ggplot(freq_data_100kg,aes( x = Gen, y= mut_freq, group = bloc
 #   ylab("Mean Allele Frequency")+
 #   labs(col= "Seasonal Mutation")
 
-times_100kg = c(8, 15, 23,,50000,50008,50015, 50023, 110000, 110008, 110015, 110023)
+times_100kg = c(8, 15, 23,50000,50008,50015, 50023, 110000, 110008, 110015, 110023)
 #times_100kg = c(8, 15, 23,10000, 10008, 10015, 10023,50000,50008,50015, 50023, 80000, 80008,80015,80023, 110000, 110008, 110015, 110023)
 
 
