@@ -16,14 +16,15 @@ import itertools
 import allel
 
 #groups = (4, 5)
-group =8 ## identifier for a set of parameters
-runs = 8
+group =4 ## identifier for a set of parameters
+runs = 2
 #genomeSize = int(1e6)
+nChrom = 5
 popnSize = int(1e4)
 mutRate = 1e-6
 recRate = 1e-8
-l = 10
-nWin = 1010
+l = 5
+nWin = 101 * nChrom
 sum_gen = 15#no. summer generations
 win_gen = 15#no. winter generations
 
@@ -31,6 +32,7 @@ win_gen = 15#no. winter generations
 sim_run = 1
 
 ## STAT FUNCTIONS ##
+
 
 # def FW_H(self):
 #     ts = self
@@ -215,17 +217,20 @@ def ts_analysis(sim_run):
          
             #h_stat = allel.moving_garud_h(h, size = int(genomeSize/nWin), step=None)
             
-            
+            size_factor = 1e15 # HARD coded
             positions = []
             for mut in samp_ts.mutations():
-                positions.append(int(mut.position*1e15))
+                positions.append(int(mut.position*size_factor))
+                
+            # list comprehension
+            positions = [mut.position * size_factor for mut in samp_ts.mutations()]
                 
             mut_positions = np.asarray(positions)  ##rounding mutation positions
             
             #if len(np.unique(mut_positions.astype(int))) != len(mut_positions):
                # print("Multiple mutattions at single pos")
             
-            hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h,size=int((genomeSize/nWin)*1e15), start = 0, stop = int(999999*1e15))
+            hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h,size=int((genomeSize/nWin)*size_factor), start = 0, stop = int((genomeSize-1)*size_factor))
             
         
         ## calculate Tajima's D 
@@ -234,7 +239,7 @@ def ts_analysis(sim_run):
                 ## using allel
             # taja = allel.windowed_tajima_d(genotypes, windows = win)
             
-            theta_w= allel.windowed_statistic(mut_positions, (mut_positions, samp_ac), allel.watterson_theta, size=int((genomeSize/nWin)*1e15), start = 0, stop = int(999999*1e15))
+            theta_w= allel.windowed_statistic(mut_positions, (mut_positions, samp_ac), allel.watterson_theta, size=int((genomeSize/nWin)*size_factor), start = 0, stop = int((genomeSize-1)*size_factor))
             
             #theta_w = allel.windowed_watterson_theta(mut_positions, samp_ac,size = int(genomeSize/nWin)*1e6, start = 0) 
         
@@ -283,7 +288,9 @@ def ts_analysis(sim_run):
 
 processes=[]
 
-for sim_run in range(runs):
+for run in range(runs):
+    sim_run = run+1
+    print(sim_run)
     p=mp.Process(target=ts_analysis, args=[sim_run])
     p.start()
     processes.append(p)
