@@ -91,7 +91,6 @@ initialize() {
 		
 		
 		for (i in 1:L){
-			//pos = (i*(2*win))-win_mid; // i selected site every second chromsome
 			pos = (i*win)-win_mid; // 1 selected site per chromosome
 			writeFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), asString(pos), append = T);
 			target = sample(p0.genomes, asInteger(N));
