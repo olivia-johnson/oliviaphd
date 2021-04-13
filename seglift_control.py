@@ -1,7 +1,5 @@
 import os
 os.chdir("/Users/olivia/oliviaphd/")
-import recombination
-import ts_analysis
 import multiprocess as mp
 import msprime
 import pyslim
@@ -12,12 +10,14 @@ import time
 import itertools
 import allel
 import yaml
+import recombination
+import ts_analysis
 
 sim_type = "seglift_long"
 os.chdir("/Users/olivia/oliviaphd/{0}".format(sim_type))
 import seglift_long
 ##"seglift_win"
-group = 13
+group = 3
 
 os.chdir("/Users/olivia/oliviaphd/{0}/group_{1}".format(sim_type, group))
 
