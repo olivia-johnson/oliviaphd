@@ -118,31 +118,27 @@ s1 fitness(NULL) { //summer
 	if (fit == 0){
 		return 1.0;
 	} else{
-		
-		gen = sim.generation;
-		modValueSeason = integerMod(gen, (g));
-		gnm1 = genome1.mutationsOfType(m2);
-		gnm2 = genome2.mutationsOfType(m2);
-		ns = sum(match(gnm1, gnm2)>=0); //homozygosity summer
-		nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
-		nw = L-(ns+nhet);//homozygosity winter
+		genomes=individual.genomes.mutationFrequenciesInGenomes();
+		ns = sum(genomes==1); //homozygosity summer
+		nhet = sum(genomes==0.5);  // heterozygosity
+		nw = sum(genomes==0);//homozygosity winter
 		if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 			zs = ns + (d * nhet);
 			return (1 + zs)^y; }
 		else { // winter
 			zw = nw + (d * nhet);
-			
 			return (1 + zw)^y;}
 	}
 }
 
-2:120000 early(){
-	if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}}
+1:120000 early(){
+		defineGlobal("gen", sim.generation);}
+
 1:120000 late(){
 	
-	gen = sim.generation;
-	modValueSeason = integerMod(gen, (g));
-	modValuerGen = integerMod(gen, rGen);
+	defineGlobal("modValueSeason",integerMod(gen, g));
+	defineGlobal("modValuerGen", integerMod(gen, rGen));
+	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
 	
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
@@ -166,7 +162,7 @@ s1 fitness(NULL) { //summer
 		rInd= sample(p0.individuals, 100);
 		sim.treeSeqRememberIndividuals(rInd);
 	}
-
+if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
 }
 
 120000 late() {
@@ -178,10 +174,9 @@ s1 fitness(NULL) { //summer
 		}
 	}
 	e_mc = sim.countOfMutationsOfType(m2);
-	fix = sum(sim.mutationFrequencies(p0)== 1);
 	loss = L - e_mc;
 	
-	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fix);
+	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fixed);
 	catn(line4);
 	sim.treeSeqOutput(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/treeseq_seglift_long_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
 }
