@@ -131,10 +131,10 @@ s1 fitness(NULL) { //summer
 	}
 }
 
-1:120000 early(){
+1:50000 early(){
 		defineGlobal("gen", sim.generation);}
 
-1:120000 late(){
+1:50000 late(){
 	
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuerGen", integerMod(gen, rGen));
@@ -165,7 +165,7 @@ s1 fitness(NULL) { //summer
 if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
 }
 
-120000 late() {
+50000 late() {
 	gen = sim.generation;
 	if (L > 0){
 		for (i in 1:size(sim.mutations)-1){
