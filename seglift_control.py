@@ -13,11 +13,15 @@ import yaml
 import recombination
 import ts_analysis
 
-sim_type = "seglift_long"
-os.chdir("/Users/olivia/oliviaphd/{0}".format(sim_type))
+sim_code= "seglift_long"  ## DONT CHANGE
+os.chdir("/Users/olivia/oliviaphd/{0}".format(sim_code))
 import seglift_long
 ##"seglift_win"
-group = 3
+
+sim_type = "seglift_long"
+#"seglift_substitute"
+#
+group = 9
 
 os.chdir("/Users/olivia/oliviaphd/{0}/group_{1}".format(sim_type, group))
 
@@ -40,7 +44,7 @@ s_pop = int(parameters["s_pop"])
 w_pop = int(parameters["w_pop"])
 l = int(parameters["l"])
 y = parameters["y"]
-d=parameters["d"]
+d = parameters["d"]
 rGen=int(parameters["rGen"])
 fitness_on = parameters["fitness_on"]
 sum_gen = int(parameters["sum_gen"])
