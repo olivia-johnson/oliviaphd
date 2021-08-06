@@ -5,62 +5,63 @@ library(stringr)
 library(egg)
 setwd("~/oliviaphd/seglift_long")
 
-groups = c("4","5", "6", "7")
-windows=101
+groups = c("10")
+windows=51
 chromsize=5e5
 
 #ID = "L=10, d = 0.65, y=0.5"
-  ##"L=10, d = 0.65, y=4"
-  ##"No Fitness, L=10"
-freq_data_100kg = NULL
-sum_stats_100kg = NULL
+##"L=10, d = 0.65, y=4"
+##"No Fitness, L=10"
+freq_data = NULL
+sum_stats = NULL
 
 for (g in groups){
   print(g)
-
-  f_list_100kg <- list.files(path =paste0("~/oliviaphd/seglift_long/group_", g, "/"),pattern ="al_freq_")
   
-  s_list_100kg <- list.files(path =paste0("~/oliviaphd/seglift_long/group_", g, "/"),pattern ="s_stat_2sps")
+  f_list  <- list.files(path =paste0("~/oliviaphd/seglift_long/group_", g, "/"),pattern ="al_freq_")
+  
+  s_list  <- list.files(path =paste0("~/oliviaphd/seglift_long/group_", g, "/"),pattern ="s_stat_")
   
   
   ## collate al_freq files
-  for (i in 1:(length(f_list_100kg))){  
-    filename = f_list_100kg[i]
+  for (i in 1:(length(f_list ))){  
+    filename = f_list [i]
     #print(filename)
-    al_freq_100kg = fread(file = paste0("~/oliviaphd/seglift_long/group_",g, "/",filename))
-    al_freq_100kg[,run := i]
-    al_freq_100kg[,group:=g]
-    freq_data_100kg = rbind(freq_data_100kg, al_freq_100kg)
+    al_freq  = fread(file = paste0("~/oliviaphd/seglift_long/group_",g, "/",filename))
+    al_freq [,run := i]
+    al_freq [,group:=g]
+    freq_data  = rbind(freq_data , al_freq )
   }
   
   ## collate sum_stat files
-  for (i in 1:(length(s_list_100kg))){  
-    filename = s_list_100kg[i]
+  for (i in 1:(length(s_list ))){  
+    filename = s_list [i]
     #print(filename)
-    s_stat_100kg = fread(file = paste0("~/oliviaphd/seglift_long/group_",g, "/",filename))
-    s_stat_100kg[,run := i]
-    s_stat_100kg[,group:=g]
-    sum_stats_100kg = rbind(sum_stats_100kg, s_stat_100kg)
+    s_stat  = fread(file = paste0("~/oliviaphd/seglift_long/group_",g, "/",filename))
+    s_stat [,run := i]
+    s_stat [,group:=g]
+    sum_stats = rbind(sum_stats, s_stat )
   }
 }
 
-freq_data_100kg[, mean_freq:=mean(mut_freq), by=c("Gen", "mut_pos", "group")]
-#freq_data_100kg[, Season:= ifelse((Gen/2)%%15==0, "Winter", "Summer")]
-freq_data_100kg[, block :=paste0(group, "_", run, "_",(mut_pos/5e5)+.5)]
+freq_data [, mean_freq:=mean(mut_freq), by=c("Gen", "mut_pos", "group")]
+#freq_data [, Season:= ifelse((Gen/2)%%15==0, "Winter", "Summer")]
+freq_data [, block :=paste0(group, "_", run, "_",(mut_pos/5e5)+.5)]
 
-sum_stats_100kg[, win_pos:=n_win%%windows]
-sum_stats_100kg[, theta_w_corr:= theta_w*1e15]
-sum_stats_100kg[, mean_tajd:=mean(tajimas_d_branch), by=c("time", "win_pos", "group")]
-sum_stats_100kg[, mean_div:=mean(diversity), by=c("time", "win_pos", "group")]
-sum_stats_100kg[, mean_thetaw:=mean(theta_w_corr), by=c("time", "win_pos", "group")]
-sum_stats_100kg[, midpoint:= (win_end-win_start)/2 + win_start]
-sum_stats_100kg[, block :=paste0(group, "_", run, "_",(n_win%/%windows))]
-sum_stats_100kg[, dist:=(chromsize/2)-(midpoint-(n_win%/%windows)*5e5)-1, by="n_win"]
-setnames(sum_stats_100kg, "H2/H1", "H2H1")
+sum_stats[, win_pos:=n_win%%windows]
+sum_stats[, midpoint:= (win_end-win_start)/2 + win_start]
+sum_stats[, block :=paste0(group, "_", run, "_",chrom)]
+sum_stats[, chrom_pos:= midpoint-(chrom-1)*chromsize]
+sum_stats[, dist:=(chromsize/2)-chrom_pos-1, by="n_win"]
+# sum_stats[, theta_w_corr:= theta_w*1e15]
+sum_stats[, mean_tajd:=mean(tajimas_d_branch), by=c("time", "chrom_pos", "group")]
+sum_stats[, mean_div:=mean(diversity), by=c("time", "chrom_pos", "group")]
+sum_stats[, mean_thetaw:=mean(theta_w), by=c("time", "chrom_pos", "group")]
+# sum_stats[, mean_thetaw:=mean(theta_w_corr), by=c("time", "win_pos", "group")]
 
 
 
-plot = ggplot(freq_data_100kg[run==4],aes( x = Gen, y= mut_freq))+
+plot = ggplot(freq_data [run==4],aes( x = Gen, y= mut_freq))+
   geom_line(aes( col = as.factor(mut_pos))) +
   ggtitle("Allele Frequency (Single Simulation, N = 1000, d=0.65)") +
   xlab("Generation")+
@@ -68,116 +69,156 @@ plot = ggplot(freq_data_100kg[run==4],aes( x = Gen, y= mut_freq))+
 
 ##ggsave(filename =("freq_plot_0_3.jpg"), plot = plot, width = 15, height = 10)
 
-group.labs <- c("1"= "y=0.5, d=0.65", "2" = "y=4, d=0.65")
+group.labs <- c("10"="y=1, d=0.5")
 
-group.labs <- c("4"= "Diminishing returns","5" = "Diminishing returns", "6"= "Positive", "7"= "Positive")
+#group.labs <- c("3"="No Fitness", "1"= "y=4, d=0.65", "2"="y=0.5, d=0.65","4"= "y=1, d=0.65","5"= "y=2, d=0.65", "6"= "y=4, d=0.5","7"="y=0.5, d=0.5", "8"="y=1, d=0.5" )
 
-allele_plot_100kg=ggplot(freq_data_100kg,aes( x = Gen, y= mut_freq, group = block))+
+
+neu.fil = c("time %in% times ", "selected == F")
+#al_time = c( 1,13,10000,10013,20000,20013,30000,30013,40000,40013,50000,50013,60000, 60013,70000,70013,80000, 80013,90000,90013,100000, 100013, 110000, 110013,120000)
+al_time=c(20000, 20007, 20013, 20014)
+allele_plot =ggplot(freq_data ,aes(x = Gen, y= mut_freq, group = block))+
   geom_line(aes(col=as.factor(group)),alpha = 0.3) +
-  facet_wrap(~group, labeller = labeller(group = group.labs))+
+  facet_wrap(~group, labeller = labeller(group = group.labs), ncol = 2)+
   #ggtitle(paste0("Allele Frequency (", ID, ")")) +
   xlab("Generation")+
   scale_y_continuous(limits = c(0, 1.0))+
   ylab("Allele Frequency")+
   theme(legend.position = "none")+
   labs(col= "Seasonal Mutation")
-# 
-# plot_meanfreq = ggplot(freq_data,aes( x = Gen, y= mean_freq))+
-#  geom_line(alpha = 0.3) +
-#   facet_wrap(~group)+
-#   ggtitle(paste0("Mean Allele Frequency (", ID, ")")) +
-#   xlab("Generation")+
-#   scale_y_continuous(limits = c(0, 1.0))+
-#   ylab("Mean Allele Frequency")+
-#   labs(col= "Seasonal Mutation")
-
-times_100kg = c(8, 15, 23,50000,50008,50015, 50023, 110000, 110008, 110015, 110023)
-#times_100kg = c(8, 15, 23,10000, 10008, 10015, 10023,50000,50008,50015, 50023, 80000, 80008,80015,80023, 110000, 110008, 110015, 110023)
+ggsave(filename =paste0("plots/allele_freq.jpg"), plot = allele_plot , width = 15, height = 10)
 
 
-# plot_2=ggplot(sum_stats[time %in% times], aes(x = win_end/1000, y = tajimas_d_branch, group=run)) +
-#   geom_line(alpha = 0.5)+
-#   #geom_line(aes(col = as.factor(run)), alpha = 0.8)+
-#   geom_line(aes(y=mean_tajd), col="blue")+
-#   facet_wrap(~time, nrow = 2)+
-#   xlab("Position (Kb)")+
-#   ylab("Tajima's D")+
-#   ggtitle(paste0("Mean Tajima's D (", ID, ")"))+
-#   geom_vline(xintercept=unique(freq_data$mut_pos)/1000,color="red", alpha = 0.5)+
-#   theme(legend.position = "none")
+freq_data[mut_freq!=1, Freq.bin:="Segregating"]
+freq_data[mut_freq==1, Freq.bin:="Fixed_Summer"]
+ff <- freq_data[, .N, by = c("Gen", "group", "Freq.bin")]
+gg <- freq_data[, .(Freq.bin="Fixed_Winter", N=80-.N), by = c("Gen", "group")]
+
+xx <- rbind(ff, gg)
+
+freq_bin = ggplot(xx, aes(x=Gen, y=N, col = Freq.bin))+
+  geom_line()+
+  facet_wrap(~group, labeller = labeller(group = group.labs))
+ggsave(filename =paste0("plots/freq_bin.jpg"), plot = freq_bin , width = 15, height = 10)
 
 
-# plot_meantaj=ggplot(sum_stats[time %in% times], aes(x = win_end/1000, y = mean_tajd)) +
-#   geom_line()+
-#   facet_wrap(~time, nrow = 3)+
-#   xlab("Position (Kb)")+
-#   ylab("Tajima's D (mean)")+
-#   ggtitle(paste0("Mean Tajima's D (", ID, ")"))+
-#   geom_vline(xintercept=unique(freq_data$mut_pos)/1000,color="red", alpha = 0.5)+
-#   theme(legend.position = "none")
+freq_data[mut_freq!=1, Freq.bin:="Segregating"]
+freq_data[mut_freq==1, Freq.bin:="Fixed_Summer"]
+ff <- freq_data[, .N, by = c("Gen", "group", "run", "Freq.bin")]
+gg <- freq_data[, .(Freq.bin="Fixed_Winter", N=10-.N), by = c("Gen", "group", "run")]
+
+xx <- rbind(ff, gg)
+
+freq_bin_run = ggplot(xx, aes(x=Gen, y=N, col=factor(Freq.bin)))+
+  geom_line()+
+  facet_grid(run~group, labeller = labeller(group = group.labs))
+ggsave(filename =paste0("plots/freq_bin_run.jpg"), plot = freq_bin_run , width = 15, height = 10)
+
+ggplot(freq_data[group %in% c(6,8) & mut_freq!=1], aes(x=Gen, y=mut_freq, col=factor(mut_pos))) +
+  geom_line()+
+  facet_grid(run~group, labeller = labeller(group = group.labs))
 
 
 
-# taj_plot_1 = ggplot(sum_stats[time %in% times], aes(x = dist/1000, y = tajimas_d_branch, group = block))+
-#   geom_line(alpha = 0.3)+
-#   facet_wrap(~time, nrow = 2)+
-#   xlab("Distance from selected loci (kb)")+
-#   ylab("Tajima's D")+
-#   ggtitle(paste0("Tajima's D (", ID, ")"))
-
-taj_plot_2_100kg = ggplot(sum_stats_100kg[time %in% times_100kg], aes(x = dist/1000, y = tajimas_d_branch, group = block))+
-  geom_vline(aes(xintercept = 0), col= "red")+
-  geom_line(aes(x = dist/1000, y = tajimas_d_branch, col = group),alpha = 0.4)+
-  geom_line(aes(x=dist/1000, y = mean_tajd))+
-  #geom_smooth(data = sum_stats_100kg[time %in% times_100kg],aes(group = time), col = "black")+
-  facet_grid(group~time, labeller = labeller(group = group.labs))+
-  xlab("Distance from selected loci (kb)")+
+#times  = c(8, 15, 23,50000,50008,50015, 50023, 110000, 110008, 110015, 110023)
+#times  = c(8, 15, 23,10000, 10008, 10015, 10023,20000, 20008, 20015, 20023,50000,50008,50015, 50023, 80000, 80008,80015,80023, 110000, 110008, 110015, 110023)
+#times  = c(6,12, 13,14,15006,15012,15013,15014,30006,30012,30013,30014,45006,45012,45013,45014,60006,60012,60013,60014,75006,75012,75013,75014,90006,90012,90013,90014,105006, 105012, 105013, 105014)
+times = c(6,12, 13, 14, 7506, 7512, 7513, 7514,22506, 22512, 22513, 22514,52506, 52512, 52513, 52514,75006, 75012, 75013, 75014,105006, 105012, 105013, 105014)
+## ALL
+taj_plot_all = ggplot(sum_stats[time %in% times], aes(x = chrom_pos/1000, y = tajimas_d_branch, group = block))+
+  geom_vline(data = subset(sum_stats[time %in% times ],selected==T),aes(xintercept = (chromsize/2)/1000), col= "red")+
+  geom_line(aes(x = chrom_pos/1000, y = tajimas_d_branch, col = group),alpha = 0.4)+
+  geom_hline(yintercept = 0, col = "grey")+
+  geom_line(aes(x=chrom_pos/1000, y = mean_tajd))+
+  facet_grid(group+selected~time, labeller = labeller(group = group.labs))+
+  xlab("Distance along chromosome (kb)")+
   ylab("Tajima's D")+
-  #labs(col= "Generation")
   theme(legend.position = "none")
-  #ggtitle(paste0("Tajima's D (", ID, ")"))
 
-div_plot_100kg = ggplot(sum_stats_100kg[time %in% times_100kg], aes(x = dist/1000, y = diversity, group = block))+
-  geom_vline(aes(xintercept = 0), col= "red")+
-  geom_line(aes(x = dist/1000, y = diversity, col = group),alpha = 0.4)+
-  geom_line(aes(x=dist/1000, y = mean_div))+
-  #geom_smooth(data = sum_stats_100kg[time %in% times_100kg],aes(group = time), col = "black")+
-  facet_grid(group~time, labeller = labeller(group = group.labs))+
-  xlab("Distance from selected loci (kb)")+
+## NON_SELECTED
+taj_plot_ns = ggplot(sum_stats[time %in% times & selected==F], aes(x = chrom_pos/1000, y = tajimas_d_branch, group = block))+
+  geom_line(aes(x = chrom_pos/1000, y = tajimas_d_branch, col = group),alpha = 0.4)+
+  geom_hline(yintercept = 0, col = "grey")+
+  geom_line(aes(x=chrom_pos/1000, y = mean_tajd))+
+  facet_grid(group+selected~time, labeller = labeller(group = group.labs))+
+  xlab("Distance along chromosome (kb)")+
+  ylab("Tajima's D")+
+  theme(legend.position = "none")
+
+## SELECTED
+taj_plot_s = ggplot(sum_stats[time %in% times & selected==T], aes(x = chrom_pos/1000, y = tajimas_d_branch, group = block))+
+  geom_line(aes(x = chrom_pos/1000, y = tajimas_d_branch, col = group),alpha = 0.4)+
+  geom_hline(yintercept = 0, col = "grey")+
+  geom_line(aes(x=chrom_pos/1000, y = mean_tajd))+
+  facet_grid(group+selected~time, labeller = labeller(group = group.labs))+
+  xlab("Distance along chromosome (kb)")+
+  ylab("Tajima's D")+
+  theme(legend.position = "none")
+
+dom.65 = c("1", "2", "3", "4")
+dom.5 = c("3", "6", "7", "8")
+## BY GROUP
+
+taj_plot_d = ggplot(sum_stats[time %in% times & dom.65 %in% group & selected ==T], aes(x = chrom_pos/1000, y = tajimas_d_branch, group = block))+
+  geom_vline(data = subset(sum_stats[time %in% times ],selected==T),aes(xintercept = (chromsize/2)/1000), col= "red")+
+  geom_line(aes(x = chrom_pos/1000, y = tajimas_d_branch, col = group),alpha = 0.4)+
+  geom_hline(yintercept = 0, col = "grey")+
+  geom_line(aes(x=chrom_pos/1000, y = mean_tajd))+
+  facet_grid(group+selected~time, labeller = labeller(group = group.labs))+
+  xlab("Distance along chromosome (kb)")+
+  ylab("Tajima's D")+
+  ggtitle("Tajima's D - d=0.5 selected")+
+  theme(legend.position = "none")
+
+
+ggsave(filename =paste0("plots/tajd_sel_dom65.jpg"), plot = taj_plot_d , width = 15, height = 10)
+
+
+
+div_plot = ggplot(sum_stats[time %in% times & dom.65 %in% group & selected ==F], aes(x = chrom_pos/1000, y = diversity, group = block))+
+  #geom_vline(data = subset(sum_stats[time %in% times ],selected==T),aes(xintercept = (chromsize/2)/1000), col= "red")+
+  geom_line(aes(x = chrom_pos/1000, y = diversity, col = group),alpha = 0.4)+
+  geom_line(aes(x=chrom_pos/1000, y = mean_div))+
+  geom_hline(yintercept = 0.00005, col = "grey", )+
+  facet_grid(group+selected~time, labeller = labeller(group = group.labs))+
   ylab("Diversity")+
-  #labs(col= "Generation")
+  xlab("Distance along chromosome (kb)")+
+  ggtitle("Diversity - d=0.65 unselected")+
   theme(legend.position = "none")
-#ggtitle(paste0("Tajima's D (", ID, ")"))
 
-theta_w_plot_100kg = ggplot(sum_stats_100kg[time %in% times_100kg], aes(x = dist/1000, y = theta_w_corr, group = block))+
-  geom_vline(aes(xintercept = 0), col= "red")+
-  geom_line(aes(x = dist/1000, y = theta_w_corr, col = group),alpha = 0.4)+
-  #geom_smooth(data = sum_stats_100kg[time %in% times_100kg],aes(group = time), col = "black")+
-  geom_line(aes(x=dist/1000, y = mean_thetaw))+
-  facet_grid(group~time, labeller = labeller(group = group.labs))+
-  xlab("Distance from selected loci (kb)")+
+ggsave(filename =paste0("plots/div_unsel_dom65.jpg"), plot = div_plot , width = 15, height = 10)
+
+
+theta_w_plot = ggplot(sum_stats[time %in% times ], aes(x = chrom_pos/1000, y = theta_w, group = block))+
+  geom_vline(data = subset(sum_stats[time %in% times ],selected==T),aes(xintercept = (chromsize/2)/1000), col= "red")+
+  geom_line(aes(x = chrom_pos/1000, y = theta_w, col = group),alpha = 0.4)+
+  geom_line(aes(x=chrom_pos/1000, y = mean_thetaw))+
+  geom_hline(yintercept = 0.0005, col = "grey", )+
+  facet_grid(group+selected~time, labeller = labeller(group = group.labs))+
+  xlab("Distance along chromosome (kb)")+
   ylab("Watterson's Theta")+
-  #labs(col= "Generation")
   theme(legend.position = "none")
-#ggtitle(paste0("Tajima's D (", ID, ")"))
-ggsave(filename =paste0("plots/theta_plot_2_100kg.jpg"), plot = theta_w_plot_100kg, width = 15, height = 10)
 
-plot = ggarrange(taj_plot_2_100kg, div_plot_100kg, theta_w_plot_100kg, nrow = 3)
+
+
+ggsave(filename =paste0("plots/theta_plot_unselchrom_5.jpg"), plot = theta_w_plot , width = 15, height = 10)
+ggsave(filename =paste0("plots/taj_plot_unselchrom_5.jpg"), plot = taj_plot , width = 15, height = 10)
+ggsave(filename =paste0("plots/div_plot_unselchrom_5.jpg"), plot = div_plot , width = 15, height = 10)
+
+plot = ggarrange(taj_plot_2 , div_plot , theta_w_plot , nrow = 3)
 ggsave(filename =paste0("plots/summary_plot_500kb.jpg"), plot = plot, width = 25, height = 20)
 
 
-h1_plot_100kg = ggplot(sum_stats_100kg[time %in% times_100kg], aes(x = dist/1000, y = H1, group = block))+
-  geom_vline(aes(xintercept = 0), col= "black")+
+h1_plot  = ggplot(sum_stats[time %in% times ], aes(x = dist/1000, y = H1, group = block))+
+  geom_vline(aes(xintercept =(chromsize/2)), col= "black")+
   geom_dotplot(aes(x = dist/1000, y = H1, col = group),alpha = 0.4)+
-  #geom_smooth(data = sum_stats[time %in% times],aes(group = time), col = "black")+
   facet_grid(group~time, labeller = labeller(group = group.labs))+
   xlab("Distance from selected loci (kb)")+
   ylab("H1")+
-  #labs(col= "Generation")
   theme(legend.position = "none")
 
 
-h12_plot_100kg = ggplot(sum_stats_100kg[time %in% times_100kg & run == 1], aes(x = dist/1000, y = H12, group = block))+
+h12_plot  = ggplot(sum_stats[time %in% times  & run == 1], aes(x = dist/1000, y = H12, group = block))+
   geom_vline(aes(xintercept = 0), col= "black")+
   geom_jitter(aes(x = dist/1000, y = H12, col = group),alpha = 0.4)+
   #geom_smooth(data = sum_stats[time %in% times],aes(group = time), col = "black")+
@@ -187,21 +228,19 @@ h12_plot_100kg = ggplot(sum_stats_100kg[time %in% times_100kg & run == 1], aes(x
   #labs(col= "Generation")
   theme(legend.position = "none")
 
-h2h1_plot_100kg = ggplot(sum_stats_100kg[time %in% times], aes(x = dist/1000, y = H2H1, group = block))+
+h2h1_plot  = ggplot(sum_stats[time %in% times], aes(x = dist/1000, y = H2H1, group = block))+
   geom_vline(aes(xintercept = 0), col= "black")+
   geom_jitter(aes(x = dist/1000, y = H2H1, col = group),alpha = 0.4)+
-  #geom_smooth(data = sum_stats[time %in% times],aes(group = time), col = "black")+
   facet_grid(group~time, labeller = labeller(group = group.labs))+
   xlab("Distance from selected loci (kb)")+
   ylab("H1")+
-  #labs(col= "Generation")
   theme(legend.position = "none")
 
 
 
 
 
-plot = ggarrange(allele_plot_100kg, taj_plot_2_100kg, heights = c(1,2))
+plot = ggarrange(allele_plot , taj_plot_2 , heights = c(1,2))
 ggsave(filename =paste0("initial_plot_all_groups_4.jpg"), plot = plot, width = 15, height = 10)
 
 

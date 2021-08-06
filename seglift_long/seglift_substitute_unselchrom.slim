@@ -53,7 +53,7 @@ initialize() {
 	
 	initializeMutationRate(mut);
 	
-	lines = readFile(paste(c("~/oliviaphd/seglift_long/group_"+group+"/rec_map.txt")));
+	lines = readFile(paste(c("~/phd_data/seglift_long/group_"+group+"/rec_map.txt")));
 	rates = NULL;
 	ends = NULL;
 	
@@ -78,9 +78,9 @@ initialize() {
 1 late() {
 	cat(sim_run + "\n");
 	line1 = paste(c("SimID:" + sim_run +"\n" + "Fitness_on=" + fit+ ", n_s=" + n_s + ", n_w=" + n_w+ ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", g_s=" + g_s + ", g_w="+g_w));
-	writeFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_" + asString(sim_run)+".txt"), line1, append = F);
+	writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_" + asString(sim_run)+".txt"), line1, append = F);
 	
-	sim.readFromPopulationFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/burnin_seglift_long_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
+	sim.readFromPopulationFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/burnin_seglift_long_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
 	
 	
 	if (L > 0){
@@ -88,13 +88,13 @@ initialize() {
 		win_mid = win/2;
 		
 		line2 = paste("Summer positions:");
-		writeFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line2, append = T);
+		writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line2, append = T);
 		
 		
 		for (i in 1:L){
 			pos = (i*(2*win))-win_mid; // 1 selected site every second chromsome
 			//pos = (i*win)-win_mid; // 1 selected site per chromosome
-			writeFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), asString(pos), append = T);
+			writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), asString(pos), append = T);
 			target = sample(p0.genomes, asInteger(n_s));
 			target.addNewDrawnMutation(m2, asInteger(pos));
 		}
@@ -106,10 +106,10 @@ initialize() {
 		
 		
 		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
-		writeFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
+		writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-			writeFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+			writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 		}
 	}
 }
@@ -156,7 +156,7 @@ s1 fitness(NULL) { //summer
 		if (size(sim.mutations)> 0){
 			for (i in 1:size(sim.mutations)-1){
 				tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-				writeFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+				writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 			}
 		}
 		rInd= sample(p0.individuals, 100);
@@ -172,7 +172,7 @@ s1 fitness(NULL) { //summer
 	if (size(sim.mutations)> 0){
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-			writeFile(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+			writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 		
 		}
 	}
@@ -181,6 +181,6 @@ s1 fitness(NULL) { //summer
 	
 	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fixed);
 	catn(line4);
-	sim.treeSeqOutput(paste("~/oliviaphd/seglift_long/group_"+ asString(group)+"/treeseq_seglift_long_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+	sim.treeSeqOutput(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/treeseq_seglift_long_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
 }
 
