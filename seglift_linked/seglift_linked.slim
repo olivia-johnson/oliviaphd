@@ -1,0 +1,188 @@
+
+initialize() {
+	if (!exists("GenomeSize"))
+	{defineConstant("GenomeSize", 105e5); } // genome size
+	
+	if (!exists("nChrom"))
+	{defineConstant("nChrom", 21); } // number of chromosomes
+	
+	if (!exists("L"))
+	{defineConstant("L", 30); }// no. selected seasonal loci
+	
+	if (!exists("y"))
+	{defineConstant("y", 1); }// exponent of fitness function
+	
+	if (!exists("n_s"))
+	{defineConstant("n_s", 1e4); }// summer population size
+	
+	if (!exists("n_w"))
+	{defineConstant("n_w", 1e3); }// winter population size
+	
+	if (!exists("d"))
+	{defineConstant("d", 0.6); } // dominance
+	
+	if (!exists("g_s"))
+	{defineConstant("g_s", 13); } // generations per summer
+	
+	if (!exists("g_w"))
+	{defineConstant("g_w", 2); } // generations per winter 
+	
+	defineConstant("halfS", round(g_s/2)); // generation halfway through summer
+	defineConstant("halfW", round(g_w/2)); // generation halfway through winter
+	
+	if (!exists("g"))
+	{defineConstant("g", (g_s + g_w)); } // generations per seasonal cycle     
+	
+	if (!exists("mut"))
+	{defineConstant("mut", 0.0);} // mutation rate
+	
+	if (!exists("rr"))
+	{defineConstant("rr", 1e-8);} // recombination rate
+	
+	if (!exists("rGen"))
+	{defineConstant("rGen", 10000);} // remember individuals gen call
+	
+	if (!exists("group"))
+	{defineConstant("group", 0);} // group of parameters
+	
+	if (!exists("sim_run"))
+	{defineConstant("sim_run", 0);} // sim run
+	
+	if (!exists("fit"))
+	{defineConstant("fit",1);} //if fit = 0 fitness function switched off
+	
+	defineGlobal("linked", L/10);
+	
+	initializeMutationRate(mut);
+	
+	lines = readFile(paste(c("~/phd_data/seglift_linked/group_"+group+"/rec_map.txt")));
+	rates = NULL;
+	ends = NULL;
+	
+	for (line in lines){
+		components = strsplit(line, "\t");
+		ends = c(ends, asInteger(components[0]));
+		rates = c(rates, asFloat(components[1]));
+	}
+	initializeRecombinationRate(rates,ends);
+	
+	initializeMutationType("m1", 0.0, "f", 0.0); // neutral
+	initializeMutationType("m2", 0.0, "f", 0.0); // summer
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, GenomeSize-1);
+	m2.color = "pink";
+	m2.convertToSubstitution = F;
+	
+	initializeTreeSeq();
+}
+
+
+1 late() {
+	cat(sim_run + "\n");
+	line1 = paste(c("SimID:" + sim_run +"\n" + "Fitness_on=" + fit+ ", n_s=" + n_s + ", n_w=" + n_w+ ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", g_s=" + g_s + ", g_w="+g_w));
+	writeFile(paste("~/phd_data/seglift_linked/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_" + asString(sim_run)+".txt"), line1, append = F);
+	
+	sim.readFromPopulationFile(paste("~/phd_data/seglift_linked/group_"+ asString(group)+"/burnin_seglift_long_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
+
+	
+	if (L > 0){
+		win = GenomeSize/nChrom;
+		win_mid = win/(linked+1);
+		
+		line2 = paste("Summer positions:");
+		writeFile(paste("~/phd_data/seglift_linked/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line2, append = T);
+		
+		
+		for (i in 1:10){
+			for (s in 1:linked){
+				pos = (i*(2*win))-(win_mid*s); // 1 selected site every second chromsome
+			//pos = (i*win)-win_mid; // 1 selected site per chromosome
+				writeFile(paste("~/phd_data/seglift_linked/group_"+ asString(group)+"/sim_data_"+ asString(group) + "_"+ asString(sim_run)+".txt"), asString(pos), append = T);
+				target = sample(p0.genomes, asInteger(n_s));
+				target.addNewDrawnMutation(m2, asInteger(pos));
+			}
+		}
+		if (sim.mutationFrequencies(p0)[1] != 0.5){
+			sim.simulationFinished();
+			catn("ERROR: SELECTED MUTATIONS NOT AT 0.5 STARTING FREQUENCY");
+		}
+		
+		
+		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
+		writeFile(paste("~/phd_data/seglift_linked/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
+		for (i in 1:size(sim.mutations)-1){
+			tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+			writeFile(paste("~/phd_data/seglift_linked/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		}
+	}
+}
+
+s1 fitness(NULL) { //summer
+	if (fit == 0){
+		return 1.0;
+	} else{
+		genomes=individual.genomes.mutationFrequenciesInGenomes();
+		ns = sum(genomes==1); //homozygosity summer
+		nhet = sum(genomes==0.5);  // heterozygosity
+		nw = sum(genomes==0);//homozygosity winter
+		if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+			zs = ns + (d * nhet);
+			return (1 + zs)^y; }
+		else { // winter
+			zw = nw + (d * nhet);
+			return (1 + zw)^y;}
+	}
+}
+
+1:50000 early(){
+		defineGlobal("gen", sim.generation);}
+
+1:50000 late(){
+	
+	defineGlobal("modValueSeason",integerMod(gen, g));
+	defineGlobal("modValuerGen", integerMod(gen, rGen));
+	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
+	
+	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+		if (modValueSeason == 0){
+		p0.setSubpopulationSize(n_s);}
+		if (exists("slimgui")) {cat("Summer\n");}
+	}
+	if (modValueSeason >= g_s) { //winter
+		if (modValueSeason == g_s){
+		p0.setSubpopulationSize(n_w);}
+		if (exists("slimgui")) {cat("Winter\n");}
+	}
+	if (modValuerGen == (halfS-1) | modValuerGen == (g_s-1) | modValuerGen == (g_s+halfW-1) | modValuerGen == (g_s + g_w-1)) {// sample
+		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
+		if (L > 0){
+			for (i in 1:size(sim.mutations)-1){
+				tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+				writeFile(paste("~/phd_data/seglift_linked/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+			 
+			}
+		}
+		rInd= sample(p0.individuals, 100);
+		sim.treeSeqRememberIndividuals(rInd);
+	}
+}
+2:50000 late(){
+if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
+}
+
+50000 late() {
+	gen = sim.generation;
+	if (L > 0){
+		for (i in 1:size(sim.mutations)-1){
+			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+			writeFile(paste("~/phd_data/seglift_linked/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		}
+	}
+	e_mc = sim.countOfMutationsOfType(m2);
+	loss = L - e_mc;
+	
+	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fixed);
+	catn(line4);
+	sim.treeSeqOutput(paste("~/phd_data/seglift_linked/group_"+ asString(group)+"/treeseq_seglift_linked_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+}
+
