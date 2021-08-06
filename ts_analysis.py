@@ -54,7 +54,7 @@ def analyse(group, sim_type, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen
     ## run through mutations (muts) in ts
     for mut in slim_ts.mutations():
         #print(mut)
-        mut_met = mut_met.append({"mut_site" : mut.site, "mut_pos" : mut.position, "mut_id" : mut.id}, ignore_index=True)
+        mut_met = mut_met.append({"mut_site" : mut.site, "mut_pos" : slim_ts.site(mut.site).position, "mut_id" : mut.id}, ignore_index=True)
 
 ## SUMMARISE INDIVIDUALS - obtain metadata for individuals 'remembered' in ts
     rows_list = []
@@ -71,7 +71,7 @@ def analyse(group, sim_type, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen
             # individual's id in ts
         dict1.update({"id" : ind.id})
             # generation ind is from in SLiM time (SLiM and ts count time differently)
-        dict1.update({"time" : slim_ts.slim_generation-ind.time}) 
+        dict1.update({"time" : slim_ts.slim_time(ind.time)}) 
             # population individual is from
         dict1.update({"pop" : ind.population})  
             # season individuals was remembered in
