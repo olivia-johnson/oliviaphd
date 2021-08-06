@@ -18,12 +18,12 @@ os.chdir("/Users/olivia/oliviaphd/{0}".format(sim_code))
 import seglift_long
 ##"seglift_win"
 
-sim_type = "seglift_long"
+sim_type = "seglift_linked_allele"
 #"seglift_substitute"
 #
-group = 9
+group = 1
 
-os.chdir("/Users/olivia/oliviaphd/{0}/group_{1}".format(sim_type, group))
+os.chdir("/Users/olivia/phd_data/{0}/group_{1}".format(sim_type, group))
 
 
 ####  READ IN PARAMETERS
@@ -50,15 +50,16 @@ fitness_on = parameters["fitness_on"]
 sum_gen = int(parameters["sum_gen"])
 win_gen = int(parameters["win_gen"])
 winpChrom = parameters["winpChrom"]
+burnin_Ne = parameters["burnin_Ne"]
 
 ####  GENERATE RECOMBINATION MAP
 
-rec_map = recombination.recombination_map(group, nChrom, chromSize, recRate)
+rec_map = recombination.recombination_map(sim_type, group, l, nChrom, chromSize, recRate)
 
 ####  SIMULATE BURNIN
 processes=[]
 for sim_run in range(runs):
-    p=mp.Process(target=seglift_long.simulate_burnin, args=[group, sim_run, rec_map, s_pop])
+    p=mp.Process(target=seglift_long.simulate_burnin, args=[group, sim_run, rec_map, s_pop, burnin_Ne])
     p.start()
     processes.append(p)
     
