@@ -1,6 +1,8 @@
 import os
 os.chdir("/Users/olivia/oliviaphd/seglift_win")
 
+
+import multiprocess as mp
 import msprime
 import pyslim
 import tskit
