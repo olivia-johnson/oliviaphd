@@ -68,11 +68,11 @@ import allel
     ### input group (parameter set idetifier), sim run, recombination rate, number of chromosomes, chromosome size, population size, 
     #no. selected loci (l), value of epistasis in fitnnes equation (y), dominance of selected allele (d), 
    # number of generations between when ids are rembered in tree sequence, activate fitness equation (0 = off, 1 = on), number of egnerations in summer and winter.
-def simulate_burnin(group, sim_run, rec_map, s_pop): 
+def simulate_burnin(group, sim_run, rec_map, s_pop, burnin_Ne): 
 
     ## COALESCENT BURN IN    
     start_time = time.time()
-    burnin = msprime.simulate(sample_size=2*s_pop,Ne=s_pop, mutation_rate=0, recombination_map=rec_map)
+    burnin = msprime.simulate(sample_size=2*s_pop,Ne=burnin_Ne, mutation_rate=0, recombination_map=rec_map)
     burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
     burnin_ts.dump("./burnin_seglift_long_{0}_{1}.trees".format(group,sim_run))
     print("Time for burnin = ", (time.time()- start_time))
