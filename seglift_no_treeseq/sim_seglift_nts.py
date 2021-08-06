@@ -1,5 +1,5 @@
 import os
-os.chdir("/Users/olivia/oliviaphd/seligt_no_treeseq/")
+os.chdir("/Users/olivia/oliviaphd/seglift_no_treeseq/")
 
 
 import numpy as np
@@ -47,4 +47,5 @@ for x in range(runs):
     print(cmd)
     os.system(cmd)
 
+    ms_out = np.loadtxt("./slim_out/ms_out_3_1_108205.txt", skiprows=1,)
 

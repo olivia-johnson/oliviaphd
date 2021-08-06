@@ -4,10 +4,10 @@ library(viridis)
 library(stringr)
 library(egg)
 library(tidyverse)
-setwd("~/oliviaphd/seglift_substitute")
+setwd("~/phd_data/seglift_substitute")
 
 groups = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19","20", "21", "22", "23", "24", "25", "26", "27", "28")
-groups=c("15", "16", "17", "18", "19","20", "21","22", "23", "24", "25", "26", "27", "28")
+#groups=c("15", "16", "17", "18", "19","20", "21","22", "23", "24", "25", "26", "27", "28")
 windows=51
 chromsize=5e5
 
@@ -20,16 +20,20 @@ sum_stats = NULL
 for (g in groups){
   print(g)
   
-  f_list  <- list.files(path =paste0("~/oliviaphd/seglift_substitute/group_", g, "/"),pattern ="al_freq_")
+  f_list  <- list.files(path =paste0("~/phd_data/seglift_substitute/group_", g, "/"),pattern ="al_freq_")
   
-  s_list  <- list.files(path =paste0("~/oliviaphd/seglift_substitute/group_", g, "/"),pattern ="s_stat_")
+  s_list  <- list.files(path =paste0("~/phd_data/seglift_substitute/group_", g, "/"),pattern ="s_stat_")
   
-  parameters <- fread(file=paste0("~/oliviaphd/seglift_substitute/group_",g, "/parameters.yml"), sep = ":")
+  parameters <- fread(file=paste0("~/phd_data/seglift_substitute/group_",g, "/parameters.yml"), sep = ":")
   setkey(parameters, V1)
-  
-  dom = parameters["d", V2]
-  epi = parameters["y", V2]
   fiton=parameters["fitness_on", V2]
+  if (fiton==0){
+    dom=0
+    epi=0
+  } else{
+    dom = parameters["d", V2]
+    epi = parameters["y", V2]
+  }
   sum_gen =parameters["sum_gen", V2]
   win_gen =parameters["win_gen", V2] 
   sum_pop =parameters["s_pop", V2]
@@ -43,7 +47,7 @@ for (g in groups){
   for (i in 1:(length(f_list ))){  
     filename = f_list [i]
     #print(filename)
-    al_freq  = fread(file = paste0("~/oliviaphd/seglift_substitute/group_",g, "/",filename) )
+    al_freq  = fread(file = paste0("~/phd_data/seglift_substitute/group_",g, "/",filename) )
     al_freq [,run := i]
     al_freq [,group:=g]
     al_freq [,d:=dom]
@@ -61,7 +65,7 @@ for (g in groups){
   for (i in 1:(length(s_list ))){  
     filename = s_list [i]
     #print(filename)
-    s_stat  = fread(file = paste0("~/oliviaphd/seglift_substitute/group_",g, "/",filename))
+    s_stat  = fread(file = paste0("~/phd_data/seglift_substitute/group_",g, "/",filename))
     s_stat [,run := i]
     s_stat [,group:=g]
     s_stat [,d:=dom]
@@ -81,7 +85,7 @@ freq_data [, mean_freq:=mean(mut_freq), by=c("Gen", "mut_pos", "group")]
 #freq_data [, Season:= ifelse((Gen/2)%%15==0, "Winter", "Summer")]
 freq_data [, block :=paste0(group, "_", run, "_",(mut_pos/5e5)+.5)]
 freq_data[,symmetry:=ifelse(s_gen == w_gen, "symmetrical", "unsymmetrical")]
-freq_data[,label:=ifelse(fit==0, paste0("No Fitness_", symmetry), paste(d, y, fit_type, symmetry, sep="_")),  by="group"]
+freq_data[,label:=ifelse(fit==0, paste("No Fitness", fit_type,symmetry, sep="_"), paste(d, y, fit_type, symmetry, sep="_")),  by="group"]
 
 sum_stats[, win_pos:=n_win%%windows]
 sum_stats[, midpoint:= (win_end-win_start)/2 + win_start]
@@ -94,7 +98,7 @@ sum_stats[, mean_div:=mean(diversity), by=c("time", "chrom_pos", "group")]
 sum_stats[, mean_thetaw:=mean(theta_w), by=c("time", "chrom_pos", "group")]
 sum_stats[,symmetry:=ifelse(s_gen == w_gen, "symmetrical", "unsymmetrical")]
 # sum_stats[, mean_thetaw:=mean(theta_w_corr), by=c("time", "win_pos", "group")]
-sum_stats[,label:=ifelse(fit==0, paste0("No Fitness_", symmetry), paste(d, y, fit_type, symmetry, sep="_")),  by="group"]
+sum_stats[,label:=ifelse(fit==0, paste("No Fitness", fit_type,symmetry, sep="_"), paste(d, y, fit_type, symmetry, sep="_")),  by="group"]
 
 
 
@@ -110,16 +114,16 @@ plot = ggplot(freq_data [group ==2 & run ==2],aes( x = Gen, y= mut_freq))+
 
 #al_time = c( 1,13,10000,10013,20000,20013,30000,30013,40000,40013,50000,50013,60000, 60013,70000,70013,80000, 80013,90000,90013,100000, 100013, 110000, 110013,120000)
 al_time=c(20000, 20007, 20013, 20014)
-allele_plot =ggplot(freq_data[Gen<50000] ,aes(x = Gen, y= mut_freq, group = block))+
+allele_plot =ggplot(freq_data[Gen<50000 &fit_type=="all" & symmetry=="unsymmetrical"] ,aes(x = Gen, y= mut_freq, group = block))+
   geom_line(aes(col=as.factor(group)),alpha = 0.3) +
-  facet_wrap(~label)+
+  facet_wrap(~label, ncol=2)+
   #ggtitle(paste0("Allele Frequency (", ID, ")")) +
   xlab("Generation")+
   scale_y_continuous(limits = c(0, 1.0))+
   ylab("Allele Frequency")+
   theme(legend.position = "none")+
   labs(col= "Seasonal Mutation")
-ggsave(filename =paste0("plots/allele_freq_relvsabsfit.jpg"), plot = allele_plot , width = 15, height = 10)
+ggsave(filename =paste0("plots/allele_freq_all_unsymm.jpg"), plot = allele_plot , width = 15, height = 10)
 
 
 freq_data[mut_freq!=1, Freq.bin:="Segregating"]
@@ -131,7 +135,7 @@ xx <- rbind(ff, gg)
 
 freq_bin = ggplot(xx[Gen<50000], aes(x=Gen, y=N, col = Freq.bin))+
   geom_line()+
-  facet_wrap(~factor(group, levels=c("1", "8", "2", "9", "3", "10", "4", "11", "5", "12", "6", "13", "7", "14")), labeller = as_labeller(group.labs))
+  facet_wrap(~label, nrow=7)
 ggsave(filename =paste0("plots/freq_bin_relvsabsfit.jpg"), plot = freq_bin , width = 15, height = 10)
 
 
@@ -277,7 +281,7 @@ plot = ggarrange(allele_plot , taj_plot_2 , heights = c(1,2))
 ggsave(filename =paste0("initial_plot_all_groups_4.jpg"), plot = plot, width = 15, height = 10)
 
 
-pdf(file=paste0("~/oliviaphd/seglift_win/initial_plot_",group,".pdf"), width = 10, height = 10) 
+pdf(file=paste0("~/phd_data/seglift_win/initial_plot_",group,".pdf"), width = 10, height = 10) 
 plot = ggarrange(plot_1, plot_2, heights = c(1,2))
 #plot
 dev.off()

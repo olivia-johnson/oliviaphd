@@ -41,11 +41,13 @@ initialize() {
 	
 	if (!exists("n_burnin"))
 	{defineConstant("n_burnin", 0);} // burnin
+	if (!exists("fit"))
+	{defineConstant("fit", 1);} // turn off fitness
 	
 	initializeMutationRate(mut);
 	initializeRecombinationRate(rr);
 	initializeMutationType("m1", 0.0, "f", 0.0); // neutral
-	initializeMutationType("m2", 0.5, "f", 0.0); // summer
+	initializeMutationType("m2", 0.0, "f", 0.0); // summer
 	initializeGenomicElementType("g1", m1, 1);
 	initializeGenomicElement(g1, 0, GenomeSize-1);
 	m1.color = "yellow";
@@ -83,28 +85,32 @@ initialize() {
 }
 
 s1 fitness(NULL) { //summer
-	gnm1 = genome1.mutationsOfType(m2);
-	gnm2 = genome2.mutationsOfType(m2);
-	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
-	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
-	zs = ns + (d * nhet);
-	
-	return (1 + zs)^y;
+	if (fit == 0){
+		return 1.0;
+	} else{
+		
+		gen = sim.generation;
+		modValue10 = integerMod(gen, (g));
+		gnm1 = genome1.mutationsOfType(m2);
+		gnm2 = genome2.mutationsOfType(m2);
+		ns = sum(match(gnm1, gnm2)>=0); //homozygosity summer
+		nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
+		nw = L-(ns+nhet);//homozygosity winter
+		if (modValue10 >= 0 & modValue10 < g_s) { //summer
+			zs = ns + (d * nhet);
+			return (1 + zs)^y; }
+		else { // winter
+			zw = nw + (d * nhet);
+			
+			return (1 + zw)^y;}
+	}
 }
 
-s2 fitness(NULL) { //winter
-	gnm1 = genome1.mutationsOfType(m2);
-	gnm2 = genome2.mutationsOfType(m2);
-	ns = sum(match(gnm1, gnm2)>=0); //homozygosity
-	nhet = size(gnm1) + size(gnm2) - 2 * ns;  // heterozygosity
-	nw = L-(ns+nhet);
-	zw = nw + (d * nhet);
-	
-	return (1 + zw)^y;
-}
 
+2:10000 early(){
+	if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}}
 
-100002:110000 late(){ // have change 10000 to 5k
+100001:109999 late(){ // have change 10000 to 5k
 	if (sim.countOfMutationsOfType(m2) == 0) {
 		sim.simulationFinished();
 	}
@@ -114,14 +120,14 @@ s2 fitness(NULL) { //winter
 	
 	if (modValue10 >= 0 & modValue10 < g_s) { //summer
 		if (exists("slimgui")) {cat("Summer\n");}
-		s1;
+	
 	}
 	if (modValue10 >= g_s) { //winter
 		if (exists("slimgui")) {cat("Winter\n");}
-		s2;
+	
 	}
 	if (modValuerGen == (g_s)) {// sample
-		p0.outputMSSample(N, filePath = paste("~/oliviaphd/seglift_no_treeseq/slim_out/sim_data" + sim_run + ".txt"), append = T);
+		p0.outputMSSample(100, replace = F, filePath = paste("~/oliviaphd/seglift_no_treeseq/slim_out/ms_out_"+ asString(group) + "_"+ asString(sim_run)+"_"+ asString(gen)+".txt"), append = F);
 	}
 
 }
@@ -131,7 +137,7 @@ s2 fitness(NULL) { //winter
 	fix = sum(sim.mutationFrequencies(p0)== 1);
 	loss = 100 - e_mc;
 	
-	p0.outputMSSample(N, filePath = paste("~/oliviaphd/seglift_no_treeseq/slim_out/sim_data" + sim_run + ".txt"), append = T);
+	p0.outputMSSample(N, filePath = paste("~/oliviaphd/seglift_no_treeseq/slim_out/ms_out_"+ asString(group) + "_"+ asString(sim_run)+"_"+ asString(gen)+".txt"), append = F);
 	line4 = paste("winter_fixed:" + loss + "\n summer_fixed:" + fix);
 	cat(line4);
 }
