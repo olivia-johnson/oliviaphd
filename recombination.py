@@ -1,9 +1,9 @@
 import pandas as pd
 import msprime
 
-def recombination_map(group, nChrom, chromSize, recRate): 
+def recombination_map(sim_type, group, l, nChrom, chromSize, recRate): 
     ## input group (parameter set identifier, number of chromosomes, chromosome size, recombination rate)
- 
+    
     ## GENERATE CHROMOSMES ##
 ## create recombination map for msprime and slim to simulate unlinked chromsomes
     rec_rows=[]
@@ -22,6 +22,15 @@ def recombination_map(group, nChrom, chromSize, recRate):
             # assign recombination rate of 0.5 to create break between chromosomes
         rec_dict.update({"rates":0.5})
         rec_rows.append(rec_dict)
+    
+    if sim_type == "seglift_l10": ## add additional seasonal loci to the end so loci contribute to fitness
+            rec_dict = {}
+            # assign end position of site
+            rec_dict.update({"positions": (nChrom*chromSize+l-10-1)})
+            # assign recombination rate of 0.5 to create break between chromosomes
+            rec_dict.update({"rates":0.5})
+            rec_rows.append(rec_dict)
+    
     rec_data = pd.DataFrame(rec_rows)
     
     
@@ -40,3 +49,4 @@ def recombination_map(group, nChrom, chromSize, recRate):
     slim_rec.to_csv("./rec_map.txt", index=False, header = False, sep = "\t")
     
     return rec_map
+
