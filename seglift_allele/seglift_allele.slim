@@ -7,7 +7,7 @@ initialize() {
 	{defineConstant("L", 10); }// no. selected seasonal loci
 	
 	if (!exists("y"))
-	{defineConstant("y", 1); }// exponent of fitness function
+	{defineConstant("y", 4); }// exponent of fitness function
 	
 	if (!exists("n_s"))
 	{defineConstant("n_s", 1e4); }// summer population size
@@ -16,13 +16,13 @@ initialize() {
 	{defineConstant("n_w", 1e4); }// winter population size
 	
 	if (!exists("d"))
-	{defineConstant("d", 0.5); } // dominance
+	{defineConstant("d", 0.65); } // dominance
 	
 	if (!exists("g_s"))
-	{defineConstant("g_s", 5); } // generations per summer
+	{defineConstant("g_s", 15); } // generations per summer
 	
 	if (!exists("g_w"))
-	{defineConstant("g_w", 5); } // generations per winter 
+	{defineConstant("g_w", 15); } // generations per winter 
 	
 	defineConstant("halfS", round(g_s/2)); // generation halfway through summer
 	defineConstant("halfW", round(g_w/2)); // generation halfway through winter
@@ -40,14 +40,14 @@ initialize() {
 	{defineConstant("rGen", 750);} // remember individuals gen call
 	
 	if (!exists("group"))
-	{defineConstant("group", 0);} // group of parameters
+	{defineConstant("group", 12);} // group of parameters
 	
 	if (!exists("sim_run"))
 	{defineConstant("sim_run", 1);} // sim run
 	
 	if (!exists("fit"))
 	{defineConstant("fit",1);} //if fit = 0 fitness function switched off
-	
+	initializeSLiMOptions(keepPedigrees=T)	;
 	initializeMutationRate(mut);
 	initializeRecombinationRate(rr);
 	initializeMutationType("m1", 0.0, "f", 0.0); // neutral
@@ -94,6 +94,7 @@ initialize() {
 		
 		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 		writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
+		writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/reproductiveOutput_"+ asString(group) + "_"+ asString(sim_run)+".txt"), "Gen, ReproductiveOutput", append = F);
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 			writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
@@ -147,6 +148,8 @@ s1 fitness(NULL) { //summer
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 			writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+			offspring=p0.lifetimeReproductiveOutput;
+			writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/reproductiveOutput_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(c(gen, ",", offspring)), append = T);
 		
 		}
 	}
