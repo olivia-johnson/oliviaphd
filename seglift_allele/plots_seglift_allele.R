@@ -8,8 +8,8 @@ library(ggpubr)
 
 setwd("~/phd_data/seglift_allele")
 
-groups = c(8:11)
-l=1000
+groups = c(1:11)
+
 
 alfreq_data = NULL
 
@@ -33,6 +33,7 @@ for (g in groups){
   win_gen =parameters["win_gen", V2] 
   sum_pop =parameters["s_pop", V2]
   win_pop =parameters["w_pop", V2]
+  loci =parameters["l", V2]
 
   ## collate al_freq files
   for (i in 1:(length(f_list ))){  
@@ -43,6 +44,7 @@ for (g in groups){
     al_freq [,group:=g]
     al_freq [,d:=dom]
     al_freq [,y:=epi]
+    al_freq [,l:=loci]
     al_freq [,fit:=fiton]
     al_freq [,s_gen:=sum_gen]
     al_freq [,w_gen:=win_gen]
@@ -60,14 +62,14 @@ alfreq_data[s_pop==w_pop & s_gen == w_gen, setup:="CP_EG", by = "group"] ## even
 alfreq_data[s_pop==w_pop & s_gen != w_gen, setup:="CP_UG", by = "group"] ##even population_uneven season
 alfreq_data[s_pop!=w_pop & s_gen != w_gen, setup:="FP_UG", by="group"] ## uneven season and population
 alfreq_data[s_pop!=w_pop & s_gen == w_gen, setup:="FP_EG", by="group"] ##uneven population_even season
-alfreq_data[,label:=ifelse(fit==0, paste("No Fitness",setup, sep="_"), paste(d, y, setup, sep="_")),  by="group"]
+alfreq_data[,label:=ifelse(fit==0, paste(l,  "No Fitness", setup, sep="_"), paste(l, d, y, setup, sep="_")),  by="group"]
 alfreq_data[mut_freq!=1, Freq.bin:="Segregating"]
 alfreq_data[mut_freq==1, Freq.bin:="Fixed_Summer"]
-alfreq_data[Freq.bin=="Segregating",n_seg:=.N, by = c("time", "label", "group","setup")]
+alfreq_data[Freq.bin=="Segregating",n_seg:=.N, by = c("time", "label","l", "group","setup")]
 
-seg_labels=unique(alfreq_data[Freq.bin=="Segregating" & time==20000, .(label, n_seg)])
+seg_labels=unique(alfreq_data[l==100,Freq.bin=="Segregating" & time==20000, .(label, n_seg)])
 
-allele_plot =ggplot(data=alfreq_data,aes(x = time, y= mut_freq))+
+allele_plot =ggplot(data=alfreq_data[l==100],aes(x = time, y= mut_freq))+
   geom_line(aes(group=block, col = group),alpha = 0.05) +
   facet_wrap(~label)+
   #ggtitle(paste0("Allele Frequency (", ID, ")")) +
@@ -81,11 +83,13 @@ allele_plot =ggplot(data=alfreq_data,aes(x = time, y= mut_freq))+
 allele_plot = allele_plot + geom_text(data=seg_labels, x=15000, y=0.1, aes(label=n_seg), parse=TRUE)
 
 ggexport(allele_plot, filename="plots/allele_plot_l1000.pdf")
+ggsave(filename =paste0("plots/allele_plot_l100.jpg"), plot = allele_plot , width = 15, height = 10)
+
 
 alfreq_data[mut_freq!=1, Freq.bin:="Segregating"]
 alfreq_data[mut_freq==1, Freq.bin:="Fixed_Summer"]
 ff <- alfreq_data[, .N, by = c("time", "label", "group","setup", "Freq.bin")]
-gg <- alfreq_data[, .(Freq.bin="Fixed_Winter", N=(8*l)-.N), by = c("time","group","setup", "label")]
+gg <- alfreq_data[, .(Freq.bin="Fixed_Winter", N=800-.N), by = c("time","group","setup", "label")]
 
 xx <- rbind(ff, gg)
 

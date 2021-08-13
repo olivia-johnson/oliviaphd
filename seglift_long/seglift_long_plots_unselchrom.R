@@ -6,7 +6,7 @@ library(egg)
 library(dplyr)
 setwd("~/phd_data/seglift_long")
 
-groups = c(1:56)
+groups = c(1:8, 16:21, 43:56)
 groups=c(5, 16:28)  ## equal seasons and constant population size  (CP_EG)
 groups=c(1:4, 6:15) ## unequal seasons and seasonally fluctuating population size  (FP_UG)
 groups=c(29:35,50:56) ## unequal season and constant population size  (CP_UG)
@@ -95,7 +95,7 @@ freq_data[s_pop==w_pop & s_gen == w_gen, setup:="CP_EG", by = "group"] ## even s
 freq_data[s_pop==w_pop & s_gen != w_gen, setup:="CP_UG", by = "group"] ##even population_uneven season
 freq_data[s_pop!=w_pop & s_gen != w_gen, setup:="FP_UG", by="group"] ## uneven season and population
 freq_data[s_pop!=w_pop & s_gen == w_gen, setup:="FP_EG", by="group"] ##uneven population_even season
-freq_data[,label:=ifelse(fit==0, paste("No Fitness", fit_type,setup, sep="_"), paste(d, y, fit_type, setup, sep="_")),  by="group"]
+freq_data[,label:=ifelse(fit==0, paste(setup, "No Fitness", sep="_"), paste(setup, d, y, sep="_")),  by="group"]
 freq_data[mut_freq!=1, Freq.bin:="Segregating"]
 freq_data[mut_freq==1, Freq.bin:="Fixed_Summer"]
 freq_data[Freq.bin=="Segregating",n_seg:=.N, by = c("time", "label", "group","fit_type","setup")]
@@ -135,22 +135,22 @@ plot = ggplot(freq_data[group==48 & run==1 & time<10000],aes( x = time, y= mut_f
 
 ##ggsave(filename =("freq_plot_0_3.jpg"), plot = plot, width = 15, height = 10)
 set = c("FP_UG","CP_EG")
-seg_labels=unique(freq_data[fit_type=="SL" & setup %in% set & Freq.bin=="Segregating" & time==50000, .(label, n_seg)])
+seg_labels=unique(freq_data[Freq.bin=="Segregating" & time==50000, .(label, n_seg)])
  ##[fit_type=="AL" & d==c(0.5, 0)]
 
-allele_plot =ggplot(data=freq_data[fit_type=="SL" & setup %in% set],aes(x = time, y= mut_freq))+
+allele_plot =ggplot(data=freq_data,aes(x = time, y= mut_freq))+
   geom_line(aes(col=label, group=block),alpha = 0.3) +
-  facet_wrap(~label)+
+  facet_wrap(~label, ncol=7)+
   #ggtitle(paste0("Allele Frequency (", ID, ")")) +
   xlab("Generation")+
-  scale_y_continuous(limits = c(0, 1.0))GP+
+  scale_y_continuous(limits = c(0, 1.0))+
   ylab("Allele Frequency")+
   theme(legend.position = "none")+
   labs(col= "Seasonal Mutation")+
-  ggtitle("Allele Frequencies_SL_CP_EG_&_FP_UG")
+  ggtitle("Allele Frequencies")
 
 allele_plot = allele_plot + geom_text(data=seg_labels, x=45000, y=0.1, aes(label=n_seg), parse=TRUE)
-ggsave(filename =paste0("new_plots/allele_freq_SL_CP_EG_&_FP_UG.jpg"), plot = allele_plot , width = 15, height = 10)
+ggsave(filename =paste0("new_plots/allele_freq_all.jpg"), plot = allele_plot , width = 15, height = 10)
 
 
 freq_data[mut_freq!=1, Freq.bin:="Segregating"]
@@ -163,7 +163,7 @@ xx <- rbind(ff, gg)
 freq_bin = ggplot(xx[time<50000&fit_type=="AL"], aes(x=time, y=N, col = Freq.bin))+
   geom_line()+
   facet_wrap(~label)
-ggsave(filename =paste0("plots/freq_bin_sym_all.jpg"), plot = freq_bin , width = 15, height = 10)
+ggsave(filename =paste0("plots/freq_bin_all.jpg"), plot = freq_bin , width = 15, height = 10)
 
 
 freq_data[mut_freq!=1, Freq.bin:="Segregating"]
@@ -173,10 +173,10 @@ gg <- freq_data[, .(Freq.bin="Fixed_Winter", N=10-.N), by = c("time", "label", "
 
 xx <- rbind(ff, gg)
 
-freq_bin_run = ggplot(xx[time<50000&fit_type=="all"&setup=="symmetrical"], aes(x=time, y=N, col=factor(Freq.bin)))+
+freq_bin_run = ggplot(xx[time<50000], aes(x=time, y=N, col=factor(Freq.bin)))+
   geom_line()+
   facet_grid(run~label)
-ggsave(filename =paste0("plots/freq_bin_run_sym_all.jpg"), plot = freq_bin_run , width = 15, height = 10)
+ggsave(filename =paste0("plots/freq_bin_run_all.jpg"), plot = freq_bin_run , width = 15, height = 10)
 
 ggplot(freq_data[group %in% c(6,8) & mut_freq!=1], aes(x=Gen, y=mut_freq, col=factor(mut_pos))) +
   geom_line()+
@@ -218,7 +218,7 @@ tajd_plot=ggplot(plotdata[y==0.5], aes(x = chrom_pos/1000, y = tajimas_d_branch,
   ggtitle("uneven seasons and changing population size- y=0.5")+
   theme(legend.position = "none")
 
-ggsave(filename =paste0("new_plots/taj_",setup,"_y05.jpg"), plot = tajd_plot , width = 20, height = 10)
+ggsave(filename =paste0("new_plots/taj_",setup,"_d5.jpg"), plot = tajd_plot , width = 20, height = 10)
 
 times = c(6,12,13,14,3006,  3012,  3013,  3014,6006,  6012,  6013,  6014, 9006,  9012,  9013,  9014, 12006 ,12012, 12013, 12014, 15006, 15012, 15013, 15014,18006, 18012, 18013 ,18014, 21006, 21012, 21013 ,21014,24006, 24012, 24013, 24014)
 
@@ -235,7 +235,7 @@ div_plot = ggplot(plotdata[y==0.5], aes(x = chrom_pos/1000, y = diversity, group
   ggtitle("uneven seasons and changing population size - y=0.5")+
   theme(legend.position = "none")
 
-ggsave(filename =paste0("new_plots/div_",setup,"_y05.jpg"), plot = div_plot , width = 20, height = 10)
+ggsave(filename =paste0("new_plots/div_",setup,"_d5.jpg"), plot = div_plot , width = 20, height = 10)
 
 times = c(7506,7512,7513,7514,15006 ,15012,15013,15014,22506,22512,22513,22514,30006,30012,30013,30014,37506,37512,37513,37514,45006,45012,45013,45014)
 
