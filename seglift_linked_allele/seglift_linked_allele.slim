@@ -16,16 +16,16 @@ initialize() {
 	{defineConstant("n_s", 1e4); }// summer population size
 	
 	if (!exists("n_w"))
-	{defineConstant("n_w", 1e3); }// winter population size
+	{defineConstant("n_w", 1e4); }// winter population size
 	
 	if (!exists("d"))
 	{defineConstant("d", 0.6); } // dominance
 	
 	if (!exists("g_s"))
-	{defineConstant("g_s", 13); } // generations per summer
+	{defineConstant("g_s", 15); } // generations per summer
 	
 	if (!exists("g_w"))
-	{defineConstant("g_w", 2); } // generations per winter 
+	{defineConstant("g_w", 15); } // generations per winter 
 	
 	defineConstant("halfS", round(g_s/2)); // generation halfway through summer
 	defineConstant("halfW", round(g_w/2)); // generation halfway through winter
@@ -63,6 +63,7 @@ initialize() {
 		ends = c(ends, asInteger(components[0]));
 		rates = c(rates, asFloat(components[1]));
 	}
+	
 	initializeRecombinationRate(rates,ends);
 	
 	initializeMutationType("m1", 0.0, "f", 0.0); // neutral
@@ -72,7 +73,7 @@ initialize() {
 	m2.color = "pink";
 	m2.convertToSubstitution = F;
 	
-	initializeTreeSeq();
+	//initializeTreeSeq();
 }
 
 
@@ -157,8 +158,8 @@ s1 fitness(NULL) { //summer
 			
 			}
 		}
-		rInd= sample(p0.individuals, 100);
-		sim.treeSeqRememberIndividuals(rInd);
+		//rInd= sample(p0.individuals, 100);
+		//sim.treeSeqRememberIndividuals(rInd);
 	}
 }
 2:50000 early(){
@@ -178,6 +179,6 @@ s1 fitness(NULL) { //summer
 	
 	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fixed);
 	catn(line4);
-	sim.treeSeqOutput(paste("~/phd_data/seglift_linked_allele/group_"+ asString(group)+"/treeseq_seglift_linked_allele_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+	//sim.treeSeqOutput(paste("~/phd_data/seglift_linked_allele/group_"+ asString(group)+"/treeseq_seglift_linked_allele_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
 }
 
