@@ -3,9 +3,9 @@ library(ggplot2)
 library(viridis)
 library(stringr)
 library(egg)
-setwd("~/oliviaphd/seglift_long")
+setwd("~/phd_data/seglift_long")
 
-groups = c("10")
+groups = c(1:56)
 windows=51
 chromsize=5e5
 
@@ -18,16 +18,16 @@ sum_stats = NULL
 for (g in groups){
   print(g)
   
-  f_list  <- list.files(path =paste0("~/oliviaphd/seglift_long/group_", g, "/"),pattern ="al_freq_")
+  f_list  <- list.files(path =paste0("~/phd_data/seglift_long/group_", g, "/"),pattern ="al_freq_")
   
-  s_list  <- list.files(path =paste0("~/oliviaphd/seglift_long/group_", g, "/"),pattern ="s_stat_")
+  s_list  <- list.files(path =paste0("~/phd_data/seglift_long/group_", g, "/"),pattern ="s_stat_")
   
   
   ## collate al_freq files
   for (i in 1:(length(f_list ))){  
     filename = f_list [i]
     #print(filename)
-    al_freq  = fread(file = paste0("~/oliviaphd/seglift_long/group_",g, "/",filename))
+    al_freq  = fread(file = paste0("~/phd_data/seglift_long/group_",g, "/",filename))
     al_freq [,run := i]
     al_freq [,group:=g]
     freq_data  = rbind(freq_data , al_freq )
@@ -37,7 +37,7 @@ for (g in groups){
   for (i in 1:(length(s_list ))){  
     filename = s_list [i]
     #print(filename)
-    s_stat  = fread(file = paste0("~/oliviaphd/seglift_long/group_",g, "/",filename))
+    s_stat  = fread(file = paste0("~/phd_data/seglift_long/group_",g, "/",filename))
     s_stat [,run := i]
     s_stat [,group:=g]
     sum_stats = rbind(sum_stats, s_stat )
@@ -244,7 +244,7 @@ plot = ggarrange(allele_plot , taj_plot_2 , heights = c(1,2))
 ggsave(filename =paste0("initial_plot_all_groups_4.jpg"), plot = plot, width = 15, height = 10)
 
 
-pdf(file=paste0("~/oliviaphd/seglift_win/initial_plot_",group,".pdf"), width = 10, height = 10) 
+pdf(file=paste0("~/phd_data/seglift_win/initial_plot_",group,".pdf"), width = 10, height = 10) 
 plot = ggarrange(plot_1, plot_2, heights = c(1,2))
 #plot
 dev.off()
