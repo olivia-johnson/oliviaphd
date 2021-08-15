@@ -46,7 +46,7 @@ initialize() {
 	{defineConstant("sim_run", 1);} // sim run
 	
 	if (!exists("fit"))
-	{defineConstant("fit",1);} //if fit = 0 fitness function switched off
+	{defineConstant("fit",0);} //if fit = 0 fitness function switched off
 	initializeSLiMOptions(keepPedigrees=T)	;
 	initializeMutationRate(mut);
 	initializeRecombinationRate(rr);
@@ -94,7 +94,7 @@ initialize() {
 		
 		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 		writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
-		writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/reproductiveOutput_"+ asString(group) + "_"+ asString(sim_run)+".txt"), "Gen, ReproductiveOutput", append = F);
+		writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/reproductiveOutput_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","ReproductiveOutput", sep=","), append = F);
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 			writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
@@ -148,8 +148,8 @@ s1 fitness(NULL) { //summer
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 			writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
-			offspring=p0.lifetimeReproductiveOutput;
-			writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/reproductiveOutput_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(c(gen, ",", offspring)), append = T);
+			offspring=tabulate(p0.lifetimeReproductiveOutput);
+			writeFile(paste("~/phd_data/seglift_allele/group_"+ asString(group)+"/reproductiveOutput_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(gen, tabulate(p0.lifetimeReproductiveOutput), sep=","), append = T);
 		
 		}
 	}
