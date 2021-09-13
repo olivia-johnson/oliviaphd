@@ -3,6 +3,7 @@ import sys
 import msprime
 import pyslim
 import numpy as np
+import yaml
 import tskit
 import pandas as pd
 import time
@@ -15,7 +16,9 @@ sim_run = sys.getenv('SLURM_ARRAY_TASK_ID')
 tmpdir = sys.getenv('TMPDIR')
 ####  READ IN PARAMETERS
     # load in parameter file
-parameters = open('/hpcfs/users/a1704225/parameters/{0}.txt'.format(params), 'r')
+with open('/hpcfs/users/a1704225/parameters/{0}.txt'.format(params), 'r') as f:
+    parameters = yaml.load(f, Loader=yaml.FullLoader)
+
     #set parameters from file
 slim_sim = parameters["slim_sim"]
 nChrom = int(parameters["nChrom"])
