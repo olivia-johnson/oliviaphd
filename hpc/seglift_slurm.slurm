@@ -7,7 +7,7 @@
 #SBATCH --time= 1:00:00
 #SBATCH --mem=6G
 #SBATCH --gres=tmpfs:2G
-
+#SBATCH -o /parameters/slurm_out-%j
 #SBATCH --mail-type=END                                         # Send a notification email when the job is done (=END)
 #SBATCH --mail-type=FAIL                                        # Send a notification email when the job fails (=FAIL)
 #SBATCH --mail-user=olivia.johnson@adelaide.edu.au          # Email to which notifications will be sent
