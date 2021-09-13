@@ -27,7 +27,6 @@ mkdir -p ${results_dir}
 
 python allele_run.py ${param_dir}/${params} ${SLURM_ARRAY_TASK_ID} ${TMPDIR}
 
-cp ${TMPDIR}/sim_data_${params}_${SLURM_ARRAY_TASK_ID}.txt ${results_dir}
 cp ${TMPDIR}/reproductiveOutput_${params}_${SLURM_ARRAY_TASK_ID}.txt ${results_dir}
 cp ${TMPDIR}/al_freq_${params}_${SLURM_ARRAY_TASK_ID}.txt ${results_dir}
 cp ${TMPDIR}/fitness_${params}_${SLURM_ARRAY_TASK_ID}.txt ${results_dir}
