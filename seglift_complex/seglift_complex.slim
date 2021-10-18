@@ -92,12 +92,17 @@ initialize() {
 			target.addNewDrawnMutation(m2, asInteger(pos));
 		}
 		
+		defineGlobal("mutations", sim.mutations);
+		if (identical(mutations.position, 1:L-1)==F){
+		sim.simulationFinished();
+			catn("ERROR: INCORRECT MUTATION ORDER");
+		}
+		
+		
 		if (sim.mutationFrequencies(p0)[1] != 0.5){
 			sim.simulationFinished();
 			catn("ERROR: SELECTED MUTATIONS NOT AT 0.5 STARTING FREQUENCY");
 		}
-		
-		defineGlobal("positions", sim.mutationsOfType(m2).position);
 		
 		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 		writeFile(paste("~/phd_data/seglift_complex/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
@@ -114,13 +119,7 @@ s1 fitness(NULL) { //summer
 	if (fit == 0){
 		return 1.0;
 	} else{
-	if (length(sim.mutationsOfType(m2)) != L){
-		genomes=integer(L);
-		sites=individual.genomes.mutationCountsInGenomes();
-		for (i in 1:length(positions)-1){
-		p=positions[i];
-		genomes[p]=sites[i];}}
-		else{genomes=individual.genomes.mutationCountsInGenomes();}
+		genomes=individual.genomes.mutationCountsInGenomes(mutations=mutations);
 		ns = asInteger(genomes==2); //homozygosity summer
 		het = asInteger(genomes==1);  // heterozygosity
 		nw = asInteger(genomes==0);  //homozygosity winter
@@ -141,9 +140,6 @@ s1 fitness(NULL) { //summer
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuerGen", integerMod(gen, rGen));
 	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
-	
-		
-
 }
 
 2:120000 early(){
@@ -191,9 +187,7 @@ s1 fitness(NULL) { //summer
 2:120000 early(){
 	if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
 }
-1:120000 late(){
-defineGlobal("positions", sort(sim.mutationsOfType(m2).position));
-}
+
 120000 late() {
 	gen = sim.generation;
 	if (L > 0){
