@@ -7,7 +7,7 @@ import pandas as pd
 import time
 import allel
 
-def allele_recombination(tmpdir, params, l, nChrom, chromSize, recRate): ## only seasonal alleles simulated
+def allele_recombination(tmpdir, group, l, nChrom, chromSize, recRate): ## only seasonal alleles simulated
     ## input group (parameter set identifier, number of chromosomes, chromosome size, recombination rate)
 
     ## GENERATE CHROMOSMES ##
@@ -38,11 +38,11 @@ def allele_recombination(tmpdir, params, l, nChrom, chromSize, recRate): ## only
     slim_rec= pd.concat([slim_rec,rec_data.rates[0:-1]],axis=1)
 
 ## output slim recombiation map to text file to be read into forward slim simulation
-    slim_rec.to_csv("/{0}/rec_map_{1}.txt".format(tmpdir, params), index=False, header = False, sep = "\t")
+    slim_rec.to_csv("/{0}/rec_map_{1}.txt".format(tmpdir, group), index=False, header = False, sep = "\t")
 
 
 
-def recombination_map(tmpdir, params, sim_type, group, l, nChrom, chromSize, recRate):
+def recombination_map(tmpdir, group, sim_type, group, l, nChrom, chromSize, recRate):
     ## input group (parameter set identifier, number of chromosomes, chromosome size, recombination rate)
 
     ## GENERATE CHROMOSMES ##
@@ -87,28 +87,33 @@ def recombination_map(tmpdir, params, sim_type, group, l, nChrom, chromSize, rec
     rec_map = msprime.RecombinationMap(positions = list(rec_data.positions.astype(int)), rates= list(rec_data.rates), num_loci = int(nChrom*chromSize-1))
 
 ## output slim recombiation map to text file to be read into forward slim simulation
-    slim_rec.to_csv("/{0}/rec_map_{1}.txt".format(tmpdir, params), index=False, header = False, sep = "\t")
+    slim_rec.to_csv("/{0}/rec_map_{1}.txt".format(tmpdir, group), index=False, header = False, sep = "\t")
 
     return rec_map
 
 
-def simulate_burnin(tmpdir, params, sim_run, rec_map, s_pop, burnin_Ne):
+def simulate_burnin(tmpdir, group, sim_run, rec_map, s_pop, burnin_Ne):
 
     ## COALESCENT BURN IN
     start_time = time.time()
     burnin = msprime.simulate(sample_size=2*s_pop,Ne=burnin_Ne, mutation_rate=0, recombination_map=rec_map)
     burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
-    burnin_ts.dump("/{0}/burnin_seglift_{1}_{2}.trees".format(tmpdir,params,sim_run))
+    burnin_ts.dump("/{0}/burnin_seglift_{1}_{2}.trees".format(tmpdir,group,sim_run))
     print("Time for burnin = ", (time.time()- start_time))
 
 
-def simulate_seglift(tmpdir,slim_sim, params, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
+def simulate_seglift(jobID, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
 
     genomeSize = chromSize*nChrom
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
     start_time = time.time()
-    cmd = "slim -d tmpdir=" +str(tmpdir)+"-d fit="+ str(fitness_on)+" -d group=" + str(params) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/home/a1704225/oliviaphd/hpc/" + slim_sim + ".slim"
+    if slim_sim != "hpc_seglift_complex":
+        cmd = "slim -d tmpdir='" +str(jobID)+"' -d fit="+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/" + slim_sim + ".slim"
+    #/home/a1704225/oliviaphd/hpc/
+    else:
+        cmd = "slim -d tmpdir='" +str(jobID)+"' -d fit="+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) +  " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/" + slim_sim + ".slim"
+    
     print(cmd)
     os.system(cmd)
     # #print("Time for SLiM sim = ", (time.time()- start_time))
