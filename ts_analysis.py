@@ -84,10 +84,10 @@ def analyse(group, sim_type, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen
     ind_met = pd.DataFrame(rows_list) 
     
 ## REMOVE SEELCTED MUTATIONS - remove from ts so will not interfere with statistics
-    no_mut_ts = slim_ts.delete_sites(list(mut_met.mut_site.astype(int))) 
+    ##no_mut_ts = slim_ts.delete_sites(list(mut_met.mut_site.astype(int))) 
     
-## ADD NEUTRAL MUTATIONS - simulations run without neutral mutations, need to put on tree to generate summary statistics
-    mut_ts = pyslim.SlimTreeSequence(msprime.mutate(no_mut_ts, rate=mutRate, keep=True))
+## ADD NEUTRAL MUTATIONS - simulations run without neutral mutations, need to put on tree to generate summary statistics removes current muts on tree
+    mut_ts = pyslim.SlimTreeSequence(msprime.sim_mutations(slim_ts, rate=mutRate, keep=False))
 
 # ## SUMMARISE NEUTRAL MUTATIONS - obtain data for neutral mutations added to ts
     
@@ -111,18 +111,23 @@ def analyse(group, sim_type, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen
 ## CALCULATE SUMMARY STATISTICS
     
     rows_list3 = []
+    # rows_list4 = []
 
         # create windows for stats to be calculated in
         # windows for tskit statistics
-    win = np.linspace(0, mut_ts.sequence_length, num=nWin+1).astype(int)
-        # windoes for scikit.allel statistics
-    al_win = []
-    for w in range(len(win)-1):
-        if w == nWin:
-            window = [win[w], int(genomeSize)]
-        else:
-            window = [win[w], win[w+1]-1]
-        al_win.append(window)
+    win3 = np.linspace(0, mut_ts.sequence_length, num=nWin+1).astype(int)
+    # alwin = int(nWin/4)
+    # win4 = np.linspace(0, mut_ts.sequence_length, num=alwin+1).astype(int)
+    #     # windoes for scikit.allel statistics
+        
+    # al_win4 = []
+    # for w in range(len(win4)-1):
+    #      if w == nWin:
+    #          window = [win4[w], int(genomeSize)]
+    #      else:
+    #          window = [win4[w], win4[w+1]-1]
+    #      al_win4.append(window)
+
 
         # cycle throught timepoints for which data has been collected
     for t in np.unique(ind_met.time): 
@@ -137,75 +142,99 @@ def analyse(group, sim_type, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen
         samp_ts = mut_ts.simplify(samples = samples)
         
             ## create genotype array to put into scikit-allel  shape ==(var, ind)
-        samp_gm=samp_ts.genotype_matrix()  
+        # samp_gm=samp_ts.genotype_matrix()  
                 
             # convert genotype matrix to haplotyoe array for haplotype statistics
-        h= allel.HaplotypeArray(samp_gm)
+        # h= allel.HaplotypeArray(samp_gm)
             # allele count for scikit.allel stats
-        samp_ac = h.count_alleles()
+        # samp_ac = h.count_alleles()
             # positions of mutations in samp_ts for scikit.allel windowed_statistic function
-        mut_positions = [mut.position for mut in samp_ts.mutations()]
+        # mut_positions = [mut.site for mut in samp_ts.mutations()]
         
             # generate haplotype statistics (H1, H12, H123, H2/H1)
-        hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win)
+        # hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win4)
         
             # tajimas D using tskit and branches of ts
-        tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win, mode="branch")
+        tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="branch")
             
             # wattersons theta using scikit.allel
-        theta_w= allel.windowed_statistic(mut_positions, (mut_positions, samp_ac), allel.watterson_theta, windows = al_win)
+        # theta_w= allel.windowed_statistic(mut_positions, (mut_positions, samp_ac), allel.watterson_theta, windows = al_win4)
 
             # calculate diversity (tajima's pi) using tskit
-        div = samp_ts.diversity(sample_sets = None, windows = win)  ##fix windows
+        div = samp_ts.diversity(sample_sets = None, windows = win3)  ##fix windows
         
         
             # check that all stats have ben calculated over the correct number of windows
-        tests = [div, tajdb, theta_w[0],hap_stats[0]]
-        for test in tests:
+        ts_tests = [div, tajdb]
+        # al_tests = [theta_w[0],hap_stats[0]]
+        for test in ts_tests:
             if len(test)!= nWin:
-                print("error in test ", test, ", number of values does not match number of windows")
+                print("error in ts test ", test, ", number of values does not match number of windows")
+                
+        # for test in al_tests:
+        #     if len(test)!= alwin:
+        #         print("error in al test ", test, ", number of values does not match number of windows")
                 
         ## Collate summary statics into dataframe
             # loop over windows
         for w in range(nWin): 
-            try:
-                h1 = hap_stats[0][w][0]
-            except TypeError:
-                h1="NaN"
-            try:
-                h12 = hap_stats[0][w][1]
-            except TypeError:
-                h12 = "NaN"
-            try:
-                h123 = hap_stats[0][w][2]
-            except TypeError:
-                h123 = "NaN"
-            try:
-                h2h1 = hap_stats[0][w][3]
-            except TypeError:
-                 h2h1="NaN"
+           
             dict3={}
             dict3.update({"time":t})                        ## generation
             dict3.update({"n_win":w})                       ## identifier for window
-            dict3.update({"win_start" : win[w]})            ## window start position
-            dict3.update({"win_end" : win[w+1]-1})          ## window end position
+            dict3.update({"win_start" : win3[w]})            ## window start position
+            dict3.update({"win_end" : win3[w+1]-1})          ## window end position
             dict3.update({"chrom" : int(w/(nWin/nChrom))+1})  ## chromosome
             dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
             dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tskit)
-            dict3.update({"theta_w": theta_w[0][w]})        ## watterson's theta
-            dict3.update({"H1": h1})         ## H1
-            dict3.update({"H12":h12})         ## H12
-            dict3.update({"H123": h123})       ## H123
-            dict3.update({"H2H1": h2h1})       ## H2/H1
-          
+            
             rows_list3.append(dict3)
             
+        # for w in range(alwin): 
+        #     try:
+        #         h1 = hap_stats[0][w][0]
+        #     except TypeError:
+        #         h1="NaN"
+        #     try:
+        #         h12 = hap_stats[0][w][1]
+        #     except TypeError:
+        #         h12 = "NaN"
+        #     try:
+        #         h123 = hap_stats[0][w][2]
+        #     except TypeError:
+        #         h123 = "NaN"
+        #     try:
+        #         h2h1 = hap_stats[0][w][3]
+        #     except TypeError:
+        #          h2h1="NaN"
+        #     dict4={}
+        #     dict4.update({"time":t})                        ## generation
+        #     dict4.update({"n_win":w})                       ## identifier for window
+        #     dict4.update({"win_start" : win4[w]})            ## window start position
+        #     dict4.update({"win_end" : win4[w+1]-1})          ## window end position
+        #     dict4.update({"chrom" : int(w/(alwin/nChrom))+1})  ## chromosome
+        #     dict4.update({"theta_w": theta_w[0][w]})        ## watterson's theta
+        #     dict4.update({"H1": h1})         ## H1
+        #     dict4.update({"H12":h12})         ## H12
+        #     dict4.update({"H123": h123})       ## H123
+        #     dict4.update({"H2H1": h2h1})       ## H2/H1
+          
+        #     rows_list4.append(dict4)
+            
             # convert dictionary to datafram
-    s_stats = pd.DataFrame(rows_list3) 
+    ts_stats = pd.DataFrame(rows_list3) 
     
             # write statistic df to text file
-    s_stats.to_string(buf = "./sim_s_stat_{0}_{1}.txt".format(group,sim_run), index=False)
+    ts_stats.to_string(buf = "./sim_ts_stat_{0}_{1}.txt".format(group,sim_run), index=False)
     
+    
+        
+    # al_stats = pd.DataFrame(rows_list4) 
+    
+            # write statistic df to text file
+    # al_stats.to_string(buf = "./sim_al_stat_{0}_{1}.txt".format(group,sim_run), index=False)
+    
+        
 
 # processes=[]
 # start_time = time.time()

@@ -85,7 +85,7 @@ if (!exists("tmpdir"))
 			sim.simulationFinished();
 			catn("ERROR: SELECTED MUTATIONS NOT AT 0.5 STARTING FREQUENCY");
 		}
-		writeFile(paste( "/tmp/lls_" + asString(tmpdir)+"/pedigree_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P2", "G1", "G2", "G3", "G4" , sep=","), append = F);
+		writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P2", "G1", "G2", "G3", "G4" , sep=","), append = F);
 	
 	}
 }
@@ -128,14 +128,14 @@ s1 fitness(NULL) { //summer
 	}
 	
 	if (modValuerGen >= rGen-2 | modValuerGen >= 0 & modValuerGen <=(g_s + g_w)){
-		cat("Gen:" + gen + "	SAMPLING\n");
+		//cat("Gen:" + gen + "	SAMPLING\n");
 		pedID=p0.individuals.pedigreeID;
 		
 		for (ind in 1:p0.individualCount-1){
 			indv = p0.individuals[ind].pedigreeID;
 			parents = p0.individuals[ind].pedigreeParentIDs;
 			grandparents = p0.individuals[ind].pedigreeGrandparentIDs;
-			writeFile(paste( "/tmp/lls_" + asString(tmpdir)+"/pedigree_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(gen, indv, parents, grandparents, sep=","), append = T);
+			writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(gen, indv, parents, grandparents, sep=","), append = T);
 		
 		}
 	
