@@ -55,7 +55,7 @@ initialize() {
 	
 	initializeMutationRate(mut);
 	
-	lines = readFile(paste(asString(tmpdir)+"/rec_map_"+asString(group)+".txt"));
+	lines = readFile(paste(asString(tmpdir)+"/rec_map_group_"+asString(group)+".txt"));
 	rates = NULL;
 	ends = NULL;
 	
@@ -81,7 +81,7 @@ initialize() {
 	cat(sim_run + "\n");
 	line1 = paste(c("SimID:" + sim_run +"\n" + "Fitness_on=" + fit+ ", n_s=" + n_s + ", n_w=" + n_w+ ", GenomeSize=" + GenomeSize + ", L=" + L +", d=" + d + ", y=" +y + ", g_s=" + g_s + ", g_w="+g_w));
 	
-	sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
+	sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
 	
 	//	sim.addSubpop("p0", n_s);
 	
@@ -110,10 +110,10 @@ initialize() {
 		
 		
 		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
-		writeFile(paste(asString(tmpdir)+ "/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
+		writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-			writeFile(paste(asString(tmpdir)+ "/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+			writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 		}
 	}
 }
@@ -158,7 +158,7 @@ s1 fitness(NULL) { //summer
 		if (L > 0){
 			for (i in 1:size(sim.mutations)-1){
 				tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-				writeFile(paste(asString(tmpdir)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+				writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 			
 			}
 		}
@@ -177,7 +177,7 @@ s1 fitness(NULL) { //summer
 	if (L > 0){
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-			writeFile(paste(asString(tmpdir)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+			writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 		}
 	}
 	e_mc = sim.countOfMutationsOfType(m2);
@@ -185,6 +185,6 @@ s1 fitness(NULL) { //summer
 	
 	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fixed);
 	catn(line4);
-	sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+	sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
 }
 
