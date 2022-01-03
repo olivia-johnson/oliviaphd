@@ -182,9 +182,10 @@ s1 fitness(NULL) { //summer
 	}
 	e_mc = sim.countOfMutationsOfType(m2);
 	loss = L - e_mc;
-	
-	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fixed);
-	catn(line4);
 	sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+	
+	mem = usage(peak=T);
+	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fixed +"\nMemory usage: "+ mem);
+	catn(line4);
 }
 

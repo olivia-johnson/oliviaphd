@@ -11,9 +11,9 @@ import allel
 sys.path.insert(1, '/home/a1704225/oliviaphd/hpc/')
 import seglift_hpc
 
-params=sys.getenv('params')
-sim_run = sys.getenv('SLURM_ARRAY_TASK_ID')
-tmpdir = sys.getenv('TMPDIR')
+params=sys.argv[1]
+sim_run = sys.argv[2]
+jobID =str( sys.argv[3])
 ####  READ IN PARAMETERS
     # load in parameter file
 with open('/hpcfs/users/a1704225/parameters/{0}.txt'.format(params), 'r') as f:
@@ -35,9 +35,10 @@ fitness_on = parameters["fitness_on"]
 sum_gen = int(parameters["sum_gen"])
 win_gen = int(parameters["win_gen"])
 winpChrom = parameters["winpChrom"]
+group=parameters["group"]
 
 
 ####  SIMULATE SEGLIFT
-seglift_hpc.simulate_seglift(tmpdir, slim_sim, params, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen)
+seglift_hpc.simulate_seglift(jobID, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen)
 
 

@@ -43,13 +43,15 @@ initialize() {
 	{defineConstant("rGen", 10000);} // remember individuals gen call
 	
 	if (!exists("group"))
-	{defineConstant("group", 12);} // group of parameters
+	{defineConstant("group", 16);} // group of parameters
 	
 	if (!exists("sim_run"))
 	{defineConstant("sim_run", 1);} // sim run
 	
 	if (!exists("fit"))
 	{defineConstant("fit",1);} //if fit = 0 fitness function switched off
+	
+	initializeSLiMOptions(keepPedigrees=T)	;
 	
 	initializeMutationRate(mut);
 	
@@ -107,6 +109,7 @@ initialize() {
 		
 		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 		writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
+		writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/reproductiveOutput_"+ asString(group) + "_"+ asString(sim_run)+".txt"), "Gen, ReproducitveOutput", append = F);
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 			writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
@@ -132,7 +135,7 @@ s1 fitness(NULL) { //summer
 }
 
 1:50000 early(){
-		defineGlobal("gen", sim.generation);}
+	defineGlobal("gen", sim.generation);}
 
 1:50000 late(){
 	
@@ -142,12 +145,12 @@ s1 fitness(NULL) { //summer
 	
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
-		p0.setSubpopulationSize(n_s);}
+			p0.setSubpopulationSize(n_s);}
 		if (exists("slimgui")) {cat("Summer\n");}
 	}
 	if (modValueSeason >= g_s) { //winter
 		if (modValueSeason == g_s){
-		p0.setSubpopulationSize(n_w);}
+			p0.setSubpopulationSize(n_w);}
 		if (exists("slimgui")) {cat("Winter\n");}
 	}
 	if (modValuerGen == (halfS-1) | modValuerGen == (g_s-1) | modValuerGen == (g_s+halfW-1) | modValuerGen == (g_s + g_w-1)) {// sample
@@ -156,13 +159,15 @@ s1 fitness(NULL) { //summer
 			for (i in 1:size(sim.mutations)-1){
 				tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 				writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/al_freq_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
-			 
+				offspring=p0.lifetimeReproductiveOutput;
+				writeFile(paste("~/phd_data/seglift_long/group_"+ asString(group)+"/reproductiveOutput_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(c(gen,offspring), sep=","), append = T);
+			
 			}
 		}
 		rInd= sample(p0.individuals, 100);
 		sim.treeSeqRememberIndividuals(rInd);
 	}
-if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
+	//if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
 }
 
 50000 late() {
