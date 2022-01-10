@@ -8,7 +8,10 @@ import time
 import itertools
 import allel
 
-def recombination_map(tmpdir, slim_sim, group, l, nChrom, chromSize, recRate):
+##to debug burnin
+##import daiquiri
+
+def recombination_map(tmpdir, group, l, nChrom, chromSize, recRate):
     ## input group (parameter set identifier, number of chromosomes, chromosome size, recombination rate)
 
     ## GENERATE CHROMOSMES ##
@@ -66,29 +69,63 @@ def simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromS
         genomeSize = chromSize*nChrom+(l-10)
     else: 
         genomeSize = chromSize*nChrom
-    burnin = msprime.sim_ancestry(samples=s_pop,population_size=burnin_Ne, sequence_length=genomeSize ,recombination_rate=rec_map)
+        
+    ##daiquiri.setup(level="DEBUG") ##debug
+    burnin = msprime.sim_ancestry(samples=s_pop,population_size=burnin_Ne, recombination_rate=rec_map)
+    ##check burnin size = genome size
+    burn_length =burnin.get_sequence_length()
+    if burn_length!=genomeSize:
+        print("Burnin sequence length not equal to genome size!")
     burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
     burnin_ts.dump("/{0}{1}/burnin_seglift_group_{1}_{2}.trees".format(tmpdir,group,sim_run))
     print("Time for burnin = ", (time.time()- start_time))
 
-
-def simulate_seglift(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
-
-    if slim_sim != "hpc_seglift_l10":
-        genomeSize = chromSize*nChrom
-    else: 
+def simulate_seglift_cap(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen, offCap):
+    if l > 10:
         genomeSize = chromSize*nChrom+(l-10)
+    else: 
+        genomeSize = chromSize*nChrom
         
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
     start_time = time.time()
     tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
-    if slim_sim != "hpc_seglift_complex":
-        #cmd = "slim -d tmpdir='" +str(jobID)+"' -d fit="+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/" + slim_sim + ".slim"
-        cmd = 'slim -d "' +str(tmpdir_call)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/" + slim_sim + ".slim"
+    
+    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d cap=" +str(offCap)+" -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/" + slim_sim + ".slim"
 
-    else:
+    print(cmd)
+    os.system(cmd)
+    # #print("Time for SLiM sim = ", (time.time()- start_time))
+    print("Simulations took ", (time.time()-start_time) ,  " seconds")
+    
+def simulate_seglift_complex(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, rGen, fitness_on, sum_gen, win_gen):
+        genomeSize = chromSize*nChrom
+            
+        ## FORWARD SIMULATION
+        # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
+        start_time = time.time()
+        tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
+        
         cmd = 'slim -d "' +str(tmpdir_call)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) +  " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/" + slim_sim + ".slim"
+
+        print(cmd)
+        os.system(cmd)
+        # #print("Time for SLiM sim = ", (time.time()- start_time))
+        print("Simulations took ", (time.time()-start_time) ,  " seconds")
+
+def simulate_seglift(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
+
+    if l > 10:
+        genomeSize = chromSize*nChrom+(l-10)
+    else: 
+        genomeSize = chromSize*nChrom
+        
+    ## FORWARD SIMULATION
+    # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
+    start_time = time.time()
+    tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
+
+    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/" + slim_sim + ".slim"
 
     print(cmd)
     os.system(cmd)
