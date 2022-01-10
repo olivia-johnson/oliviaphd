@@ -13,7 +13,7 @@ import seglift_hpc
 
 params=sys.argv[1]
 sim_run = sys.argv[2]
-tmpdir =str( sys.argv[3])
+tmpdir =str(sys.argv[3])
 ####  READ IN PARAMETERS
     # load in parameter file
 with open('/hpcfs/users/a1704225/parameters/{0}.txt'.format(params), 'r') as f:
@@ -38,9 +38,10 @@ winpChrom = parameters["winpChrom"]
 group=parameters["group"]
 burnin_Ne = parameters["burnin_Ne"]
 
+
 start_time = time.time()
 ## GENERATE RECOMBINATION MAP
-rec_map = seglift_hpc.recombination_map(tmpdir, slim_sim, group, l, nChrom, chromSize, recRate)
+rec_map = seglift_hpc.recombination_map(tmpdir, group, l, nChrom, chromSize, recRate)
 
 ####  SIMULATE BURNIN
 seglift_hpc.simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromSize, nChrom)
