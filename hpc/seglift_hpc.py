@@ -69,9 +69,9 @@ def simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromS
         genomeSize = chromSize*nChrom+(l-10)
     else: 
         genomeSize = chromSize*nChrom
-        
+    print("Burnin Ne is " + burnin_Ne)    
     ##daiquiri.setup(level="DEBUG") ##debug
-    burnin = msprime.sim_ancestry(samples=s_pop,population_size=burnin_Ne, recombination_rate=rec_map)
+    burnin = msprime.sim_ancestry(samples=s_pop, population_size=burnin_Ne, recombination_rate=rec_map)
     ##check burnin size = genome size
     burn_length =burnin.get_sequence_length()
     if burn_length!=genomeSize:

@@ -16,7 +16,7 @@ sim_run = sys.argv[2]
 tmpdir =str(sys.argv[3])
 ####  READ IN PARAMETERS
     # load in parameter file
-with open('/hpcfs/users/a1704225/parameters/{0}.txt'.format(params), 'r') as f:
+with open('/hpcfs/users/a1704225/parameters/background/{0}.txt'.format(params), 'r') as f:
     parameters = yaml.load(f, Loader=yaml.FullLoader)
 
     #set parameters from file
@@ -36,7 +36,7 @@ sum_gen = int(parameters["sum_gen"])
 win_gen = int(parameters["win_gen"])
 winpChrom = parameters["winpChrom"]
 group=parameters["group"]
-burnin_Ne = parameters["burnin_Ne"]
+burnin_Ne = int(parameters["burnin_Ne"])
 
 
 start_time = time.time()
