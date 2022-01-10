@@ -56,7 +56,7 @@ def recombination_map(tmpdir, group, l, nChrom, chromSize, recRate):
     rec_map = msprime.RateMap(position = list(rec_data.positions.astype(int)), rate= list(rec_data.rates[:-1]))
 
 ## output slim recombiation map to text file to be read into forward slim simulation
-    slim_rec.to_csv("/{0}{1}/rec_map_group_{1}.txt".format(tmpdir, group), index=False, header = False, sep = "\t")
+    slim_rec.to_csv("{0}{1}/rec_map_group_{1}.txt".format(tmpdir, group), index=False, header = False, sep = "\t")
 
     return rec_map
 
@@ -77,7 +77,7 @@ def simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromS
     if burn_length!=genomeSize:
         print("Burnin sequence length not equal to genome size!")
     burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
-    burnin_ts.dump("/{0}{1}/burnin_seglift_group_{1}_{2}.trees".format(tmpdir,group,sim_run))
+    burnin_ts.dump("{0}{1}/burnin_seglift_group_{1}_{2}.trees".format(tmpdir,group,sim_run))
     print("Time for burnin = ", (time.time()- start_time))
 
 def simulate_seglift_cap(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen, offCap):
