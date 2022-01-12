@@ -1,9 +1,9 @@
 
 initialize() {
 	if (!exists("tmpdir"))
-	{defineConstant("tmpdir", "~/phd_data/seglift_l10/group_");} // call in tmpdir
+	{defineConstant("tmpdir", "~/phd_data/seglift_l10/group_4");} // call in tmpdir
 	if (!exists("GenomeSize"))
-	{defineConstant("GenomeSize", 210010); } // genome size
+	{defineConstant("GenomeSize", 10500000); } // genome size
 	
 	if (!exists("nChrom"))
 	{defineConstant("nChrom", 21); } // number of chromosomes
@@ -42,7 +42,7 @@ initialize() {
 	{defineConstant("rr", 1e-8);} // recombination rate
 	
 	if (!exists("rGen"))
-	{defineConstant("rGen", 10000);} // remember individuals gen call
+	{defineConstant("rGen", 5);} // remember individuals gen call
 	
 	if (!exists("group"))
 	{defineConstant("group", 4);} // group of parameters
@@ -140,6 +140,9 @@ s1 fitness(NULL) { //summer
 	defineGlobal("gen", sim.generation);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuerGen", integerMod(gen, rGen));
+	
+	if (modValuerGen ==0){
+		catn(gen);}
 
 }
 
