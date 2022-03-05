@@ -9,28 +9,25 @@ initialize() {
 	{defineConstant("nChrom", 21); } // number of chromosomes
 	
 	if (!exists("L"))
-	{defineConstant("L", 20); }// no. selected seasonal loci
+	{defineConstant("L", 10); }// no. selected seasonal loci
 	
 	if (!exists("y"))
-	{defineConstant("y", 1); }// exponent of fitness function
+	{defineConstant("y", 4); }// exponent of fitness function
 	
 	if (!exists("n_s"))
 	{defineConstant("n_s", 1e4); }// summer population size
 	
 	if (!exists("n_w"))
-	{defineConstant("n_w", 1e3); }// winter population size
+	{defineConstant("n_w", 1e4); }// winter population size
 	
 	if (!exists("d"))
-	{defineConstant("d", 0.6); } // dominance
+	{defineConstant("d", 0.65); } // dominance
 	
 	if (!exists("g_s"))
-	{defineConstant("g_s", 13); } // generations per summer
+	{defineConstant("g_s", 15); } // generations per summer
 	
 	if (!exists("g_w"))
-	{defineConstant("g_w", 2); } // generations per winter 
-	
-	defineConstant("halfS", round(g_s/2)); // generation halfway through summer
-	defineConstant("halfW", round(g_w/2)); // generation halfway through winter
+	{defineConstant("g_w", 15); } // generations per winter 
 	
 	if (!exists("g"))
 	{defineConstant("g", (g_s + g_w)); } // generations per seasonal cycle     
@@ -39,10 +36,10 @@ initialize() {
 	{defineConstant("mut", 0.0);} // mutation rate
 	
 	if (!exists("rr"))
-	{defineConstant("rr", 1e-8);} // recombination rate
+	{defineConstant("rr", 1e-6);} // recombination rate
 	
 	if (!exists("rGen"))
-	{defineConstant("rGen", 5);} // remember individuals gen call
+	{defineConstant("rGen", 60);} // remember individuals gen call
 	
 	if (!exists("group"))
 	{defineConstant("group", 4);} // group of parameters
@@ -199,10 +196,12 @@ s1 fitness(NULL) { //summer
 	}
 	e_mc = sim.countOfMutationsOfType(m1);
 	loss = L - e_mc;
-	sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+
 	
 	mem = usage(peak=T);
 	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fixed +"\nMemory usage: "+ mem);
 	catn(line4);
+	
+	sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
 }
 
