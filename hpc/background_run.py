@@ -8,7 +8,6 @@ import tskit
 import pandas as pd
 import time
 import allel
-sys.path.insert(1, '/home/a1704225/oliviaphd/hpc/')
 import seglift_hpc
 
 params=sys.argv[1]
@@ -50,8 +49,8 @@ seglift_hpc.simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne
 seglift_hpc.simulate_seglift(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen)
 
 #### ANALYSE TREE SEQUENCE WITH TS_ANALYSIS
-##nWin=winpChrom*nChrom
+nWin=winpChrom*nChrom
 
-##seglift_hpc.analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen)
+seglift_hpc.analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen)
 
 print("Time = ", (time.time() - start_time))
