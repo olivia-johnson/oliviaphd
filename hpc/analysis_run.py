@@ -17,10 +17,10 @@ import seglift_hpc
 params=sys.argv[1]
 sim_run = sys.argv[2]
 tmpdir =str(sys.argv[3])
-sim_type =str(sys.argv[3])
+sim_type =str(sys.argv[4])
 
 
-with open('/hpcfs/users/a1704225/paramet/{1}/{0}.txt'.format(params, sim_type), 'r') as f:
+with open('/hpcfs/users/a1704225/parameters/{1}/{0}.txt'.format(params, sim_type), 'r') as f:
     parameters = yaml.load(f, Loader=yaml.FullLoader)
 
     #set parameters from file
@@ -45,6 +45,8 @@ burnin_Ne = int(parameters["burnin_Ne"])
 
 start_time = time.time()
 #### ANALYSE TREE SEQUENCE WITH TS_ANALYSIS
+
+print("Group: " + str(group))
 nWin=winpChrom*nChrom
 
 seglift_hpc.analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen)
