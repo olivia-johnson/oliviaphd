@@ -317,7 +317,7 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
             #       h2h1="NaN"
            
             dict3={}
-            dict3.update({"time":t})                        ## generation
+            dict3.update({"time":slim_ts.slim_time(t)})                        ## generation
             dict3.update({"n_win":w})                       ## identifier for window
             dict3.update({"win_start" : win3[w]})            ## window start position
             dict3.update({"win_end" : win3[w+1]-1})          ## window end position
