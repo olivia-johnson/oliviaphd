@@ -153,11 +153,14 @@ modifyChild()
 	defineGlobal("gen", sim.generation);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuerGen", integerMod(gen, rGen));
-	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
+	
+	if (modValuerGen ==0){
+		catn(gen);}
+
 }
 
 1:120000 late(){
-	
+	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
 			p0.setSubpopulationSize(n_s);}
@@ -168,7 +171,8 @@ modifyChild()
 			p0.setSubpopulationSize(n_w);}
 		if (exists("slimgui")) {cat("Winter\n");}
 	}
-	if (modValuerGen >=0 & modValuerGen <=(3*(g_s + g_w)-1)) {// sample
+	
+	if (modValuerGen >=0 & modValuerGen <=((g_s + g_w)-1)) {
 		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
 		if (L > 0){
 			for (i in 1:size(sim.mutations)-1){
@@ -186,8 +190,7 @@ modifyChild()
 	
 	if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
 	
-	if (modValuerGen >= rGen-2 | modValuerGen >= 0 & modValuerGen <=(3*(g_s + g_w))){
-		//cat("Gen:" + gen + "	SAMPLING\n");
+	if (modValuerGen >= rGen-2 | modValuerGen >= 0 & modValuerGen <=(g_s + g_w)) {
 		pedID=p0.individuals.pedigreeID;
 		
 		for (ind in 1:p0.individualCount-1){
@@ -199,6 +202,8 @@ modifyChild()
 	}
 }
 
+
+
 120000 late() {
 	gen = sim.generation;
 	if (L > 0){
@@ -209,10 +214,12 @@ modifyChild()
 	}
 	e_mc = sim.countOfMutationsOfType(m1);
 	loss = L - e_mc;
-	sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+	
 	
 	mem = usage(peak=T);
 	line4 = paste("\nwinter_fixed:" + loss + "\nsummer_fixed:" + fixed +"\nMemory usage: "+ mem);
 	catn(line4);
+	
+	sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
 }
 
