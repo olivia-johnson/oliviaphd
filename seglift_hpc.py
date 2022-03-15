@@ -67,9 +67,9 @@ def simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromS
     start_time = time.time()
     if l > 10:
         genomeSize = chromSize*nChrom+(l-10)
-    else: 
+    else:
         genomeSize = chromSize*nChrom
-    print("Burnin Ne is ", str(burnin_Ne))    
+    print("Burnin Ne is ", str(burnin_Ne))
     ##daiquiri.setup(level="DEBUG") ##debug
     burnin = msprime.sim_ancestry(samples=s_pop, population_size=burnin_Ne, recombination_rate=rec_map)
     ##check burnin size = genome size
@@ -83,29 +83,29 @@ def simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromS
 def simulate_seglift_cap(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen, offCap):
     if l > 10:
         genomeSize = chromSize*nChrom+(l-10)
-    else: 
+    else:
         genomeSize = chromSize*nChrom
-        
+
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
     start_time = time.time()
     tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
-    
+
     cmd = 'slim -d "' +str(tmpdir_call)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d cap=" +str(offCap)+" -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/hpc_seglift_capped.slim"
 
     print(cmd)
     os.system(cmd)
     # #print("Time for SLiM sim = ", (time.time()- start_time))
     print("Simulations took ", (time.time()-start_time) ,  " seconds")
-    
+
 def simulate_seglift_complex(tmpdir, slim_sim, group, sim_run, s_pop, w_pop, l, y, rGen, fitness_on, sum_gen, win_gen):
         genomeSize = l
-            
+
         ## FORWARD SIMULATION
         # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
         start_time = time.time()
         tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
-        
+
         cmd = 'slim -d "' +str(tmpdir_call)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/hpc_seglift_complex.slim"
 
         print(cmd)
@@ -117,9 +117,9 @@ def simulate_seglift(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSiz
 
     if l > 10:
         genomeSize = chromSize*nChrom+(l-10)
-    else: 
+    else:
         genomeSize = chromSize*nChrom
-        
+
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
     start_time = time.time()
@@ -131,12 +131,29 @@ def simulate_seglift(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSiz
     os.system(cmd)
     # #print("Time for SLiM sim = ", (time.time()- start_time))
     print("Simulations took ", (time.time()-start_time) ,  " seconds")
+def simulate_seglift_mfit(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
 
+    if l > 10:
+        genomeSize = chromSize*nChrom+(l-10)
+    else:
+        genomeSize = chromSize*nChrom
+
+    ## FORWARD SIMULATION
+    # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
+    start_time = time.time()
+    tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
+
+    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/seglift_background_mfit.slim"
+
+    print(cmd)
+    os.system(cmd)
+    # #print("Time for SLiM sim = ", (time.time()- start_time))
+    print("Simulations took ", (time.time()-start_time) ,  " seconds")
 
 def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
-    ## input  group(parameter identifier), simulation type, simulation run), mutation rate, 
+    ## input  group(parameter identifier), simulation type, simulation run), mutation rate,
     ##  number of selected loci, number of chromosomes and number of windows
-    
+
  ## INPUT DATA
          # read in treesequence (ts) generated in SLiM
     slim_ts = pyslim.SlimTreeSequence.load("{0}/treeseq_group_{1}_{2}.trees".format(tmpdir,group,sim_run)).simplify()
@@ -146,7 +163,7 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
         print("Less than " + str(l) + "introduced mutations")
     else:
         print (str(l) + " introduced mutations")
-        
+
 ## SUMMARISE MUTATIONS - obtain data for selected sites (used later to remove from tree sequence)
 
         #set up pd dataframe to store metadata for mutations generated in slim (selected only)
@@ -162,58 +179,58 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
     for ind in slim_ts.individuals():
         #print(ind)
         #     # determine what season ind was saved in
-        # if ind.time % (sum_gen+win_gen) == 0 or ind.time % (sum_gen+win_gen) > sum_gen:  
+        # if ind.time % (sum_gen+win_gen) == 0 or ind.time % (sum_gen+win_gen) > sum_gen:
         #     ind_season = "W"
         # else:
         #     ind_season = "S"
-    
+
         dict1 = {}
             # individual's id in ts
         dict1.update({"id" : ind.id})
             # generation ind is from in SLiM time (SLiM and ts count time differently)
-       # dict1.update({"time" : slim_ts.slim_time(ind.time)}) 
+       # dict1.update({"time" : slim_ts.slim_time(ind.time)})
             # population individual is from
-        # dict1.update({"pop" : ind.population})  
+        # dict1.update({"pop" : ind.population})
         #     # season individuals was remembered in
         # dict1.update({"season" : ind_season})
         #     # genotypes individuals contained (2 nodes, each directing to a haploid genotype)
-        dict1.update({"nodes": ind.nodes})      
-    
+        dict1.update({"nodes": ind.nodes})
+
         rows_list.append(dict1)
         # convert from dictionary to data frame (fast)
-    ind_met = pd.DataFrame(rows_list) 
-    
+    ind_met = pd.DataFrame(rows_list)
+
     ind_times = np.unique(slim_ts.individual_times).astype(int)
-    
+
 ## REMOVE SEELCTED MUTATIONS - remove from ts so will not interfere with statistics
-    ##no_mut_ts = slim_ts.delete_sites(list(mut_met.mut_site.astype(int))) 
-    
+    ##no_mut_ts = slim_ts.delete_sites(list(mut_met.mut_site.astype(int)))
+
 ## ADD NEUTRAL MUTATIONS - simulations run without neutral mutations, need to put on tree to generate summary statistics removes current muts on tree
     mut_ts = msprime.sim_mutations(slim_ts, rate=mutRate, model = 'infinite_alleles', keep=False)
 
 # ## SUMMARISE NEUTRAL MUTATIONS - obtain data for neutral mutations added to ts
-    
+
 #     rows_list2 = []
 #         # cycle through neutral mutations on ts
 #     for mut in mut_ts.mutations():
 #         #print(mut)
-  
+
 #         dict2 = {}
 #              # id of mutation in ts
-#         dict2.update({"mut_id":mut.id})              
+#         dict2.update({"mut_id":mut.id})
 #             # site of mutation (1 to l)
-#         dict2.update({"mut_site" : mut.site})  
-#             # position of mutation              
-#         dict2.update({"mut_pos" : mut.position})            
-    
+#         dict2.update({"mut_site" : mut.site})
+#             # position of mutation
+#         dict2.update({"mut_pos" : mut.position})
+
 #         rows_list2.append(dict2)
 #     n_met = pd.DataFrame(rows_list2) ## convert dict to df
-    
-      
+
+
 ## CALCULATE SUMMARY STATISTICS
-    
+
     rows_list3 = []
-    
+
 
         # create windows for stats to be calculated in
         # windows for tskit statistics
@@ -223,7 +240,7 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
     else:
         win3 = np.linspace(0, mut_ts.sequence_length, num=nWin+1).astype(int)
    # windows for scikit.allel statistics
-        
+
     al_win3 = []
     for w in range(len(win3)-1):
           if w == nWin:
@@ -234,71 +251,71 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
 
 
         # cycle throught timepoints for which data has been collected
-    for t in ind_times: 
-        
+    for t in ind_times:
+
             # collate nodes (geotype identifiers) of indviduals at time t
         sample_ind = slim_ts.individuals_alive_at(t)
         sample = ind_met["nodes"].iloc[sample_ind]
-        
+
             ## convert to list
         samples= list(itertools.chain(*sample))
-        
+
             ## create ts of just samples at time t using list
         samp_ts = mut_ts.simplify(samples = samples)
-        
+
             ## create genotype array to put into scikit-allel  shape ==(var, ind)
-        samp_gm=samp_ts.genotype_matrix() 
-        
+        samp_gm=samp_ts.genotype_matrix()
+
             ## crete genotype array for LD
         # g= allel.GenotypeAlleleCounts(samp_gm)
         # samp_gn = g.to_n_alt(fill=-1)
-                
+
             # convert genotype matrix to haplotyoe array for haplotype statistics
         h= allel.HaplotypeArray(samp_gm)
             # allele count for scikit.allel stats
         samp_ac = h.count_alleles()
             # positions of mutations in samp_ts for scikit.allel windowed_statistic function
         mut_positions = [var.position for var in samp_ts.variants()]
-        
+
             # generate haplotype statistics (H1, H12, H123, H2/H1)
         hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
-        
+
             # tajimas D using tskit and branches of ts
         tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="branch")
-            
+
             # wattersons theta using scikit.allel
         theta_w= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
-        
+
         # tajimas D using scikit.allel
         tajda= allel.windowed_tajima_d(mut_positions, samp_ac, windows=al_win3)
 
             # calculate diversity (tajima's pi) using tskit
         div = samp_ts.diversity(sample_sets = None, windows = win3)  ##fix windows
-        
+
             # check that all stats have ben calculated over the correct number of windows
         ts_tests = [div, tajdb]
         # al_tests = [theta_w[0],hap_stats[0]]
         for test in ts_tests:
             if len(test)!= nWin:
                 print("error in test ", test, ", number of values does not match number of windows")
-                
+
         # for test in al_tests:
         #     if len(test)!= alwin:
         #         print("error in al test ", test, ", number of values does not match number of windows")
-                
+
         ## Collate summary statics into dataframe
             # loop over windows
-        for w in range(nWin): 
-            
+        for w in range(nWin):
+
             # h1 = hap_stats[0][w][0]
-        
+
             # h12 = hap_stats[0][w][1]
-        
+
             # h123 = hap_stats[0][w][2]
-       
+
             # h2h1 = hap_stats[0][w][3]
-           
-            
+
+
             # try:
             #     h1 = hap_stats[0][w][0]
             # except TypeError:
@@ -315,7 +332,7 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
             #     h2h1 = hap_stats[0][w][3]
             # except TypeError:
             #       h2h1="NaN"
-           
+
             dict3={}
             dict3.update({"time":slim_ts.slim_time(t)})                        ## generation
             dict3.update({"n_win":w})                       ## identifier for window
@@ -330,12 +347,11 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
             dict3.update({"H12":hap_stats[0][w][1]})         ## H12
             dict3.update({"H123": hap_stats[0][w][2]})       ## H123
             dict3.update({"H2H1": hap_stats[0][w][3]})       ## H2/H1
-          
+
             rows_list3.append(dict3)
-            
+
             # convert dictionary to datafram
-    ts_stats = pd.DataFrame(rows_list3) 
-    
+    ts_stats = pd.DataFrame(rows_list3)
+
             # write statistic df to text file
     ts_stats.to_string(buf = "{2}/sim_stat_{0}_{1}.txt".format(group,sim_run,tmpdir), index=False)
-    
