@@ -80,7 +80,7 @@ def simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromS
     burnin_ts.dump("{0}/burnin_seglift_group_{1}_{2}.trees".format(tmpdir,group,sim_run))
     print("Time for burnin = ", (time.time()- start_time))
 
-def simulate_seglift_cap(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen, offCap):
+def simulate_seglift_cap(tmpdir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen, offCap):
     if l > 10:
         genomeSize = chromSize*nChrom+(l-10)
     else:
@@ -98,7 +98,7 @@ def simulate_seglift_cap(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chro
     # #print("Time for SLiM sim = ", (time.time()- start_time))
     print("Simulations took ", (time.time()-start_time) ,  " seconds")
 
-def simulate_seglift_complex(tmpdir, slim_sim, group, sim_run, s_pop, w_pop, l, y, rGen, fitness_on, sum_gen, win_gen):
+def simulate_seglift_complex(tmpdir, group, sim_run, s_pop, w_pop, l, y, rGen, fitness_on, sum_gen, win_gen):
         genomeSize = l
 
         ## FORWARD SIMULATION
@@ -113,7 +113,7 @@ def simulate_seglift_complex(tmpdir, slim_sim, group, sim_run, s_pop, w_pop, l, 
         # #print("Time for SLiM sim = ", (time.time()- start_time))
         print("Simulations took ", (time.time()-start_time) ,  " seconds")
 
-def simulate_seglift(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
+def simulate_seglift(tmpdir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
 
     if l > 10:
         genomeSize = chromSize*nChrom+(l-10)
@@ -132,7 +132,7 @@ def simulate_seglift(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSiz
     # #print("Time for SLiM sim = ", (time.time()- start_time))
     print("Simulations took ", (time.time()-start_time) ,  " seconds")
     
-def simulate_seglift_mfit(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
+def simulate_seglift_mfit(tmpdir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
 
     if l > 10:
         genomeSize = chromSize*nChrom+(l-10)
