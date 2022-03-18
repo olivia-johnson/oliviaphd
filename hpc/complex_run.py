@@ -47,7 +47,7 @@ start_time = time.time()
 # seglift_hpc.simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromSize, nChrom)
 
 ####  SIMULATE SEGLIFT
-seglift_hpc.simulate_seglift_complex(tmpdir, slim_sim, group, sim_run, s_pop, w_pop, l, y, rGen, fitness_on, sum_gen, win_gen)
+seglift_hpc.simulate_seglift_complex(tmpdir, group, sim_run, s_pop, w_pop, l, y, rGen, fitness_on, sum_gen, win_gen)
 
 #### ANALYSE TREE SEQUENCE WITH TS_ANALYSIS
 ##nWin=winpChrom*nChrom

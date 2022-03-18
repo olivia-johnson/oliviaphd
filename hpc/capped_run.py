@@ -48,7 +48,7 @@ rec_map = seglift_hpc.recombination_map(tmpdir, group, l, nChrom, chromSize, rec
 seglift_hpc.simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromSize, nChrom)
 
 ####  SIMULATE SEGLIFT
-seglift_hpc.simulate_seglift_capped(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen, offCap)
+seglift_hpc.simulate_seglift_capped(tmpdir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen, offCap)
 
 #### ANALYSE TREE SEQUENCE WITH TS_ANALYSIS
 ##nWin=winpChrom*nChrom

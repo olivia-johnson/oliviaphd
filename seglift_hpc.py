@@ -131,6 +131,7 @@ def simulate_seglift(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSiz
     os.system(cmd)
     # #print("Time for SLiM sim = ", (time.time()- start_time))
     print("Simulations took ", (time.time()-start_time) ,  " seconds")
+    
 def simulate_seglift_mfit(tmpdir, slim_sim, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
 
     if l > 10:

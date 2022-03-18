@@ -46,7 +46,7 @@ burnin_Ne = int(parameters["burnin_Ne"])
 start_time = time.time()
 #### ANALYSE TREE SEQUENCE WITH TS_ANALYSIS
 
-print("Group: " + str(group))
+print("Sim: "+ str(slim_sim) +"\nGroup: " + str(group))
 nWin=winpChrom*nChrom
 
 seglift_hpc.analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen)
