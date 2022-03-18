@@ -113,7 +113,7 @@ def simulate_seglift_complex(tmpdir, group, sim_run, s_pop, w_pop, l, y, rGen, f
         # #print("Time for SLiM sim = ", (time.time()- start_time))
         print("Simulations took ", (time.time()-start_time) ,  " seconds")
 
-def simulate_seglift(tmpdir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
+def simulate_seglift(tmpdir, results_dir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
 
     if l > 10:
         genomeSize = chromSize*nChrom+(l-10)
@@ -124,15 +124,16 @@ def simulate_seglift(tmpdir, group, sim_run, recRate, nChrom, chromSize, s_pop, 
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
     start_time = time.time()
     tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
+    results = "results_dir='" + str(results_dir)+ "'"
 
-    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/seglift_background.slim"
+    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d "' +str(results)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/seglift_background.slim"
 
     print(cmd)
     os.system(cmd)
     # #print("Time for SLiM sim = ", (time.time()- start_time))
     print("Simulations took ", (time.time()-start_time) ,  " seconds")
     
-def simulate_seglift_mfit(tmpdir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
+def simulate_seglift_mfit(tmpdir, results_dir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
 
     if l > 10:
         genomeSize = chromSize*nChrom+(l-10)
@@ -143,8 +144,9 @@ def simulate_seglift_mfit(tmpdir, group, sim_run, recRate, nChrom, chromSize, s_
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
     start_time = time.time()
     tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
+    results = "results_dir='" + str(results_dir)+ "'"
 
-    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/seglift_background_mfit.slim"
+    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d "' +str(results)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d nChrom=" + str(nChrom)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) + " -d L=" + str(l)+ " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d y=" + str(y) + " -d d=" + str(d) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/seglift_background_mfit.slim"
 
     print(cmd)
     os.system(cmd)
