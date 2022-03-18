@@ -45,12 +45,12 @@ start_time = time.time()
 rec_map = seglift_hpc.recombination_map(tmpdir, group, l, nChrom, chromSize, recRate)
 
 ####  SIMULATE BURNIN
-if os.path.exists('{0}_{1}.trees'.format(results_dir, sim_run))==False:
-    seglift_hpc.simulate_burnin(tmpdir, results_dir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromSize, nChrom)
+if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
+    seglift_hpc.simulate_burnin(tmpdir, group, l, sim_run, rec_map, s_pop, burnin_Ne, chromSize, nChrom)
 
 ####  SIMULATE SEGLIFT
 if slim_sim =="background":
-    seglift_hpc.simulate_seglift(tmpdir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen)
+    seglift_hpc.simulate_seglift(tmpdir, results_dir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen)
 if slim_sim == "background_mfit":
     seglift_hpc.simulate_seglift_mfit(tmpdir, results_dir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen)
 
