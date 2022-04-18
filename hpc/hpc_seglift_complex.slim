@@ -175,12 +175,12 @@ s1 fitness(NULL) { //summer
 	if (modValuerGen >= rGen-2 | modValuerGen >= 0 & modValuerGen <=(3*(g_s + g_w))){
 		//cat("Gen:" + gen + "	SAMPLING\n");
 		pedID=p0.individuals.pedigreeID;
-		samp = sample(p0.individuals,10000, replace=F);
+		samp = sampleIndividuals(10000);
 		
 		for (ind in samp){
-			indv = p0.individuals[ind].pedigreeID;
-			parents = p0.individuals[ind].pedigreeParentIDs;
-			grandparents = p0.individuals[ind].pedigreeGrandparentIDs;
+			indv = ind.pedigreeID;
+			parents = ind.pedigreeParentIDs;
+			grandparents = ind.pedigreeGrandparentIDs;
 			writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(gen, indv, parents, grandparents, sep=","), append = T);
 		}
 	}
