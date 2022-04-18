@@ -175,8 +175,9 @@ s1 fitness(NULL) { //summer
 	if (modValuerGen >= rGen-2 | modValuerGen >= 0 & modValuerGen <=(3*(g_s + g_w))){
 		//cat("Gen:" + gen + "	SAMPLING\n");
 		pedID=p0.individuals.pedigreeID;
+		samp = sample(p0.individuals,10000, replace=F);
 		
-		for (ind in 1:p0.individualCount-1){
+		for (ind in samp){
 			indv = p0.individuals[ind].pedigreeID;
 			parents = p0.individuals[ind].pedigreeParentIDs;
 			grandparents = p0.individuals[ind].pedigreeGrandparentIDs;
