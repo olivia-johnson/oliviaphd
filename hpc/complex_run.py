@@ -8,7 +8,7 @@ import tskit
 import pandas as pd
 import time
 import allel
-sys.path.insert(1, '/home/a1704225/oliviaphd/hpc/')
+sys.path.insert(1, '/home/a1704225/oliviaphd/')
 import seglift_hpc
 
 params=sys.argv[1]
