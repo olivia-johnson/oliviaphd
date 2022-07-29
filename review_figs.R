@@ -35,27 +35,6 @@ col.names=c("chrom", "pos", pop_keep$label)
 machado=machado_data[, ..cols]
 setnames(machado, cols, col.names)
 
-# b_pops=m_pops[Publication=="Bergland et al 2014" & Locality_code =="PA" & Year!=2012 & Sample!="PA_li_11_frost"]
-# b_pops[, yr:=(Year%%2009)+1, by="Year"]
-# b_pops[, label:=ifelse(Season=="spring", paste("s", yr, sep="_"), paste("f",yr, sep="_")), by=c("yr", "Season")]
-# cols=c("X.CHROM", "POS", b_pops$InternalName)
-# col.names=c("chrom", "pos", b_pops$label)
-# bergland_data=machado_data[, ..cols]
-# setnames(bergland_data, cols, col.names)
-# bergland= merge(bergland_snps, bergland_data, all.x=TRUE, by=c("chrom", "pos"))
-# bergland=na.omit(bergland)
-# bergland[, id:=paste(chrom, pos, sep="_")]
-# bergland[, fc_1:=(`s_1`-`f_1`), by=c("id")]
-# bergland[, fc_2:=(`s_2`-`f_2`), by=c("id")]
-# bfreq_change=bergland[, freqchange:=abs((fc_1+fc_2)/2), by=c("id")]
-# # machado.af=machado.af[freqchange>0.04,.(id, m1S, m1F, m2S, m2F)]
-# bergland=bergland[freqchange>0,.(id, fc_1, s_1, f_1, s_2, f_2,s_3, f_3)]
-# bergland[fc_1<0, s_1:=(1-s_1), by=c("id")]
-# bergland[fc_1<0, f_1:=1-f_1, by=c("id")]
-# bergland[fc_1<0, s_2:=1-s_2, by=c("id")]
-# bergland[fc_1<0, f_2:=1-f_2, by=c("id")]
-# bergland_freq = melt(bergland, id = 1:2, variable.name = "time", value.name = "freq",variable_factor=TRUE)
-
 snp_keep = m_snps[, .(chrom, pos)]
 machado=merge(snp_keep, machado, all.x = TRUE, by=c("chrom", "pos"))
 machado[, id:=paste(chrom,pos, sep="_"), by=c("chrom", "pos")]
@@ -72,10 +51,6 @@ machado.af=na.omit(machado.af)
 machado.af[, fc_1:=(`s_1`-`f_1`), by=c("id", "locality")]
 machado.af[, fc_2:=(`s_2`-`f_2`), by=c("id", "locality")]
 machado.af=machado.af[,.(id, locality, fc_1, s_1, f_1, s_2, f_2)]
-# machado.af[fc_1>0, s_1:=(1-s_1), by=c("id", "locality")]
-# machado.af[fc_1>0, f_1:=1-f_1, by=c("id", "locality")]
-# machado.af[fc_1>0, s_2:=1-s_2, by=c("id", "locality")]
-# machado.af[fc_1>0, f_2:=1-f_2, by=c("id", "locality")]
 machado.af[id %in% pol, s_1:=(1-s_1), by=c("id", "locality")]
 machado.af[id %in% pol, f_1:=1-f_1, by=c("id", "locality")]
 machado.af[id %in% pol, s_2:=1-s_2, by=c("id", "locality")]
@@ -256,7 +231,6 @@ fig3B=ggplot(amplitudes[data_type=="Empirical"], aes(x = label)) +
   geom_boxplot(aes(y = amp),alpha=0,width = 0.8,
                outlier.color = NA ## `outlier.shape = NA` works as well ## remove outliers
   ) +
-  # coord_cartesian(xlim = c(1.2, NA)) +
   theme_light()+
   scale_x_discrete(limits=c("Bergland", "Machado"), breaks=c("Bergland", "Machado"))+
   xlab("Empirical Studies")+
@@ -267,56 +241,7 @@ fig3B=ggplot(amplitudes[data_type=="Empirical"], aes(x = label)) +
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
 
-fig3 = ggarrange(fig3A, fig3B, widths = c(2.5, 1))
-
-fig3 = ggplot(amplitudes, aes(x = label, y = amp, col = label)) + 
-  ## add half-violin from {ggdist} package
-  ggdist::stat_halfeye(
-    aes(fill=label),
-    adjust = .6,            ## custom bandwidth
-    width = .8,             ## adjust height
-    justification = -.2,    ## move geom to the right
-    .width = 0              ## remove slab interval
-  ) + 
-  geom_boxplot(
-    width = .12, 
-    outlier.color = NA ## `outlier.shape = NA` works as well ## remove outliers
-  ) +
-
-  gghalves::geom_half_point(    ## add dot plots from {ggdist} package
-    side = "l", ## draw jitter on the left
-    range_scale = .4,## control range of jitter
-    alpha = .3, ## add some transparency
-    size=0.2
-  )  +
-  # coord_cartesian(xlim = c(1.2, NA)) +
-  theme_bw()+
-  scale_x_discrete(limits=c("0.5", "1", "4", "8", "12","20", "No Fitness", "Bergland", "Machado"))+
-  ylab("Amplitude of Fluctuations")+
-  xlab("Epistasis")+
-  coord_flip()+
-  theme(legend.position = "none") 
-
-
-
-
-
-
-dist_compare = ggplot(data=amplitudes, aes(x=factor(label), y=amp))+
-  #geom_violin(scale = "area")+
-  #geom_boxplot(width=0.1, alpha = 0.5, outlier.shape = NA)+
-  geom_boxplot()+
-  # geom_boxplot(data=bergland_snps[SQ<0.3 & chrom!= "X"], aes(y=amp, x="Bergland"))+
-  # geom_boxplot(data=machado.af[amp>0 & locality=="1"], aes(y=amp, x="Machado"))+
-  geom_hline(aes(yintercept=mean_berg_amp))+
-  geom_text(aes(1.5,mean_berg_amp,label = "Bergland et al", vjust = -1),size=3.25)+
-  geom_hline(aes(yintercept=mean_machado_amp))+
-  geom_text(aes(1.5,mean_machado_amp,label = "Machado et al", vjust = -1),size=3.25)+
-  scale_x_discrete(limits=c("0.5", "1", "4", "8", "12","20", "No Fitness"))+
-  scale_x_discrete(linits=c("Bergland", "Machado"))+
-  ylab("Amplitude of Fluctuations")+
-  xlab("Epistasis")+
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) 
+fig3 = ggarrange(fig3A, fig3B, widths = c(3, 1))
 
 ggexport(fig3, filename="fig3_box7.pdf", width = 11, height =6)
 ggsave(filename =paste0("fig3_box7.jpg"), plot = fig3 , width = 11, height = 6)
