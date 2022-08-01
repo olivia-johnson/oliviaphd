@@ -46,7 +46,7 @@ initialize() {
 	{defineConstant("rr", 1e-6);} // recombination rate
 	
 	if (!exists("rGen"))
-	{defineConstant("rGen", 150);} // remember individuals gen call
+	{defineConstant("rGen", 12000);} // remember individuals gen call
 	
 	if (!exists("group"))
 	{defineConstant("group", 0);} // group of parameters
@@ -71,6 +71,10 @@ initialize() {
 }
 
 /// "/tmp/lls_" + asString(tmpdir)+"/al_freq_group_"  HPC TMPDIR PATH
+
+1 early(){	defineGlobal("restarts", 0);
+	defineGlobal("log_samp", g*2);}
+
 1 late() {
 	cat(sim_run + "\n");
 	line1 = paste(c("SimID:" + sim_run +"\n" + "Fitness_on=" + fit+ ", n_s=" + n_s + ", n_w=" + n_w+ ", GenomeSize=" + GenomeSize +", h_s=" + h_s + ", h_w=" + h_w +", s_s=" +s_s +", s_w=" +s_w + ", g_s=" + g_s + ", g_w="+g_w+"initial_freq="+f));
@@ -94,8 +98,8 @@ initialize() {
 	
 	line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 	writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
-	
-	defineGlobal("restarts", 0);
+
+
 }
 
 
@@ -123,45 +127,6 @@ s1 fitness(NULL) { //summer
 	return ft;
 }
 
-
-
-
-1:100000 early(){
-	defineGlobal("gen", sim.generation);
-	defineGlobal("modValueSeason",integerMod(gen, g));
-	defineGlobal("modValuerGen", integerMod(gen, rGen));
-	
-	if (modValuerGen ==0){
-		catn(gen);}
-
-}
-
-1:100000 late(){
-	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
-	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
-		if (modValueSeason == 0){
-			p0.setSubpopulationSize(n_s);}
-		if (exists("slimgui")) {cat("Summer\n");}
-	}
-	if (modValueSeason >= g_s) { //winter
-		if (modValueSeason == g_s){
-			p0.setSubpopulationSize(n_w);}
-		if (exists("slimgui")) {cat("Winter\n");}
-	}
-	
-	if (modValuerGen >=0 & modValuerGen <=((g_s + g_w)-1)) {
-		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
-		for (i in 1:size(sim.mutations)-1){
-			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-			writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
-		
-		
-		}
-		rInd= sample(p0.individuals, 100);
-		sim.treeSeqRememberIndividuals(rInd);
-	}
-}
-2:100000 early() { if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}}
 2:100000 late(){
 	
 	
@@ -190,10 +155,90 @@ s1 fitness(NULL) { //summer
 		// re-introduce the sweep mutation
 		target = sample(p0.genomes, asInteger(f));
 		target.addNewDrawnMutation(m1, asInteger(GenomeSize/2));
-	line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
-	writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
+		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
+		writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
 	}
 
+}
+
+1:12000 early(){
+	defineGlobal("gen", sim.generation);
+	defineGlobal("modValueSeason",integerMod(gen, g));
+	defineGlobal("modValuelog", integerMod(gen, log_samp));
+	
+	if (modValuelog ==0){
+		catn(gen);}
+
+}
+
+
+1:12000 late(){
+	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
+	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+		if (modValueSeason == 0){
+			p0.setSubpopulationSize(n_s);}
+		if (exists("slimgui")) {cat("Summer\n");}
+	}
+	if (modValueSeason >= g_s) { //winter
+		if (modValueSeason == g_s){
+			p0.setSubpopulationSize(n_w);}
+		if (exists("slimgui")) {cat("Winter\n");}
+	}
+	
+	if (modValuelog >=0 & modValuelog <=((g_s + g_w)-1)) {
+		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
+		tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
+		writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		
+		
+		
+		rInd= sample(p0.individuals, 100);
+		sim.treeSeqRememberIndividuals(rInd);
+	}
+}
+
+12000:100000 early(){
+	defineGlobal("gen", sim.generation);
+	defineGlobal("modValueSeason",integerMod(gen, g));
+	defineGlobal("modValuerGen", integerMod(gen, rGen));
+	
+	
+	if (modValuerGen ==0){
+		catn(gen);}
+	defineGlobal("modValuelog", integerMod(gen, log_samp));
+
+}
+12000:100000 late(){
+	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
+	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+		if (modValueSeason == 0){
+			p0.setSubpopulationSize(n_s);}
+		if (exists("slimgui")) {cat("Summer\n");}
+	}
+	if (modValueSeason >= g_s) { //winter
+		if (modValueSeason == g_s){
+			p0.setSubpopulationSize(n_w);}
+		if (exists("slimgui")) {cat("Winter\n");}
+	}
+	
+	if (modValuerGen >=0 & modValuerGen <=((g_s + g_w)-1)) {
+		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
+		for (i in 1:size(sim.mutations)-1){
+			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+			writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		
+		
+		}
+		rInd= sample(p0.individuals, 100);
+		sim.treeSeqRememberIndividuals(rInd);
+	}
+}
+
+2:12000 early() { if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
+	
+	if (gen==(log_samp+30){
+		defineGlobal("log_samp", log_samp*2);
+		catn(paste("log samp: " + log_samp+ " gen: " +gen));}
 }
 
 
@@ -206,7 +251,7 @@ s1 fitness(NULL) { //summer
 	
 	
 	mem = usage(peak=T);
-	line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts+);
+	line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts);
 	catn(line4);
 	writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line4, append = T);
 	
