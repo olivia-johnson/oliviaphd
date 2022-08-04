@@ -8,7 +8,7 @@ import tskit
 import pandas as pd
 import time
 import allel
-sys.path.insert(1, '/home/a1704225/oliviaphd/')
+sys.path.insert(1, '/hpcfs/users/a1704225/scripts/oliviaphd/')
 import single_locus_hpc
 
 params=sys.argv[1]
@@ -36,6 +36,7 @@ sum_gen = int(parameters["sum_gen"])
 win_gen = int(parameters["win_gen"])
 winpChrom = parameters["winpChrom"]
 group=parameters["group"]
+freq=int(parameters["f"])
 burnin_Ne = int(parameters["burnin_Ne"])
 
 
@@ -47,12 +48,9 @@ if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, g
 
 ####  SIMULATE SEGLIFT
 
-single_locus_hpc.simulate_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen)
+single_locus_hpc.simulate_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq)
 
-#### ANALYSE TREE SEQUENCE WITH TS_ANALYSIS
-#nWin=winpChrom
 
-#seglift_hpc.analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen)
 
 print("Time = ", (time.time() - start_time))
 
