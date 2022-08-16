@@ -5,6 +5,7 @@ library(tidyverse)
 library(ggdist)
 library(readxl)
 library(grDevices)
+library(cowplot)
 setwd("~/phd_data/drosData")
 
 data.labs = c('chrom', 'pos','AF', 'SP', 'SQ' ,'FallF', 'SprF')
@@ -66,45 +67,7 @@ machado.af[, amp:=abs(FF-SF), by=c("id", "locality")]
 
 
 
-
-plot = ggplot()+
-  geom_line(data=machado.af2,aes(x=time, y=freq, group=id, col=as.factor(locality)), alpha=0.03)+
-  facet_wrap("locality", labeller = label_value, nrow=1)+ 
-  xlab("Season")+
-  ylab("Allele Frequency")+
-  scale_x_discrete(labels=c("s_1"="Spring", "f_1"="Fall", "s_2"="Spring", "f_2"="Fall"), limits=c("s_1", "f_1", "s_2", "f_2"))+
-  theme(legend.position = "none")
-
-## with bergland
-bergland_freq[, locality:="Bergland et al 2014"]
-plot = ggplot()+
-  geom_line(data=machado.af2,aes(x=time, y=freq, group=id, col=as.factor(locality)), alpha=0.03)+
-  # geom_line(data=bergland_freq, aes(x=time, y=freq, group=id, col=as.factor(locality)), alpha=0.05)+
-  facet_wrap("locality", labeller = label_value, nrow=1)+ 
-  xlab("Season")+
-  ylab("Allele Frequency")+
-  scale_x_discrete(labels=c("s_1"="Spring", "f_1"="Fall", "s_2"="Spring", "f_2"="Fall", "s_3"="Spring", "f_3"="Fall"), limits=c("s_1", "f_1", "s_2", "f_2", "s_3", "f_3"))+
-  theme(legend.position = "none")
-  
-plot = ggplot()+
-  geom_line(data=machado.af2,aes(x=time, y=freq, group=id, col=locality), alpha=0.025)+  xlab("Season")+
-  facet_wrap("locality", labeller = label_value, nrow=1)+ 
-  theme_bw()+
-  xlab("Season")+
-  ylab("Allele Frequency")+
-  scale_x_discrete(breaks=c("s_1", "f_1", "s_2", "f_2"), 
-  labels=c("Spring", "Fall", "Spring", "Fall"), 
-  expand=c(0, 0) )+
-  scale_y_continuous(limits = c(0,1), expand=c(0,0))+
-  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust = 0, hjust=1), panel.spacing.x = unit(1, "lines"))
-
-
-ggexport(plot, filename="plots/fig_1_pol2.pdf", width = 6, height =4)
-ggsave(filename =paste0("plots/fig_1_pol.jpg"), plot = plot , width = 6, height = 4)
-
-
-
-### FIGURE 3
+### FIGURE 2
 setwd("~/phd_data/review")
 groups = c(1:7)
 
@@ -205,7 +168,8 @@ amplitudes[label=="No Fitness", label:="Drift"]
 numloci=amplitudes[, .N, by="label"]
 amplitudes[, data_type:=ifelse(label=="Bergland" | label=="Machado", "Empirical", "Simulation"), by="label"]
 
-fig3A = ggplot(amplitudes[data_type=="Simulation"], aes(x = label)) + 
+
+fig3.1 = ggplot(amplitudes[data_type=="Simulation"], aes(x = label)) + 
   geom_jitter(aes(y = amp,col = label), alpha=0.2, width = 0.38
   )  +
   geom_boxplot(aes(y = amp),alpha=0,width = 0.8,
@@ -214,18 +178,19 @@ fig3A = ggplot(amplitudes[data_type=="Simulation"], aes(x = label)) +
   # coord_cartesian(xlim = c(1.2, NA)) +
   theme_light()+
   scale_x_discrete(limits=c("Drift", "0.5", "1", "4", "8", "12","20"), breaks=c("Drift", "0.5", "1", "4", "8", "12","20"))+
-  scale_y_continuous(limits=c(-0.035, 1))+
+  scale_y_continuous(limits=c(-0.05, 1.00),expand = c(0,0))+
   ylab("Amplitude of Fluctuations")+
   xlab("y")+
-  annotate("text", x= 1.75, y=0.8, label ="italic(w)(italic(z)) == (1 + italic(z))^italic( y)",
-           parse=TRUE, vjust = -1, size=7, family="Times")+
-  geom_text(data = numloci, aes(x = label, label=paste0("n=",N), y=-0.03), size = 3.5)+
+  annotate("text", x= 2, y=0.8, label ="italic(w)(italic(z)) == (1 + italic(z))^italic( y)",
+           parse=TRUE, vjust = -1, size=8, family="Times")+
+  geom_text(data = numloci, aes(x = label, label=paste0("n=",N), y=-0.025), size = 4)+
   theme(legend.position = "none", 
-        axis.title.x = element_text(face = "italic", size=18, family="Times"), 
+        axis.title.x = element_text(face = "italic", size=20, family="Times"), 
         axis.text = element_text(size=16), 
-        axis.title.y = element_text(size=18))
+        axis.title.y = element_text(size=18), axis.text.y = element_text(vjust = 1), plot.margin=unit(c(.2,.2,.2,.5), "cm"))+
+  scale_colour_brewer(palette="Set2")
 
-fig3B=ggplot(amplitudes[data_type=="Empirical"], aes(x = label)) + 
+fig3.2=ggplot(amplitudes[data_type=="Empirical"], aes(x = label)) + 
   geom_jitter(aes(y = amp,col = label), alpha=0.2, width = 0.38
   )  +
   geom_boxplot(aes(y = amp),alpha=0,width = 0.8,
@@ -234,15 +199,56 @@ fig3B=ggplot(amplitudes[data_type=="Empirical"], aes(x = label)) +
   theme_light()+
   scale_x_discrete(limits=c("Bergland", "Machado"), breaks=c("Bergland", "Machado"))+
   xlab("Empirical Studies")+
-  scale_y_continuous(limits=c(-0.035, 1))+
-  geom_text(data = numloci, aes(x = label, label=paste0("n=",N), y=-0.03), size = 3.5)+
-  theme(legend.position = "none", axis.title.x = element_text(size=16),
-        axis.text = element_text(size=16), axis.title.y=element_blank(),
+  scale_y_continuous(limits=c(-0.05, 1.00),expand = c(0,0))+  geom_text(data = numloci, aes(x = label, label=paste0("n=",N), y=-0.025), size = 4)+
+  theme(legend.position = "none", axis.title.x = element_text(size=16, vjust = -0.5),
+        axis.text = element_text(size=14, vjust = -0.75), axis.title.y=element_blank(),
         axis.text.y=element_blank(),
-        axis.ticks.y=element_blank())
+        axis.ticks.y=element_blank(), plot.margin=unit(c(.2,.2,.35,0),"cm"))+
+  scale_colour_brewer(palette="Set1")
 
-fig3 = ggarrange(fig3A, fig3B, widths = c(3, 1))
+fig3a = ggarrange(fig3.1, fig3.2,widths = c(2.75,1))
 
 ggexport(fig3, filename="fig3_box7.pdf", width = 11, height =6)
 ggsave(filename =paste0("fig3_box7.jpg"), plot = fig3 , width = 11, height = 6)
+
+fun.1= function(x) exp(x^1)
+fun.2=function(x) (1+x)^4
+fun.3=function(x) (1+x)^1
+fun.4=function(x) (1+x)^0.5
+
+
+
+plot.range1 <- data.frame(x=c(0, 10), Functions = factor(1))
+plot.range2 <- data.frame(x=c(0, 10), Functions = factor(2))
+plot.range3 <- data.frame(x=c(0, 10), Functions = factor(3))
+plot.range4 <- data.frame(x=c(0, 10), Functions = factor(4))
+
+fig3b <- ggplot(NULL, aes(x=x, colour=Functions)) +
+  stat_function(data = plot.range1, fun = fun.1, size=2, col="#C51B7D") +
+  stat_function(data = plot.range2, fun = fun.2, size=2, col="#A6D854") +
+  stat_function(data = plot.range3, fun = fun.3, size=2, col="#FC8D62") +
+  stat_function(data = plot.range4, fun = fun.4, size=2, col="#66C2A5") +
+  scale_y_log10()+
+  scale_x_continuous(breaks=c(0, 2, 4,6, 8, 10), limits=c(0,10), expand = c(0,0))+
+  theme(panel.grid.minor = element_blank())+
+  xlab(expression(paste("Seasonal Score, ", italic("z"))))+
+  ylab(expression(paste("Fitness (", italic("w(z)"), ")")))+
+  theme_light()+  
+  annotate("text", x= 5, y=2000, label ="bold(italic(y)== 4)",
+                           parse=TRUE, vjust = -1, size=8, family="Times", col="#A6D854")+
+  annotate("text", x= 7.5, y=50, label ="Multiplicative",
+           parse=TRUE, vjust = -1, size=6, col="#C51B7D")+
+  annotate("text", x= 6, y=8, label ="bold(italic(y)== 1)",
+           parse=TRUE, vjust = -1, size=8, family="Times", col="#FC8D62")+
+  annotate("text", x= 8, y=0, label ="bold(italic(y)== 0.5)",
+           parse=TRUE, vjust = -1, size=8, family="Times", col="#66C2A5")+
+  theme(legend.position = "none", 
+        axis.title.y = element_text( size=18), 
+        axis.text = element_text(size=17), 
+        axis.title.x = element_text(size=18), plot.margin=unit(c(.2,.5,.2,0),"cm"))
+ggexport(p, filename = "~/phd_data/fitness_function_review2.pdf", width = 5, height = 4)
+
+fig3 = ggarrange(fig3a, fig3b, widths = c(2,1), nrow = 1, labels = c("(a)", "(b)"), font.label = list(size=22), hjust =c(0.00005, 0))
+ggexport(fig3, filename="fig3_16_08.pdf", width = 12, height =6)
+ggsave(filename =paste0("fig3_16_08.jpg"), plot = fig3 , width = 12, height = 6)
 
