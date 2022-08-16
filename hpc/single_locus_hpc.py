@@ -227,22 +227,14 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
             # positions of mutations in samp_ts for scikit.allel windowed_statistic function
         mut_positions = [var.position for var in samp_ts.variants()]
         
-            ## crete genotype array for LD
-        # odds = h[:,::2]
-        # evens = h[:,1::2]
-        
-        # gn=odds+evens
-        
-        #r2 = allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
-            # generate haplotype statistics (H1, H12, H123, H2/H1)
+        #haplotype statistics
         hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
 
+        hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
+        
+        # ihs = allel.windowed_statistic(mut_positions,(h, mut_positions),allel.ihs, windows = al_win3)
             # tajimas D using tskit and branches of ts
         tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="site")
-
-            # wattersons theta using ts
-        # tw_b= theta_w(samp_ts, win3)
-    
 
             # wattersons theta using scikit.allel
         tw_a= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
@@ -268,31 +260,6 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
             # loop over windows
         for w in range(nWin):
 
-            # h1 = hap_stats[0][w][0]
-
-            # h12 = hap_stats[0][w][1]
-
-            # h123 = hap_stats[0][w][2]
-
-            # h2h1 = hap_stats[0][w][3]
-
-
-            # try:
-            #     h1 = hap_stats[0][w][0]
-            # except TypeError:
-            #     h1="NaN"
-            # try:
-            #     h12 = hap_stats[0][w][1]
-            # except TypeError:
-            #     h12 = "NaN"
-            # try:
-            #     h123 = hap_stats[0][w][2]
-            # except TypeError:
-            #     h123 = "NaN"
-            # try:
-            #     h2h1 = hap_stats[0][w][3]
-            # except TypeError:
-            #       h2h1="NaN"
 
             dict3={}
             dict3.update({"time":slim_ts.slim_time(t)})                        ## generation
@@ -305,6 +272,7 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
             dict3.update({"tajimas_d_allel": tajda[0][w]})        
             # dict3.update({"theta_w_branch": tw_b[w]})        ## watterson's theta (branch with tskit)
             dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
+            dict3.update({"haplotype_diversity": hap_div[0][w]})        ## watterson's theta (allele with scikit allel)
             dict3.update({"H1": hap_stats[0][w][0]})         ## H1
             dict3.update({"H12":hap_stats[0][w][1]})         ## H12
             dict3.update({"H123": hap_stats[0][w][2]})       ## H123
@@ -317,3 +285,6 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
 
             # write statistic df to text file
     ts_stats.to_string(buf = "{2}/sim_stat_{0}_{1}.txt".format(group,sim_run,tmpdir), index=False)
+
+
+

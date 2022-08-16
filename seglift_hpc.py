@@ -11,6 +11,7 @@ import allel
 ##to debug burnin
 ##import daiquiri
 
+
 def recombination_map(tmpdir, group, l, nChrom, chromSize, recRate):
     ## input group (parameter set identifier, number of chromosomes, chromosome size, recombination rate)
 
@@ -133,6 +134,7 @@ def simulate_seglift(tmpdir, results_dir, group, sim_run, recRate, nChrom, chrom
     # #print("Time for SLiM sim = ", (time.time()- start_time))
     print("Simulations took ", (time.time()-start_time) ,  " seconds")
     
+    
 def simulate_seglift_mfit(tmpdir, results_dir, group, sim_run, recRate, nChrom, chromSize, s_pop, w_pop, l, y, d, rGen, fitness_on, sum_gen, win_gen):
 
     if l > 10:
@@ -157,6 +159,48 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
     ## input  group(parameter identifier), simulation type, simulation run), mutation rate,
     ##  number of selected loci, number of chromosomes and number of windows
 
+
+    def Theta_W(self, sample_sets=None, windows=None, mode="site"):
+            """
+            Computes Theta W of sets of nodes from ``sample_sets`` in windows.
+            Please see the :ref:`one-way statistics <sec_stats_sample_sets_one_way>`
+            section for details on how the ``sample_sets`` argument is interpreted
+            and how it interacts with the dimensions of the output array.
+            See the :ref:`statistics interface <sec_stats_interface>` section for details on
+            :ref:`windows <sec_stats_windows>`, :ref:`mode <sec_stats_mode>`,
+            and :ref:`return value <sec_stats_output_format>`.
+            Operates on ``k = 1`` sample sets at a
+            time. For a sample set ``X`` of ``n`` nodes, if ``S`` is the number of
+            sites segregating in ``X`` (computed with :meth:`segregating sites
+            <.TreeSequence.segregating_sites>`, respectively, both not span
+            normalised), then Theta W is
+
+            .. code-block:: python
+
+                D = (T - S / h) / sqrt(a * S + (b / c) * S * (S - 1))
+                a = 1 + 1 / 2 + ... + 1 / (n - 1)
+
+            :param list sample_sets: A list of lists of Node IDs, specifying the
+                groups of nodes to compute the statistic with.
+            :param list indexes: A list of 2-tuples, or None.
+            :param list windows: An increasing list of breakpoints between the windows
+                to compute the statistic in.
+            :param str mode: A string giving the "type" of the statistic to be computed
+                (defaults to "site").
+            :return: A ndarray with shape equal to (num windows, num statistics).
+            """
+            def tw_func(sample_set_sizes, flattened, **kwargs):
+                n = sample_set_sizes
+                S = self.ll_tree_sequence.segregating_sites(n, flattened, **kwargs)
+                a = np.array([np.sum(1 / np.arange(1, nn)) for nn in n])
+                with np.errstate(invalid="ignore", divide="ignore"):
+                    
+                    w = S / a ## / #np.sqrt(a * S + (b / (h ** 2 + g)) * S * (S - 1))
+                return w
+
+            return self.__one_way_sample_set_stat(
+                tw_func, sample_sets, windows=windows, mode=mode, span_normalise=False
+            )
  ## INPUT DATA
          # read in treesequence (ts) generated in SLiM
     slim_ts = pyslim.SlimTreeSequence.load("{0}/treeseq_group_{1}_{2}.trees".format(tmpdir,group,sim_run)).simplify()
@@ -269,25 +313,33 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
             ## create genotype array to put into scikit-allel  shape ==(var, ind)
         samp_gm=samp_ts.genotype_matrix()
 
-            ## crete genotype array for LD
-        # g= allel.GenotypeAlleleCounts(samp_gm)
-        # samp_gn = g.to_n_alt(fill=-1)
-
             # convert genotype matrix to haplotyoe array for haplotype statistics
         h= allel.HaplotypeArray(samp_gm)
             # allele count for scikit.allel stats
         samp_ac = h.count_alleles()
             # positions of mutations in samp_ts for scikit.allel windowed_statistic function
         mut_positions = [var.position for var in samp_ts.variants()]
-
+        
+            ## crete genotype array for LD
+        odds = h[:,::2]
+        evens = h[:,1::2]
+        
+        gn=odds+evens
+        
+        # r2 = allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
             # generate haplotype statistics (H1, H12, H123, H2/H1)
-        hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
+        # hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
 
             # tajimas D using tskit and branches of ts
         tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="branch")
 
             # wattersons theta using scikit.allel
-        theta_w= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
+        tw_b= samp_ts.sample_count_stat(sample_sets=samples, f=Theta_W, output_dim= nWin,windows=win3,mode = "branch")
+        
+        samp_ts.Theta_W(sample_sets=None, windows=win3, mode="branch")
+
+            # wattersons theta using scikit.allel
+        tw_a= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
 
         # tajimas D using scikit.allel
         tajda= allel.windowed_tajima_d(mut_positions, samp_ac, windows=al_win3)
@@ -344,12 +396,13 @@ def analyse(tmpdir, group, sim_run, mutRate, l, nChrom, nWin, sum_gen, win_gen):
             dict3.update({"chrom" : int(w/(nWin/nChrom))+1})  ## chromosome
             dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
             dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tsk
-            dict3.update({"tajimas_d_allel": tajda[0][w]})        ## watterson's theta
-            dict3.update({"theta_w": theta_w[0][w]})        ## watterson's theta
-            dict3.update({"H1": hap_stats[0][w][0]})         ## H1
-            dict3.update({"H12":hap_stats[0][w][1]})         ## H12
-            dict3.update({"H123": hap_stats[0][w][2]})       ## H123
-            dict3.update({"H2H1": hap_stats[0][w][3]})       ## H2/H1
+            dict3.update({"tajimas_d_allel": tajda[0][w]})        
+            dict3.update({"theta_w_branch": tw_b[w]})        ## watterson's theta (branch with tskit)
+            dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
+            # dict3.update({"H1": hap_stats[0][w][0]})         ## H1
+            # dict3.update({"H12":hap_stats[0][w][1]})         ## H12
+            # dict3.update({"H123": hap_stats[0][w][2]})       ## H123
+            # dict3.update({"H2H1": hap_stats[0][w][3]})       ## H2/H1
 
             rows_list3.append(dict3)
 

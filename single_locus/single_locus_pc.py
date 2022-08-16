@@ -12,11 +12,11 @@ import itertools
 
 
 ## run on computer
-group=12
+group=2
 sys.path.insert(1,"/Users/olivia/oliviaphd/hpc/") 
 import single_locus_hpc
 import multiprocess as mp
-for group in range(29, 37):
+for group in range(2, 37):
     with open('/Users/olivia/phd_data/hpc_parameters/single_locus/group_{0}.txt'.format(group), 'r') as f:
         parameters = yaml.load(f, Loader=yaml.FullLoader)
     
@@ -31,6 +31,7 @@ for group in range(29, 37):
     s_s = parameters["s_s"]
     s_w = parameters["s_w"]
     rGen=int(parameters["rGen"])
+    freq=int(parameters["f"])
     fitness_on = parameters["fitness_on"]
     sum_gen = int(parameters["sum_gen"])
     win_gen = int(parameters["win_gen"])
@@ -40,12 +41,14 @@ for group in range(29, 37):
     
    
     tmpdir="/Users/olivia/phd_data/Results/single_locus/group_{0}".format(group)
-    os.mkdir(tmpdir)
+    if os.path.exists(tmpdir)==False:
+        os.mkdir(tmpdir)
     runs=10
      
     # BURNIN
     processes=[]
     for sim_run in range(runs):
+        sim_run=sim_run+1
         p=mp.Process(target=single_locus_hpc.single_locus_burnin, args=[tmpdir, group, sim_run, genomeSize, s_pop, burnin_Ne, recRate])
         p.start()
         processes.append(p)
@@ -58,8 +61,8 @@ for group in range(29, 37):
     processes=[]
     
     for sim_run in range(runs):
-        #sim_run=sim_run+(runs)
-        p=mp.Process(target=single_locus_hpc.simulate_single_locus, args=[tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen])
+        sim_run=sim_run+1
+        p=mp.Process(target=single_locus_hpc.simulate_single_locus, args=[tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq])
         p.start()
         processes.append(p)
         
@@ -75,6 +78,7 @@ for group in range(29, 37):
     nWin=winpChrom
     
     for sim_run in range(0, runs): 
+        sim_run=sim_run+1
         start_time = time.time()
         # sim_run= sim_run +1
      ## INPUT DATA
@@ -130,7 +134,7 @@ for group in range(29, 37):
 
     ## ADD NEUTRAL MUTATIONS - simulations run without neutral mutations, need to put on tree to generate summary statistics removes current muts on tree
         mut_ts = msprime.sim_mutations(slim_ts, rate=mutRate, model = 'infinite_alleles', keep=False)
-        mut_ts = msprime.sim_mutations(slim_ts,discrete_genome=False, rate=mutRate, keep=False )
+        # mut_ts = msprime.sim_mutations(slim_ts,discrete_genome=False, rate=mutRate, keep=False )
 
     # ## SUMMARISE NEUTRAL MUTATIONS - obtain data for neutral mutations added to ts
 
@@ -169,9 +173,14 @@ for group in range(29, 37):
               else:
                   window = [win3[w], win3[w+1]-1]
               al_win3.append(window)
+              
+        genome_positions=np.arange(1, 1000001).astype(str)
+        column_names=np.array("Gen")
+        column_names=np.append(column_names, genome_positions)
+        ld_data=pd.DataFrame(columns=column_names)
 
-
-            # cycle throught timepoints for which data has been collected
+        ehh_data = pd.DataFrame(columns=column_names)
+                # cycle throught timepoints for which data has been collected
         for t in ind_times:
 
                 # collate nodes (geotype identifiers) of indviduals at time t
@@ -199,24 +208,29 @@ for group in range(29, 37):
             evens = h[:,1::2]
             
             gn=odds+evens
-            ld_calc = tskit.LdCalculator(samp_ts)
-            r2 = ld_calc.r2_array(50000, direction=1)
+            # ld_calc = tskit.LdCalculator(ld_ts)
+            # r2 = ld_calc.r2_array(50000, direction=1)
+            # r2_rev = ld_calc.r2_array(50000, direction=-1)
             
-            allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
+            ld=allel.locate_unlinked(gn)
+            ld_pos=pd.DataFrame(data=ld., columns=mut_positions)
+            ehh=allel.ehh_decay(h)
             
-            r2_win_val, r2_win, r2_win_n = allel.windowed_statistic(mut_positions,gn,allel.rogers_huff_r, windows = al_win3)
+            # allel.windowed_r_squared(mut_positions, gn, windows=al_win3, percentile=1)
             
+            # r2_win_val, r2_win, r2_win_n = allel.windowed_statistic(mut_positions,gn,allel.rogers_huff_r, windows = al_win3)
             
                 # generate haplotype statistics (H1, H12, H123, H2/H1)
             hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
 
             hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
+            
+            # ihs = allel.windowed_statistic(mut_positions,(h, mut_positions),allel.ihs, windows = al_win3)
                 # tajimas D using tskit and branches of ts
             tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="site")
 
-                # wattersons theta using ts
-            # tw_b= theta_w(samp_ts, win3)
-        
+            ## no. segregatiig sites
+            n_seg =samp_ts.segregating_sites(sample_sets=None, windows=win3, mode="site", span_normalise=False)
 
                 # wattersons theta using scikit.allel
             tw_a= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
@@ -227,6 +241,7 @@ for group in range(29, 37):
                 # calculate diversity (tajima's pi) using tskit
             div = samp_ts.diversity(sample_sets = None, windows = win3)  ##fix windows
 
+    
                 # check that all stats have ben calculated over the correct number of windows
             ts_tests = [div, tajdb]
             # al_tests = [theta_w[0],hap_stats[0]]
@@ -273,12 +288,13 @@ for group in range(29, 37):
                 dict3.update({"n_win":w})                       ## identifier for window
                 dict3.update({"win_start" : win3[w]})            ## window start position
                 dict3.update({"win_end" : win3[w+1]-1})          ## window end position
-                # dict3.update({"chrom" : int(w/(nWin/nChrom))+1})  ## chromosome
+                dict3.update({"seg_sites" : n_seg[w]})  ## chromosome
                 dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
                 dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tsk
                 dict3.update({"tajimas_d_allel": tajda[0][w]})        
                 # dict3.update({"theta_w_branch": tw_b[w]})        ## watterson's theta (branch with tskit)
                 dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
+                dict3.update({"haplotype_diversity": hap_div[0][w]})        ## watterson's theta (allele with scikit allel)
                 dict3.update({"H1": hap_stats[0][w][0]})         ## H1
                 dict3.update({"H12":hap_stats[0][w][1]})         ## H12
                 dict3.update({"H123": hap_stats[0][w][2]})       ## H123
@@ -291,6 +307,8 @@ for group in range(29, 37):
 
                 # write statistic df to text file
         ts_stats.to_string(buf = "{2}/sim_stat_{0}_{1}.txt".format(group,sim_run,tmpdir), index=False)
+        
+        
 
         print("Time = ", (time.time() - start_time))
     

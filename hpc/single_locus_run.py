@@ -21,7 +21,7 @@ with open('/hpcfs/users/a1704225/parameters/single_locus/{0}.txt'.format(params)
     parameters = yaml.load(f, Loader=yaml.FullLoader)
 
     #set parameters from file
-genomeSize = int(parameters["chromSize"])
+genomeSize = int(parameters["genomeSize"])
 recRate = parameters["recRate"]
 mutRate=parameters["mutRate"]
 s_pop = int(parameters["s_pop"])

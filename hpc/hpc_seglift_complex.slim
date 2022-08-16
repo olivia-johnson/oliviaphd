@@ -1,16 +1,17 @@
 
 initialize() {
 	if (!exists("tmpdir"))
-	{defineConstant("tmpdir", "~/phd_data/seglift_complex/group_0");} // call in tmpdir
+		//{defineConstant("tmpdir", "~/phd_data/seglift_complex/group_0");} // call in tmpdir
+	{defineConstant("tmpdir", "~/phd_data/review/group_1");} // call in tmpdir
 	
 	if (!exists("GenomeSize"))
-	{defineConstant("GenomeSize", 10); } // genome size
+	{defineConstant("GenomeSize", 100); } // genome size
 	
 	if (!exists("L"))
-	{defineConstant("L", 10); }// no. selected seasonal loci
+	{defineConstant("L", 100); }// no. selected seasonal loci
 	
 	if (!exists("y"))
-	{defineConstant("y", 4); }// exponent of fitness function
+	{defineConstant("y", 0.5); }// exponent of fitness function
 	
 	if (!exists("n_s"))
 	{defineConstant("n_s", 1e4); }// summer population size
@@ -19,10 +20,10 @@ initialize() {
 	{defineConstant("n_w", 1e4); }// winter population size
 	
 	if (!exists("g_s"))
-	{defineConstant("g_s", 15); } // generations per summer
+	{defineConstant("g_s", 10); } // generations per summer
 	
 	if (!exists("g_w"))
-	{defineConstant("g_w", 15); } // generations per winter 
+	{defineConstant("g_w", 10); } // generations per winter 
 	
 	if (!exists("g"))
 	{defineConstant("g", (g_s + g_w)); } // generations per seasonal cycle     
@@ -34,13 +35,13 @@ initialize() {
 	//	{defineConstant("rr", 0.5);} // recombination rate  CURRENTLY TURNED OFF
 	
 	if (!exists("rGen"))
-	{defineConstant("rGen", 750);} // remember individuals gen call
+	{defineConstant("rGen", 15000);} // remember individuals gen call
 	
 	if (!exists("group"))
-	{defineConstant("group", 0);} // group of parameters
+	{defineConstant("group", 1);} // group of parameters
 	
 	if (!exists("sim_run"))
-	{defineConstant("sim_run", 2);} // sim run
+	{defineConstant("sim_run", 1);} // sim run
 	
 	if (!exists("fit"))
 	{defineConstant("fit",2);} //if fit = 0 fitness function switched off
@@ -112,6 +113,7 @@ initialize() {
 		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq, s_d, w_d, s_fx, w_fx";
 		writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
 		writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P2", "G1", "G2", "G3", "G4" , sep=","), append = F);
+//		writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P1_offspring","P2","P2_offspring", "G1", "G1_offspring", "G2","G2_offspring", "G3","G3_offspring", "G4" ,"G4_offspring", sep=","), append = F);
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(sim.generation,sim.mutations[i].position,sim.mutationFrequencies(p0)[i],s_d[i], w_d[i],s_fx[i], w_fx[i]), sep = ",");
 			writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
@@ -139,7 +141,7 @@ s1 fitness(NULL) { //summer
 	}
 }
 
-1:120000 early(){
+1:100000 early(){
 	defineGlobal("gen", sim.generation);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuerGen", integerMod(gen, rGen));
@@ -149,7 +151,7 @@ s1 fitness(NULL) { //summer
 		catn(gen);}
 }
 
-1:120000 late(){
+1:100000 late(){
 	
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
@@ -171,22 +173,42 @@ s1 fitness(NULL) { //summer
 			}}}}
 
 2:120000 early(){
+	
+	
 	if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
-	if (modValuerGen >= rGen-2 | modValuerGen >= 0 & modValuerGen <=(3*(g_s + g_w))){
-		//cat("Gen:" + gen + "	SAMPLING\n");
+	
+	if (modValuerGen >= rGen-2 | modValuerGen >= 0 & modValuerGen <=(g_s + g_w)) {
 		pedID=p0.individuals.pedigreeID;
-		samp = sampleIndividuals(10000);
 		
-		for (ind in samp){
-			indv = ind.pedigreeID;
-			parents = ind.pedigreeParentIDs;
-			grandparents = ind.pedigreeGrandparentIDs;
+		for (ind in 1:p0.individualCount-1){
+			indv = p0.individuals[ind].pedigreeID;
+			parents = p0.individuals[ind].pedigreeParentIDs;
+			grandparents = p0.individuals[ind].pedigreeGrandparentIDs;
 			writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(gen, indv, parents, grandparents, sep=","), append = T);
 		}
 	}
 }
 
-120000 late() {
+
+//2:100000 early(){
+//	if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
+//	if (modValuerGen >= rGen-2 | modValuerGen >= 0 & modValuerGen <=(3*(g_s + g_w))){
+//		//cat("Gen:" + gen + "	SAMPLING\n");
+//		pedID=p0.individuals.pedigreeID;
+//		samp = p0.sampleIndividuals(10000);
+//		
+//		for (ind in samp){
+//			indv = ind.pedigreeID;
+//			parents = ind.pedigreeParentIDs;
+//			//parents_off = parents.reproductiveOutput;
+//			grandparents = ind.pedigreeGrandparentIDs;
+//			//grandparents_off = grandparents.reproductiveOutput;
+//			writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(gen, indv, parents, grandparents, sep=","), append = T);
+//		}
+//	}
+//}
+
+100000 late() {
 	gen = sim.generation;
 	if (L > 0){
 		for (i in 1:size(sim.mutations)-1){
