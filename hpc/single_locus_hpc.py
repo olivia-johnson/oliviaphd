@@ -19,7 +19,7 @@ def single_locus_burnin(tmpdir, group, sim_run, genomeSize, s_pop, burnin_Ne, re
     burn_length =burnin.get_sequence_length()
     if burn_length!=genomeSize:
         print("Burnin sequence length not equal to genome size!")
-    burnin_ts = pyslim.annotate_defaults(burnin, model_type="WF", slim_generation=1)
+    burnin_ts = pyslim.annotate(burnin, model_type="WF", tick=1,    stage="late")
     burnin_ts.dump("{0}/burnin_seglift_group_{1}_{2}.trees".format(tmpdir,group,sim_run))
     print("Time for burnin = ", (time.time()- start_time))
     
@@ -113,7 +113,7 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
       
  ## INPUT DATA
          # read in treesequence (ts) generated in SLiM
-    slim_ts = pyslim.SlimTreeSequence.load("{0}/treeseq_group_{1}_{2}.trees".format(tmpdir,group,sim_run)).simplify()
+    slim_ts = tskit.load("{0}/treeseq_group_{1}_{2}.trees".format(tmpdir,group,sim_run)).simplify()
         # extract the length of the simulate seqeunce from slim_ts
         # check number of mutations that were introduced in slim simulation
     if (slim_ts.num_sites != 1):
