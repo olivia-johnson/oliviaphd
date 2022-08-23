@@ -53,35 +53,15 @@ if (slim_ts.num_sites != 1):
 else:
     print (str(1) + " introduced mutations")
 
-## SUMMARISE MUTATIONS - obtain data for selected sites (used later to remove from tree sequence)
-
-    #set up pd dataframe to store metadata for mutations generated in slim (selected only)
-# mut_met = pd.DataFrame({"mut_site": [], "mut_pos": [], "mut_id":[]})
-# ## run through mutations (muts) in ts
-# for mut in slim_ts.mutations():
-#     #print(mut)
-#     mut_met = mut_met.append({"mut_site" : mut.site, "mut_pos" : slim_ts.site(mut.site).position, "mut_id" : mut.id}, ignore_index=True)
-
 ## SUMMARISE INDIVIDUALS - obtain metadata for individuals 'remembered' in ts
 rows_list = []
     # run through individuals (inds) in ts
 for ind in slim_ts.individuals():
     #print(ind)
-    #     # determine what season ind was saved in
-    # if ind.time % (sum_gen+win_gen) == 0 or ind.time % (sum_gen+win_gen) > sum_gen:
-    #     ind_season = "W"
-    # else:
-    #     ind_season = "S"
-
     dict1 = {}
         # individual's id in ts
     dict1.update({"id" : ind.id})
-        # generation ind is from in SLiM time (SLiM and ts count time differently)
-   # dict1.update({"time" : slim_ts.slim_time(ind.time)})
-        # population individual is from
-    # dict1.update({"pop" : ind.population})
-    #     # season individuals was remembered in
-    # dict1.update({"season" : ind_season})
+
     #     # genotypes individuals contained (2 nodes, each directing to a haploid genotype)
     dict1.update({"nodes": ind.nodes})
 
@@ -91,35 +71,14 @@ ind_met = pd.DataFrame(rows_list)
 
 ind_times = np.unique(slim_ts.individual_times).astype(int)
 
-## REMOVE SEELCTED MUTATIONS - remove from ts so will not interfere with statistics
-##no_mut_ts = slim_ts.delete_sites(list(mut_met.mut_site.astype(int)))
 
 ## ADD NEUTRAL MUTATIONS - simulations run without neutral mutations, need to put on tree to generate summary statistics removes current muts on tree
 mut_ts = msprime.sim_mutations(slim_ts, rate=mutRate, model = 'infinite_alleles', keep=False)
-
-# ## SUMMARISE NEUTRAL MUTATIONS - obtain data for neutral mutations added to ts
-
-#     rows_list2 = []
-#         # cycle through neutral mutations on ts
-#     for mut in mut_ts.mutations():
-#         #print(mut)
-
-#         dict2 = {}
-#              # id of mutation in ts
-#         dict2.update({"mut_id":mut.id})
-#             # site of mutation (1 to l)
-#         dict2.update({"mut_site" : mut.site})
-#             # position of mutation
-#         dict2.update({"mut_pos" : mut.position})
-
-#         rows_list2.append(dict2)
-#     n_met = pd.DataFrame(rows_list2) ## convert dict to df
 
 
 ## CALCULATE SUMMARY STATISTICS
 
 rows_list3 = []
-
 
     # create windows for stats to be calculated in
     # windows for tskit statistics
@@ -167,20 +126,16 @@ for t in ind_times:
     gn=gn.view('int8')
             
     ehh=allel.ehh_decay(h)
-    ehh, ehh_windows, ehh_vars=allel.windowed_statistic(mut_positions, h, allel.ehh_decay, windows=al_win3)
     
     ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
     
     r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
-    
-    # r2_win_val, r2_win, r2_win_n = allel.windowed_statistic(mut_positions,gn,allel.rogers_huff_r, windows = al_win3)
     
         # generate haplotype statistics (H1, H12, H123, H2/H1)
     hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
 
     hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
     
-    # ihs = allel.windowed_statistic(mut_positions,(h, mut_positions),allel.ihs, windows = al_win3)
         # tajimas D using tskit and branches of ts
     tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="site")
 
