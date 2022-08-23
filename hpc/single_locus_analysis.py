@@ -45,7 +45,8 @@ burnin_Ne = int(parameters["burnin_Ne"])
 start_time = time.time()
  ## INPUT DATA
          # read in treesequence (ts) generated in SLiM
-slim_ts = tskit.load("{0}/treeseq_group_{1}_{2}.trees".format(results_dir,group,sim_run)).simplify()
+ts=tskit.load("{0}/treeseq_group_{1}_{2}.trees".format(results_dir,group,sim_run)).simplify()
+slim_ts = pyslim.update(ts) ##update ts from slim 3.7
     # extract the length of the simulate seqeunce from slim_ts
     # check number of mutations that were introduced in slim simulation
 if (slim_ts.num_sites != 1):
