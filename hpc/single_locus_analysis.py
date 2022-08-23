@@ -165,7 +165,7 @@ for t in ind_times:
 
 
         dict3={}
-        dict3.update({"time":slim_ts.slim_time(t)})                        ## generation
+        dict3.update({"time":pyslim.slim_time(slim_ts,t)})                        ## generation
         dict3.update({"n_win":w})                       ## identifier for window
         dict3.update({"win_start" : win3[w]})            ## window start position
         dict3.update({"win_end" : win3[w+1]-1})          ## window end position

@@ -276,29 +276,29 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
         ## Collate summary statics into dataframe
             # loop over windows
         for w in range(nWin):
-
-
-            dict3={}
-            dict3.update({"time":slim_ts.slim_time(t)})                        ## generation
-            dict3.update({"n_win":w})                       ## identifier for window
-            dict3.update({"win_start" : win3[w]})            ## window start position
-            dict3.update({"win_end" : win3[w+1]-1})          ## window end position
-            dict3.update({"seg_sites" : n_seg[w]})   ## number fo segregating sites
-            dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tsk
-            dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
-            dict3.update({"tajimas_d_allel": tajda[0][w]})        
-            dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
-            dict3.update({"ehh": ehh_win[0][w]})        ## mean ehh per window
-            dict3.update({"r2": r2[0][w]})        ## r2 per win
-            dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
-            dict3.update({"H1": hap_stats[0][w][0]})         ## H1
-            dict3.update({"H12":hap_stats[0][w][1]})         ## H12
-            dict3.update({"H123": hap_stats[0][w][2]})       ## H123
-            dict3.update({"H2H1": hap_stats[0][w][3]})       ## H2/H1
-
-            rows_list3.append(dict3)
-
-            # convert dictionary to datafram
+      
+      
+              dict3={}
+              dict3.update({"time":pyslim.slim_time(slim_ts,t)})                        ## generation
+              dict3.update({"n_win":w})                       ## identifier for window
+              dict3.update({"win_start" : win3[w]})            ## window start position
+              dict3.update({"win_end" : win3[w+1]-1})          ## window end position
+              dict3.update({"seg_sites" : n_seg[w]})   ## number fo segregating sites
+              dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tsk
+              dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
+              dict3.update({"tajimas_d_allel": tajda[0][w]})        
+              dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
+              dict3.update({"ehh": ehh_win[0][w]})        ## mean ehh per window
+              dict3.update({"r2": r2[0][w]})        ## r2 per win
+              dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
+              dict3.update({"H1": hap_stats[0][w][0]})         ## H1
+              dict3.update({"H12":hap_stats[0][w][1]})         ## H12
+              dict3.update({"H123": hap_stats[0][w][2]})       ## H123
+              dict3.update({"H2H1": hap_stats[0][w][3]})       ## H2/H1
+      
+              rows_list3.append(dict3)
+      
+              # convert dictionary to datafram
     ts_stats = pd.DataFrame(rows_list3)
 
             # write statistic df to text file
