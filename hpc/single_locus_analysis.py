@@ -9,6 +9,7 @@ import pandas as pd
 import time
 import allel
 import itertools
+import statistics
 sys.path.insert(1, '/hpcfs/users/a1704225/scripts/oliviaphd/')
 import single_locus_hpc
 
@@ -44,7 +45,7 @@ burnin_Ne = int(parameters["burnin_Ne"])
 start_time = time.time()
  ## INPUT DATA
          # read in treesequence (ts) generated in SLiM
-slim_ts = pyslim.SlimTreeSequence.load("{0}/treeseq_group_{1}_{2}.trees".format(results_dir,group,sim_run)).simplify()
+slim_ts = tskit.load("{0}/treeseq_group_{1}_{2}.trees".format(results_dir,group,sim_run)).simplify()
     # extract the length of the simulate seqeunce from slim_ts
     # check number of mutations that were introduced in slim simulation
 if (slim_ts.num_sites != 1):
@@ -95,7 +96,6 @@ ind_times = np.unique(slim_ts.individual_times).astype(int)
 
 ## ADD NEUTRAL MUTATIONS - simulations run without neutral mutations, need to put on tree to generate summary statistics removes current muts on tree
 mut_ts = msprime.sim_mutations(slim_ts, rate=mutRate, model = 'infinite_alleles', keep=False)
-# mut_ts = msprime.sim_mutations(slim_ts,discrete_genome=False, rate=mutRate, keep=False )
 
 # ## SUMMARISE NEUTRAL MUTATIONS - obtain data for neutral mutations added to ts
 
@@ -140,7 +140,7 @@ for w in range(len(win3)-1):
 for t in ind_times:
 
         # collate nodes (geotype identifiers) of indviduals at time t
-    sample_ind = slim_ts.individuals_alive_at(t)
+    sample_ind = pyslim.individuals_alive_at(slim_ts, t)
     sample = ind_met["nodes"].iloc[sample_ind]
 
         ## convert to list
@@ -157,18 +157,21 @@ for t in ind_times:
         # allele count for scikit.allel stats
     samp_ac = h.count_alleles()
         # positions of mutations in samp_ts for scikit.allel windowed_statistic function
-    mut_positions = [int(var.position) for var in samp_ts.variants()]
+    mut_positions = [int(var.position+1) for var in samp_ts.variants()]
     
         ## crete genotype array for LD
-    # odds = h[:,::2]
-    # evens = h[:,1::2]
+    odds = h[:,::2]
+    evens = h[:,1::2]
     
-    # gn=odds+evens
-    # ld_calc = tskit.LdCalculator(samp_ts)
-    # r2 = ld_calc.r2_array(50000, direction=1)
-    # r2_rev = ld_calc.r2_array(50000, direction=-1)
+    gn=odds+evens
+    gn=gn.view('int8')
+            
+    ehh=allel.ehh_decay(h)
+    ehh, ehh_windows, ehh_vars=allel.windowed_statistic(mut_positions, h, allel.ehh_decay, windows=al_win3)
     
-    # allel.windowed_r_squared(mut_positions, gn, windows=al_win3, percentile=1)
+    ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
+    
+    r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
     
     # r2_win_val, r2_win, r2_win_n = allel.windowed_statistic(mut_positions,gn,allel.rogers_huff_r, windows = al_win3)
     
@@ -181,9 +184,8 @@ for t in ind_times:
         # tajimas D using tskit and branches of ts
     tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="site")
 
-        # wattersons theta using ts
-    # tw_b= theta_w(samp_ts, win3)
-
+    ## no. segregatiig sites
+    n_seg =samp_ts.segregating_sites(sample_sets=None, windows=win3, mode="site", span_normalise=False)
 
         # wattersons theta using scikit.allel
     tw_a= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
@@ -193,10 +195,7 @@ for t in ind_times:
 
         # calculate diversity (tajima's pi) using tskit
     div = samp_ts.diversity(sample_sets = None, windows = win3)  ##fix windows
-
-        # check that all stats have ben calculated over the correct number of windows
-    ts_tests = [div, tajdb]
-    # al_tests = [theta_w[0],hap_stats[0]]
+    ts_tests = [div, tajdb, r2[0]]
     for test in ts_tests:
         if len(test)!= nWin:
             print("error in test ", test, ", number of values does not match number of windows")
@@ -209,44 +208,20 @@ for t in ind_times:
         # loop over windows
     for w in range(nWin):
 
-        # h1 = hap_stats[0][w][0]
-
-        # h12 = hap_stats[0][w][1]
-
-        # h123 = hap_stats[0][w][2]
-
-        # h2h1 = hap_stats[0][w][3]
-
-
-        # try:
-        #     h1 = hap_stats[0][w][0]
-        # except TypeError:
-        #     h1="NaN"
-        # try:
-        #     h12 = hap_stats[0][w][1]
-        # except TypeError:
-        #     h12 = "NaN"
-        # try:
-        #     h123 = hap_stats[0][w][2]
-        # except TypeError:
-        #     h123 = "NaN"
-        # try:
-        #     h2h1 = hap_stats[0][w][3]
-        # except TypeError:
-        #       h2h1="NaN"
 
         dict3={}
         dict3.update({"time":slim_ts.slim_time(t)})                        ## generation
         dict3.update({"n_win":w})                       ## identifier for window
         dict3.update({"win_start" : win3[w]})            ## window start position
         dict3.update({"win_end" : win3[w+1]-1})          ## window end position
-        # dict3.update({"chrom" : int(w/(nWin/nChrom))+1})  ## chromosome
-        dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
+        dict3.update({"seg_sites" : n_seg[w]})   ## number fo segregating sites
         dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tsk
+        dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
         dict3.update({"tajimas_d_allel": tajda[0][w]})        
-        # dict3.update({"theta_w_branch": tw_b[w]})        ## watterson's theta (branch with tskit)
         dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
-        dict3.update({"haplotype_diversity": hap_div[0][w]})        ## watterson's theta (allele with scikit allel)
+        dict3.update({"ehh": ehh_win[0][w]})        ## mean ehh per window
+        dict3.update({"r2": r2[0][w]})        ## r2 per win
+        dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
         dict3.update({"H1": hap_stats[0][w][0]})         ## H1
         dict3.update({"H12":hap_stats[0][w][1]})         ## H12
         dict3.update({"H123": hap_stats[0][w][2]})       ## H123
@@ -258,6 +233,6 @@ for t in ind_times:
 ts_stats = pd.DataFrame(rows_list3)
 
         # write statistic df to text file
-ts_stats.to_string(buf = "{2}/sim_stat_{0}_{1}.txt".format(group,sim_run,results_dir), index=False)
-
+ts_stats.to_string(buf = "{2}/sim_stat_{0}_{1}.txt".format(group,sim_run,results_dir), index=False)    
+   
 print("Time = ", (time.time() - start_time))

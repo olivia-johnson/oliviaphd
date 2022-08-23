@@ -7,6 +7,7 @@ import pandas as pd
 import time
 import itertools
 import allel
+import statistics
 
 def single_locus_burnin(tmpdir, group, sim_run, genomeSize, s_pop, burnin_Ne, recRate):
 
@@ -208,7 +209,7 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
     for t in ind_times:
 
             # collate nodes (geotype identifiers) of indviduals at time t
-        sample_ind = slim_ts.individuals_alive_at(t)
+        sample_ind = pyslim.individuals_alive_at(slim_ts, t)
         sample = ind_met["nodes"].iloc[sample_ind]
 
             ## convert to list
@@ -225,9 +226,25 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
             # allele count for scikit.allel stats
         samp_ac = h.count_alleles()
             # positions of mutations in samp_ts for scikit.allel windowed_statistic function
-        mut_positions = [var.position for var in samp_ts.variants()]
+        mut_positions = [int(var.position+1) for var in samp_ts.variants()]
         
-        #haplotype statistics
+            ## crete genotype array for LD
+        odds = h[:,::2]
+        evens = h[:,1::2]
+        
+        gn=odds+evens
+        gn=gn.view('int8')
+                
+        ehh=allel.ehh_decay(h)
+        ehh, ehh_windows, ehh_vars=allel.windowed_statistic(mut_positions, h, allel.ehh_decay, windows=al_win3)
+        
+        ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
+        
+        r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
+        
+        # r2_win_val, r2_win, r2_win_n = allel.windowed_statistic(mut_positions,gn,allel.rogers_huff_r, windows = al_win3)
+        
+            # generate haplotype statistics (H1, H12, H123, H2/H1)
         hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
 
         hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
@@ -235,6 +252,9 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
         # ihs = allel.windowed_statistic(mut_positions,(h, mut_positions),allel.ihs, windows = al_win3)
             # tajimas D using tskit and branches of ts
         tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="site")
+
+        ## no. segregatiig sites
+        n_seg =samp_ts.segregating_sites(sample_sets=None, windows=win3, mode="site", span_normalise=False)
 
             # wattersons theta using scikit.allel
         tw_a= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
@@ -244,10 +264,7 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
 
             # calculate diversity (tajima's pi) using tskit
         div = samp_ts.diversity(sample_sets = None, windows = win3)  ##fix windows
-
-            # check that all stats have ben calculated over the correct number of windows
-        ts_tests = [div, tajdb]
-        # al_tests = [theta_w[0],hap_stats[0]]
+        ts_tests = [div, tajdb, r2[0]]
         for test in ts_tests:
             if len(test)!= nWin:
                 print("error in test ", test, ", number of values does not match number of windows")
@@ -266,13 +283,14 @@ def analyse(tmpdir, group, sim_run, mutRate, l, genomeSize, nWin, sum_gen, win_g
             dict3.update({"n_win":w})                       ## identifier for window
             dict3.update({"win_start" : win3[w]})            ## window start position
             dict3.update({"win_end" : win3[w+1]-1})          ## window end position
-            # dict3.update({"chrom" : int(w/(nWin/nChrom))+1})  ## chromosome
-            dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
+            dict3.update({"seg_sites" : n_seg[w]})   ## number fo segregating sites
             dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tsk
+            dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
             dict3.update({"tajimas_d_allel": tajda[0][w]})        
-            # dict3.update({"theta_w_branch": tw_b[w]})        ## watterson's theta (branch with tskit)
             dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
-            dict3.update({"haplotype_diversity": hap_div[0][w]})        ## watterson's theta (allele with scikit allel)
+            dict3.update({"ehh": ehh_win[0][w]})        ## mean ehh per window
+            dict3.update({"r2": r2[0][w]})        ## r2 per win
+            dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
             dict3.update({"H1": hap_stats[0][w][0]})         ## H1
             dict3.update({"H12":hap_stats[0][w][1]})         ## H12
             dict3.update({"H123": hap_stats[0][w][2]})       ## H123
