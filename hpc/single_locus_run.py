@@ -15,6 +15,7 @@ params=sys.argv[1]
 sim_run = sys.argv[2]
 tmpdir =str(sys.argv[3])
 results_dir=str(sys.argv[4])
+sim_type=str(sys.argv[5])
 ####  READ IN PARAMETERS
     # load in parameter file
 with open('/hpcfs/users/a1704225/parameters/single_locus/{0}.txt'.format(params), 'r') as f:
@@ -23,7 +24,6 @@ with open('/hpcfs/users/a1704225/parameters/single_locus/{0}.txt'.format(params)
     #set parameters from file
 genomeSize = int(parameters["genomeSize"])
 recRate = parameters["recRate"]
-mutRate=parameters["mutRate"]
 s_pop = int(parameters["s_pop"])
 w_pop = int(parameters["w_pop"])
 h_s = parameters["h_s"]
@@ -34,21 +34,23 @@ rGen=int(parameters["rGen"])
 fitness_on = parameters["fitness_on"]
 sum_gen = int(parameters["sum_gen"])
 win_gen = int(parameters["win_gen"])
-winpChrom = parameters["winpChrom"]
 group=parameters["group"]
 freq=int(parameters["f"])
-burnin_Ne = int(parameters["burnin_Ne"])
 
 
 start_time = time.time()
 
+## Calculate Burnin Ne
+burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
+
 ####  SIMULATE BURNIN
 if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
-    single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, genomeSize, s_pop, burnin_Ne, recRate)
+    rate_map = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate)
+    single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, genomeSize, s_pop, burnin_Ne, rate_map)
 
 ####  SIMULATE SEGLIFT
 
-single_locus_hpc.simulate_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq)
+single_locus_hpc.simulate_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq, sim_type)
 
 
 
