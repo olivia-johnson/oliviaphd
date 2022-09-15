@@ -9,22 +9,46 @@ import itertools
 import allel
 import statistics
 
-def single_locus_burnin(tmpdir, group, sim_run, genomeSize, s_pop, burnin_Ne, recRate):
+
+def recombination_map(tmpdir, group, genomeSize, recRate):
+    ## input group (parameter set identifier, number of chromosomes, chromosome size, recombination rate)
+
+    ## GENERATE CHROMOSMES ##
+## create recombination map for msprime and slim to simulate unlinked section
+    rec_pos=[0, genomeSize,genomeSize+1, (genomeSize+10000)]
+    rates=[recRate, 0.5, recRate]
+    rate_map = msprime.RateMap(position=rec_pos,rate=rates)
+    rate_map
+    sequenceSize=rate_map.sequence_length
+    print("Sequence length is ", str(sequenceSize))
+## generate slim recombination map
+        # reformat to comply with recombinate map required in slim
+    rec_data = {'positions': rec_pos[1:], 'rates': rates}
+    slim_rec = pd.DataFrame(rec_data)
+    slim_rec.positions=slim_rec.positions-1
+## output slim recombiation map to text file to be read into forward slim simulation
+    slim_rec.to_csv("{0}/rec_map_group_{1}.txt".format(tmpdir, group), index=False, header = False, sep = "\t")
+
+    return rate_map, sequenceSize
+
+
+def single_locus_burnin(tmpdir, group, sim_run, sequenceSize, s_pop, burnin_Ne, rate_map):
 
     ## COALESCENT BURN IN
     start_time = time.time()
     print("Burnin Ne is ", str(burnin_Ne))
+
     ##daiquiri.setup(level="DEBUG") ##debug
-    burnin = msprime.sim_ancestry(samples=s_pop, population_size=burnin_Ne, recombination_rate=recRate, sequence_length=genomeSize)
+    burnin = msprime.sim_ancestry(samples=s_pop, population_size=burnin_Ne, recombination_rate=rate_map, sequence_length=sequenceSize)
     ##check burnin size = genome size
     burn_length =burnin.get_sequence_length()
-    if burn_length!=genomeSize:
-        print("Burnin sequence length not equal to genome size!")
+    if burn_length!=sequenceSize:
+        print("Burnin sequence length not equal to sequence size!")
     burnin_ts = pyslim.annotate(burnin, model_type="WF", tick=1,    stage="late")
     burnin_ts.dump("{0}/burnin_seglift_group_{1}_{2}.trees".format(tmpdir,group,sim_run))
     print("Time for burnin = ", (time.time()- start_time))
     
-def simulate_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, f):
+def simulate_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, f, sim_type):
 
     ## FORWARD SIMULATION
     # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
@@ -32,7 +56,7 @@ def simulate_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSi
     tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
     results = "results_dir='" + str(results_dir)+ "'"
 
-    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d "' +str(results)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d f=" + str(f) + " -d h_s=" + str(h_s)+ " -d h_w=" + str(h_w)+ " -d s_s=" + str(s_s)+ " -d s_w=" + str(s_w)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) +  " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/wittmann_single_locus.slim"
+    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d "' +str(results)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d f=" + str(f) + " -d h_s=" + str(h_s)+ " -d h_w=" + str(h_w)+ " -d s_s=" + str(s_s)+ " -d s_w=" + str(s_w)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(genomeSize)) +  " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/"+str(sim_type)+"_single_locus.slim"
 
     print(cmd)
     os.system(cmd)
