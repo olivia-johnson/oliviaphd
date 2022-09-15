@@ -16,37 +16,33 @@ import single_locus_hpc
 params=sys.argv[1]
 sim_run = sys.argv[2]
 results_dir =str(sys.argv[3])
+sim_type =str(sys.argv[4])
 ####  READ IN PARAMETERS
     # load in parameter file
-with open('/hpcfs/users/a1704225/parameters/single_locus/{0}.txt'.format(params), 'r') as f:
+with open('/hpcfs/users/a1704225/parameters/single_locus/{0}/{1}.txt'.format(sim_type,params), 'r') as f:
     parameters = yaml.load(f, Loader=yaml.FullLoader)
 
     #set parameters from file
 genomeSize = int(parameters["genomeSize"])
-recRate = parameters["recRate"]
 mutRate=parameters["mutRate"]
 s_pop = int(parameters["s_pop"])
 w_pop = int(parameters["w_pop"])
-h_s = parameters["h_s"]
-h_w = parameters["h_w"]
-s_s = parameters["s_s"]
-s_w = parameters["s_w"]
-rGen=int(parameters["rGen"])
 fitness_on = parameters["fitness_on"]
 sum_gen = int(parameters["sum_gen"])
 win_gen = int(parameters["win_gen"])
-nWin = parameters["winpChrom"]
+winSize = parameters["winSize"]
 group=parameters["group"]
-freq=int(parameters["f"])
-burnin_Ne = int(parameters["burnin_Ne"])
-
 
 
 start_time = time.time()
+
+##calculate harminc mean Ne
+burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
  ## INPUT DATA
          # read in treesequence (ts) generated in SLiM
-ts=tskit.load("{0}/treeseq_group_{1}_{2}.trees".format(results_dir,group,sim_run)).simplify()
-slim_ts = pyslim.update(ts) ##update ts from slim 3.7
+slim_ts=tskit.load("{0}/treeseq_group_{1}_{2}.trees".format(results_dir,group,sim_run)).simplify()
+nWin=slim_ts.sequence_length/winSize
+##slim_ts = pyslim.update(ts) ##update ts from slim 3.7
     # extract the length of the simulate seqeunce from slim_ts
     # check number of mutations that were introduced in slim simulation
 if (slim_ts.num_sites != 1):
