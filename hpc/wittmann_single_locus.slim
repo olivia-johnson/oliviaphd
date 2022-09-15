@@ -1,10 +1,10 @@
 
 initialize() {
 	if (!exists("tmpdir"))
-	{defineConstant("tmpdir", "~/phd_data/Results/single_locus/group_0");} // call in tmpdir
+	{defineConstant("tmpdir", "~/phd_data/Results/single_locus/group_12");} // call in tmpdir
 	
 	if (!exists("results_dir"))
-	{defineConstant("results_dir", "~/phd_data/Results/single_locus/group_0");} // call in results dir
+	{defineConstant("results_dir", "~/phd_data/Results/single_locus/group_12");} // call in results dir
 	
 	if (!exists("GenomeSize"))
 	{defineConstant("GenomeSize", 1000000); } // genome size
@@ -42,14 +42,11 @@ initialize() {
 	if (!exists("mut"))
 	{defineConstant("mut", 0.0);} // mutation rate
 	
-	if (!exists("rr"))
-	{defineConstant("rr", 1e-6);} // recombination rate
-	
 	if (!exists("rGen"))
 	{defineConstant("rGen", 12000);} // remember individuals gen call
 	
 	if (!exists("group"))
-	{defineConstant("group", 0);} // group of parameters
+	{defineConstant("group", 12);} // group of parameters
 	
 	if (!exists("sim_run"))
 	{defineConstant("sim_run", 0);} // sim run
@@ -59,7 +56,17 @@ initialize() {
 	initializeSLiMOptions(keepPedigrees=T)	;
 	initializeMutationRate(mut);
 	
-	initializeRecombinationRate(rr);
+	
+	lines = readFile(paste(asString(tmpdir)+"/rec_map_group_"+asString(group)+".txt"));
+	rates = NULL;
+	ends = NULL;
+	
+	for (line in lines){
+		components = strsplit(line, "\t");
+		ends = c(ends, asInteger(components[0]));
+		rates = c(rates, asFloat(components[1]));
+	}
+	initializeRecombinationRate(rates,ends);
 	
 	initializeMutationType("m1", 0.0, "f", 0.0);  // seasonal mutations
 	initializeGenomicElementType("g1", m1, 1.0);
@@ -104,7 +111,7 @@ initialize() {
 }
 
 
-s1 fitness(NULL) { //summer
+s1 fitnessEffect() { //summer
 	if (fit == 0){
 		return 1.0;
 	} else{
@@ -164,7 +171,7 @@ s1 fitness(NULL) { //summer
 }
 
 1:12000 early(){
-	defineGlobal("gen", sim.generation);
+	defineGlobal("gen", sim.cycle);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuelog", integerMod(gen, log_samp));
 	
@@ -187,7 +194,7 @@ s1 fitness(NULL) { //summer
 		if (exists("slimgui")) {cat("Winter\n");}
 	}
 	
-	if (modValuelog >=0 & modValuelog <=((g_s + g_w)-1)) {
+	if (modValuelog >=0 & modValuelog <=((3*(g_s + g_w))-1)) {
 		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
 		tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
 		writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
@@ -208,7 +215,7 @@ s1 fitness(NULL) { //summer
 }
 
 12000:100000 early(){
-	defineGlobal("gen", sim.generation);
+	defineGlobal("gen", sim.cycle);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuerGen", integerMod(gen, rGen));
 	
@@ -231,7 +238,7 @@ s1 fitness(NULL) { //summer
 		if (exists("slimgui")) {cat("Winter\n");}
 	}
 	
-	if (modValuerGen >=0 & modValuerGen <=((g_s + g_w)-1)) {
+	if (modValuerGen >=0 & modValuerGen <=((3*(g_s + g_w))-1)) {
 		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
 		for (i in 1:size(sim.mutations)-1){
 			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
@@ -263,7 +270,7 @@ s1 fitness(NULL) { //summer
 
 
 100000 late() {
-	gen = sim.generation;
+	gen = sim.cycle;
 	for (i in 1:size(sim.mutations)-1){
 		tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
 		writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
