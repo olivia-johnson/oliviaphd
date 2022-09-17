@@ -18,7 +18,7 @@ results_dir=str(sys.argv[4])
 sim_type=str(sys.argv[5])
 ####  READ IN PARAMETERS
     # load in parameter file
-with open('/hpcfs/users/a1704225/parameters/single_locus/{0}.txt'.format(params), 'r') as f:
+with open('/hpcfs/users/a1704225/parameters/single_locus/{1}/{0}.txt'.format(params, sim_type), 'r') as f:
     parameters = yaml.load(f, Loader=yaml.FullLoader)
 
     #set parameters from file
@@ -45,8 +45,8 @@ burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
 
 ####  SIMULATE BURNIN
 if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
-    rate_map = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate)
-    single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, genomeSize, s_pop, burnin_Ne, rate_map)
+####    rate_map = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate)
+    single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, genomeSize, s_pop, burnin_Ne, recRate)
 
 ####  SIMULATE SEGLIFT
 
