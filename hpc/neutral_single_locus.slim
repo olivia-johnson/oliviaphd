@@ -1,13 +1,13 @@
 
 initialize() {
 	if (!exists("tmpdir"))
-	{defineConstant("tmpdir", "~/phd_data/Results/single_locus/group_12");} // call in tmpdir
+	{defineConstant("tmpdir", "~/phd_data/Results/single_locus/neutral/group_1");} // call in tmpdir
 	
 	if (!exists("results_dir"))
-	{defineConstant("results_dir", "~/phd_data/Results/single_locus/group_12");} // call in results dir
+	{defineConstant("results_dir", "~/phd_data/Results/single_locus/neutral/group_1");} // call in results dir
 	
 	if (!exists("GenomeSize"))
-	{defineConstant("GenomeSize", 5000000); } // genome size
+	{defineConstant("GenomeSize", 1000000); } // genome size
 	
 	if (!exists("f"))
 	{defineConstant("f", 1); } // mutation frequency (f/2N)
@@ -30,11 +30,14 @@ initialize() {
 	if (!exists("mut"))
 	{defineConstant("mut", 0.0);} // mutation rate
 	
+	if (!exists("rr"))
+	{defineConstant("rr", 1e-6);} // recombination rate
+	
 	if (!exists("rGen"))
 	{defineConstant("rGen", 12000);} // remember individuals gen call
 	
 	if (!exists("group"))
-	{defineConstant("group", 12);} // group of parameters
+	{defineConstant("group", 1);} // group of parameters
 	
 	if (!exists("sim_run"))
 	{defineConstant("sim_run", 0);} // sim run
@@ -44,17 +47,7 @@ initialize() {
 	initializeSLiMOptions(keepPedigrees=T)	;
 	initializeMutationRate(mut);
 	
-	
-	lines = readFile(paste(asString(tmpdir)+"/rec_map_group_"+asString(group)+".txt"));
-	rates = NULL;
-	ends = NULL;
-	
-	for (line in lines){
-		components = strsplit(line, "\t");
-		ends = c(ends, asInteger(components[0]));
-		rates = c(rates, asFloat(components[1]));
-	}
-	initializeRecombinationRate(rates,ends);
+	initializeRecombinationRate(rr);
 	
 	initializeMutationType("m1", 0.0, "f", 0.0);  // seasonal mutations
 	initializeGenomicElementType("g1", m1, 1.0);
@@ -74,18 +67,18 @@ initialize() {
 	cat(sim_run + "\n");
 	line1 = paste(c("SimID:" + sim_run +"\n" + "Fitness_on=" + fit+ ", n_s=" + n_s + ", n_w=" + n_w+ ", GenomeSize=" + GenomeSize +", g_s=" + g_s + ", g_w="+g_w+", initial_freq="+f));
 	
-	writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line1, append = F);
+	writeFile(paste0(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line1, append = F);
 	
-	if (fileExists(paste(asString(results_dir)+"/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"))==T){
-		sim.readFromPopulationFile(paste(asString(results_dir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));} else{
-		sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));}
+	if (fileExists(paste0(asString(results_dir)+"/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"))==T){
+		sim.readFromPopulationFile(paste0(asString(results_dir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));} else{
+		sim.readFromPopulationFile(paste0(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));}
 	
-	//	sim.addSubpop("p0", n_s);
+	//sim.addSubpop("p0", n_s);
 	
 	
 	target = sample(p0.genomes, asInteger(f));
 	target.addNewDrawnMutation(m1, asInteger(GenomeSize/2));
-	if (sim.mutationFrequencies(p0)[0] != (f/(2*n_s))){
+	if (sim.mutationFrequencies(p0) != (f/(2*n_s))){
 		sim.simulationFinished();
 		catn("ERROR: SELECTED MUTATION NOT AT" + (f/(2*n_s))+ "STARTING FREQUENCY");
 	}
@@ -102,14 +95,6 @@ initialize() {
 s1 fitnessEffect() {
 	return 1.0;
 }
-
-2:100000 late(){
-	if (sim.countOfMutationsOfType(m1)==0){
-		sim.simulationFinished();
-	}
-}
-
-
 
 
 1:12000 early(){
@@ -214,7 +199,7 @@ s1 fitnessEffect() {
 100000 late() {
 	gen = sim.cycle;
 	for (i in 1:size(sim.mutations)-1){
-tab_line = paste(c(gen,sim.mutations.position,sim.mutationFrequencies(p0)), sep = ",");		writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		tab_line = paste(c(gen,sim.mutations.position,sim.mutationFrequencies(p0)), sep = ",");		writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 	}
 	
 	
