@@ -23,23 +23,23 @@ def recombination_map(tmpdir, group, genomeSize, recRate):
     print("Sequence length is ", str(sequenceSize))
 ## generate slim recombination map
         # reformat to comply with recombinate map required in slim
-    rec_data = {'positions': rec_pos[1:], 'rates': rates}
+    rec_data = {'ends': rec_pos[1:], 'rates': rates}
     slim_rec = pd.DataFrame(rec_data)
-    slim_rec.positions=slim_rec.positions-1
+    slim_rec.ends=slim_rec.ends-1
 ## output slim recombiation map to text file to be read into forward slim simulation
-    slim_rec.to_csv("{0}/rec_map_group_{1}.txt".format(tmpdir, group), index=False, header = False, sep = "\t")
+    slim_rec.to_csv("{0}/rec_map_group_{1}.txt".format(tmpdir, group), index=False, header = True, sep = "\t")
 
     return rate_map, sequenceSize
 
 
-def single_locus_burnin(tmpdir, group, sim_run, sequenceSize, s_pop, burnin_Ne, rate_map):
+def single_locus_burnin(tmpdir, group, sim_run, sequenceSize, s_pop, burnin_Ne, recRate):
 
     ## COALESCENT BURN IN
     start_time = time.time()
     print("Burnin Ne is ", str(burnin_Ne))
 
     ##daiquiri.setup(level="DEBUG") ##debug
-    burnin = msprime.sim_ancestry(samples=s_pop, population_size=burnin_Ne, recombination_rate=rate_map, sequence_length=sequenceSize)
+    burnin = msprime.sim_ancestry(samples=s_pop, population_size=burnin_Ne, recombination_rate=recRate, sequence_length=sequenceSize)
     ##check burnin size = genome size
     burn_length =burnin.get_sequence_length()
     if burn_length!=sequenceSize:
