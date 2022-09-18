@@ -10,7 +10,7 @@ import time
 import allel
 import itertools
 import statistics
-sys.path.insert(1, '/hpcfs/users/a1704225/scripts/oliviaphd/')
+sys.path.insert(1, '/hpcfs/users/a1704225//oliviaphd/')
 import single_locus_hpc
 
 params=sys.argv[1]
@@ -41,7 +41,7 @@ burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
  ## INPUT DATA
          # read in treesequence (ts) generated in SLiM
 slim_ts=tskit.load("{0}/treeseq_group_{1}_{2}.trees".format(results_dir,group,sim_run)).simplify()
-nWin=slim_ts.sequence_length/winSize
+nWin=int(slim_ts.sequence_length/winSize)
 ##slim_ts = pyslim.update(ts) ##update ts from slim 3.7
     # extract the length of the simulate seqeunce from slim_ts
     # check number of mutations that were introduced in slim simulation

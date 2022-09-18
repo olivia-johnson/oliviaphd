@@ -50,7 +50,7 @@ for group in range(2, 37):
     start_time = time.time()     
     
     # Rec Map
-    ###rate_map = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate)
+    rate_map = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate)
                                                   
     # BURNIN
     burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
