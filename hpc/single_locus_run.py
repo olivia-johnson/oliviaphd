@@ -46,7 +46,7 @@ burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
 
 ####  SIMULATE BURNIN
 if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
-    rate_map, sequenceSize = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate)
+    rate_map, sequenceSize = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate, winSize)
     single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, sequenceSize, s_pop, burnin_Ne, recRate)
 
 ####  SIMULATE SEGLIFT
