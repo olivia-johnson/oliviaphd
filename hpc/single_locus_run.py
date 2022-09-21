@@ -35,6 +35,7 @@ fitness_on = parameters["fitness_on"]
 sum_gen = int(parameters["sum_gen"])
 win_gen = int(parameters["win_gen"])
 group=parameters["group"]
+winSize = parameters["winSize"]
 freq=int(parameters["f"])
 
 
@@ -45,12 +46,12 @@ burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
 
 ####  SIMULATE BURNIN
 if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
-####    rate_map = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate)
-    single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, genomeSize, s_pop, burnin_Ne, recRate)
+    rate_map, sequenceSize = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate)
+    single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, sequenceSize, s_pop, burnin_Ne, recRate)
 
 ####  SIMULATE SEGLIFT
 
-single_locus_hpc.simulate_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq, sim_type)
+single_locus_hpc.simulate_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq, sim_type, winSize)
 
 
 
