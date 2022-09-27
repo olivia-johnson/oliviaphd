@@ -140,7 +140,8 @@ s1 fitnessEffect() { //summer
 	
 	
 	if (sim.countOfMutationsOfType(m1) == 0)
-	{	defineGlobal("restarts", restarts+1);
+	{	if (restarts == 50){ sim.simulationFinished();}
+		defineGlobal("restarts", restarts+1);
 		fixed = (sum(sim.substitutions.mutationType == m1) == 1);
 		
 		if (fixed > 0)
