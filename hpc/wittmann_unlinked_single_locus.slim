@@ -140,7 +140,12 @@ s1 fitnessEffect() { //summer
 	
 	
 	if (sim.countOfMutationsOfType(m1) == 0)
-	{	if (restarts == 100){ sim.simulationFinished();}
+	{	if (restarts == 100){
+			mem = usage(peak=T);
+			line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts);
+			catn(line4);
+			writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line4, append = T);
+			sim.simulationFinished();}
 		defineGlobal("restarts", restarts+1);
 		fixed = (sum(sim.substitutions.mutationType == m1) == 1);
 		
