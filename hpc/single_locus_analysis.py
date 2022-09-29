@@ -41,7 +41,6 @@ burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
  ## INPUT DATA
          # read in treesequence (ts) generated in SLiM
 slim_ts=tskit.load("{0}/treeseq_group_{1}_{2}.trees".format(results_dir,group,sim_run)).simplify()
-nWin=int(slim_ts.sequence_length/winSize)
 ##slim_ts = pyslim.update(ts) ##update ts from slim 3.7
     # extract the length of the simulate seqeunce from slim_ts
     # check number of mutations that were introduced in slim simulation
@@ -80,12 +79,14 @@ rows_list3 = []
     # create windows for stats to be calculated in
     # windows for tskit statistics
 
-win3 = np.linspace(0, mut_ts.sequence_length, num=nWin+1).astype(int)
+win3 = np.arange(winSize/2, mut_ts.sequence_length, winSize).astype(int)
+win3 = np.append(win3, mut_ts.sequence_length)
+win3=np.insert(win3, 0, 0)
    # windows for scikit.allel statistics
 
 al_win3 = []
 for w in range(len(win3)-1):
-      if w == nWin:
+      if w == len(win3)-1:
           window = [win3[w], int(mut_ts.sequence_length)]
       else:
           window = [win3[w], win3[w+1]-1]
@@ -134,10 +135,11 @@ for t in ind_times:
     hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
     
         # tajimas D using tskit and branches of ts
-    tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="site")
-
+    tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="branch")
+    tajds =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="site")
     ## no. segregatiig sites
     n_seg =samp_ts.segregating_sites(sample_sets=None, windows=win3, mode="site", span_normalise=False)
+    segsites =samp_ts.segregating_sites(sample_sets=None, windows=win3, mode="site")
 
         # wattersons theta using scikit.allel
     tw_a= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
@@ -149,7 +151,7 @@ for t in ind_times:
     div = samp_ts.diversity(sample_sets = None, windows = win3)  ##fix windows
     ts_tests = [div, tajdb, r2[0]]
     for test in ts_tests:
-        if len(test)!= nWin:
+        if len(test)!= len(win3)-1:
             print("error in test ", test, ", number of values does not match number of windows")
 
     # for test in al_tests:
@@ -158,7 +160,7 @@ for t in ind_times:
 
     ## Collate summary statics into dataframe
         # loop over windows
-    for w in range(nWin):
+    for w in range(len(win3)-1):
 
 
         dict3={}
@@ -166,9 +168,11 @@ for t in ind_times:
         dict3.update({"n_win":w})                       ## identifier for window
         dict3.update({"win_start" : win3[w]})            ## window start position
         dict3.update({"win_end" : win3[w+1]-1})          ## window end position
-        dict3.update({"seg_sites" : n_seg[w]})   ## number fo segregating sites
+        dict3.update({"n_seg_sites" : n_seg[w]})   ## number fo segregating sites
+        dict3.update({"seg_sites" : segsites[w]})   ## number fo segregating sites
         dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tsk
         dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
+        dict3.update({"tajimas_d_site":tajdb[w]})     ## tajima's D (calculated with tskit)
         dict3.update({"tajimas_d_allel": tajda[0][w]})        
         dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
         dict3.update({"ehh": ehh_win[0][w]})        ## mean ehh per window
