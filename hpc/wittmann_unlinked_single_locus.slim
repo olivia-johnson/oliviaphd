@@ -169,7 +169,7 @@ s1 fitnessEffect() { //summer
 		defineGlobal("log_samp", g*2);
 		// re-introduce the sweep mutation
 		target = sample(p0.genomes, asInteger(f));
-		target.addNewDrawnMutation(m1, asInteger(GenomeSize/2));
+		target.addNewDrawnMutation(m1, asInteger((GenomeSize-(10*winSize))/2));
 		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 		writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
 		writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P2", "G1", "G2", "G3", "G4" , sep=","), append = F);
