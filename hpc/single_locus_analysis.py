@@ -123,9 +123,9 @@ for t in ind_times:
     gn=odds+evens
     gn=gn.view('int8')
             
-    ehh=allel.ehh_decay(h)
+    #ehh=allel.ehh_decay(h)
     
-    ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
+    #ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
     
     r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
     
@@ -175,7 +175,7 @@ for t in ind_times:
         dict3.update({"tajimas_d_site":tajdb[w]})     ## tajima's D (calculated with tskit)
         dict3.update({"tajimas_d_allel": tajda[0][w]})        
         dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
-        dict3.update({"ehh": ehh_win[0][w]})        ## mean ehh per window
+        #dict3.update({"ehh": ehh_win[0][w]})        ## mean ehh per window
         dict3.update({"r2": r2[0][w]})        ## r2 per win
         dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
         dict3.update({"H1": hap_stats[0][w][0]})         ## H1
