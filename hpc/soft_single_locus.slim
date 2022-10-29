@@ -13,13 +13,13 @@ initialize() {
 	{defineConstant("winSize", 10000); } // window size
 	
 	if (!exists("f"))
-	{defineConstant("f", 0.1); } // mutation frequency (f/2N)
+	{defineConstant("f", 1); } // mutation frequency (f/2N)
 	
 	if (!exists("s_s"))
-	{defineConstant("s_s", 1.0); }// summer selection coefficient
+	{defineConstant("s_s", 0.5); }// summer selection coefficient
 	
 	if (!exists("s_w"))
-	{defineConstant("s_w", 1.0); }// winter selection coefficient
+	{defineConstant("s_w", 0.5); }// winter selection coefficient
 	
 	if (!exists("n_s"))
 	{defineConstant("n_s", 1e4); }// summer population size
@@ -36,7 +36,7 @@ initialize() {
 	{defineConstant("g", (g_s + g_w)); } // generations per seasonal cycle     
 	
 	if (!exists("mut"))
-	{defineConstant("mut", 0.0);} // mutation rate
+	{defineConstant("mut", 1e-5);} // mutation rate
 	
 	if (!exists("rr"))
 	{defineConstant("rr", 1e-6);} // recombination rate
@@ -53,7 +53,7 @@ initialize() {
 	if (!exists("fit"))
 	{defineConstant("fit",1);} //if fit = 0 fitness function switched off
 	initializeSLiMOptions(keepPedigrees=T)	;
-	initializeMutationRate(mut);
+	initializeMutationRate(c(0.0,mut,0.0), c(asInteger((GenomeSize-(10*winSize))/2)-1, asInteger((GenomeSize-(10*winSize))/2)+1,GenomeSize));
 	
 	//	initializeRecombinationRate(rr);
 	
@@ -63,8 +63,12 @@ initialize() {
 	initializeRecombinationRate(rates, ends);
 	
 	initializeMutationType("m1", 0.5, "f", 0.0);  // seasonal mutations
-	initializeGenomicElementType("g1", m1, 1.0);
-	initializeGenomicElement(g1, 0, GenomeSize-1);
+	initializeMutationType("m2", 0.0, "f", 0.0);  // neutral mutations
+	initializeGenomicElementType("g1", m2, 1.0);
+	initializeGenomicElementType("g2", m1, 1.0);
+	initializeGenomicElement(g1, 0, asInteger((GenomeSize-(10*winSize))/2)-1);
+	initializeGenomicElement(g2, asInteger((GenomeSize-(10*winSize))/2),asInteger((GenomeSize-(10*winSize))/2));
+	initializeGenomicElement(g1, asInteger((GenomeSize-(10*winSize))/2)+2, GenomeSize-1);
 	m1.color = "pink";
 	m1.convertToSubstitution = F;
 	
@@ -86,67 +90,23 @@ initialize() {
 		sim.readFromPopulationFile(paste(asString(results_dir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));} else{
 		sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));}
 	
-	//		sim.addSubpop("p0", n_s);
 	
-	for (i in 1:1000){
-		target = sample(p0.genomes, asInteger(1));
-		target.addNewDrawnMutation(m1, asInteger((GenomeSize-(10*winSize))/2));}
-	if (sim.mutationFrequencies(p0)[0] != (1/(2*n_s))){
-		sim.simulationFinished();
-		catn("ERROR: SELECTED MUTATION NOT AT" + (1/(2*n_s))+ "STARTING FREQUENCY");
-	}
-
-
-
+	//		sim.mutationsOfType(m1).setSelectionCoeff(s_s);
+	line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
+	writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
+	writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P2", "G1", "G2", "G3", "G4" , sep=","), append = F);
 }
 
 
 
-2000 late(){
-	if(any(sim.mutationFrequencies(p0)>=f)==T){
-		for (i in sim.mutations){
-			if (sim.mutationFrequencies(p0,i) > f){
-				keep_mut=i;
-				remove_muts = sim.mutationsOfType(m1);
-				remove_muts=remove_muts[(remove_muts!=keep_mut)==T];
-				sim.subpopulations.genomes.removeMutations(remove_muts, F);
-				cat(asString(i.id) + ": ESTABLISHED - CONVERTING TO BENEFICIAL\n");
-				mut.setSelectionCoeff(0.5);
-			}}
-			line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
-	writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
-	writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P2", "G1", "G2", "G3", "G4" , sep=","), append = F);}
-	
-	
-	if (sim.countOfMutationsOfType(m1) == 0| sim.cycle==2000)
-	{	defineGlobal("restarts", restarts+1);
-		fixed = (sum(sim.substitutions.mutationType == m1) == 1);
-		
-		outcome = paste(group+ "_"+sim_run + ": LOST at gen "+ gen+" – RESTARTING\n");
-		writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), outcome, append = T);
-		
-		// go back to generation 1
-		if (fileExists(paste(asString(results_dir)+"/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"))==T){
-			sim.readFromPopulationFile(paste(asString(results_dir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));} else{
-			sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));}
-		
-		// start a newly seeded run
-		setSeed(rdunif(1, 0, asInteger(2^62) - 1));
-		defineGlobal("log_samp", g*2);
-		// re-introduce the sweep mutation
-		for (i in 1:1000){
-			target = sample(p0.genomes, asInteger(1));
-			target.addNewDrawnMutation(m1, asInteger((GenomeSize-(10*winSize))/2));}
-		if (sim.mutationFrequencies(p0)[0] != (1/(2*n_s))){
-			sim.simulationFinished();
-			catn("ERROR: SELECTED MUTATION NOT AT" + (1/(2*n_s))+ "STARTING FREQUENCY");
-		}
-	
-	}}
+
+mutationEffect(m1) {
+if (homozygous){
+	return 1.0 + s_s;}else{return 1.0 + s_s;}}
 
 
 
-2000:100000 early(){
+2:100000 early(){
 	defineGlobal("gen", sim.cycle);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuelog", integerMod(gen, log_samp));
@@ -158,7 +118,7 @@ initialize() {
 }
 
 
-2000:12000 late(){
+2:12000 late(){
 	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
@@ -173,9 +133,10 @@ initialize() {
 	
 	if (modValuelog >=0 & modValuelog <=((3*(g_s + g_w))-1)) {
 		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
-		tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
-		writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
-		
+		if (length(sim.mutations)>0){
+		for (i in 1:size(sim.mutations)-1){
+			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+			writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);}}
 		rInd= sample(p0.individuals, 100);
 		sim.treeSeqRememberIndividuals(rInd);
 	}
@@ -188,27 +149,46 @@ initialize() {
 			grandparents = p0.individuals[ind].pedigreeGrandparentIDs;
 			writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(gen, indv, parents, grandparents, sep=","), append = T);
 		}
-	}
-	if (sim.mutationFrequencies(p0)[0]==1.0){
-		outcome = paste(group+ "_"+sim_run + ": FIXED at gen "+ gen+"\n");
+	}}
+	
+2:100000 late(){
+	if (sum(sim.mutationFrequencies(NULL))>=1.0){
+		if (length(sim.mutations)>1){
+			outcome = paste(group+ "_"+sim_run + ": FIXED at gen "+ gen+"\n");
+			writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), outcome, append = T);
+			gen = sim.cycle;
+			for (i in 1:size(sim.mutations)-1){
+				tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
+				writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);}
+				
+				mem = usage(peak=T);
+				line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts);
+				catn(line4);
+				writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line4, append = T);
+				
+				
+				sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+				sim.simulationFinished();
+			}
+		else {
+		outcome = paste(group+ "_"+sim_run + ": single mutation fixed at gen "+ gen+" – RESTARTING\n");
 		writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), outcome, append = T);
-		gen = sim.cycle;
-		for (i in 1:size(sim.mutations)-1){
-			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-			writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
-		}
 		
+		// go back to generation 1
+		if (fileExists(paste(asString(results_dir)+"/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"))==T){
+			sim.readFromPopulationFile(paste(asString(results_dir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));} else{
+			sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));}
 		
-		mem = usage(peak=T);
-		line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts);
-		catn(line4);
-		writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line4, append = T);
-		
-		
-		sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
-		sim.simulationFinished();
-	}
-}
+		// start a newly seeded run
+		setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+		defineGlobal("log_samp", g*2);
+		// re-introduce the sweep mutation
+		target = sample(p0.genomes, asInteger(f));
+		target.addNewDrawnMutation(m1, asInteger((GenomeSize-(10*winSize))/2));
+		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
+		writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
+		writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P2", "G1", "G2", "G3", "G4" , sep=","), append = F);}
+}}
 
 
 12000:100000 early(){
@@ -256,29 +236,11 @@ initialize() {
 			writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste(gen, indv, parents, grandparents, sep=","), append = T);
 		}
 	}
-	if (sim.mutationFrequencies(p0)[0]==1.0){
-		outcome = paste(group+ "_"+sim_run + ": FIXED at gen "+ gen+"\n");
-		writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), outcome, append = T);
-		gen = sim.cycle;
-		for (i in 1:size(sim.mutations)-1){
-			tab_line = paste(c(gen,sim.mutations[i].position,sim.mutationFrequencies(p0)[i]), sep = ",");
-			writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
-		}
-		
-		
-		mem = usage(peak=T);
-		line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts);
-		catn(line4);
-		writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line4, append = T);
-		
-		
-		sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
-		sim.simulationFinished();
-	}
+
 }
 
 
-2000:12000 early() { if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
+2:12000 early() { if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
 	
 	if (gen==(log_samp+30)){
 		defineGlobal("log_samp", log_samp*2);
