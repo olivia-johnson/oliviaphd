@@ -53,7 +53,7 @@ initialize() {
 	if (!exists("fit"))
 	{defineConstant("fit",1);} //if fit = 0 fitness function switched off
 	initializeSLiMOptions(keepPedigrees=T)	;
-	initializeMutationRate(c(0.0,1e-5,0.0), c(asInteger((GenomeSize-(10*winSize))/2)-1, asInteger((GenomeSize-(10*winSize))/2)+1,GenomeSize));
+	initializeMutationRate(c(0.0,1e-5,0.0), c(asInteger((GenomeSize-(10*winSize))/2)-1, asInteger((GenomeSize-(10*winSize))/2)+1,GenomeSize-1));
 	
 	//	initializeRecombinationRate(rr);
 	
@@ -123,7 +123,7 @@ fitnessEffect(p0) {
 
 
 
-2:100000 early(){
+2:12000 early(){
 	defineGlobal("gen", sim.cycle);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuelog", integerMod(gen, log_samp));
@@ -134,6 +134,17 @@ fitnessEffect(p0) {
 
 }
 
+12000:100000 early(){
+	defineGlobal("gen", sim.cycle);
+	defineGlobal("modValueSeason",integerMod(gen, g));
+	defineGlobal("modValuerGen", integerMod(gen, rGen));
+	
+	
+	if (modValuerGen ==0){
+		catn(gen);}
+	defineGlobal("modValuelog", integerMod(gen, log_samp));
+
+}
 
 2:12000 late(){
 	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
@@ -175,7 +186,8 @@ fitnessEffect(p0) {
 			outcome = paste(group+ "_"+sim_run + ": FIXED at gen "+ gen+"\n");			writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), outcome, append = T);
 			for (i in 1:size(sim.mutations)-1){
 				tab_line = paste(c(gen,sim.mutations[i].id,sim.mutationFrequencies(p0)[i]), sep = ",");
-				writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);}}
+				writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);}
+				community.deregisterScriptBlock(self);}
 		
 		//				mem = usage(peak=T);
 		//				line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts);
@@ -208,17 +220,6 @@ fitnessEffect(p0) {
 }
 
 
-12000:100000 early(){
-	defineGlobal("gen", sim.cycle);
-	defineGlobal("modValueSeason",integerMod(gen, g));
-	defineGlobal("modValuerGen", integerMod(gen, rGen));
-	
-	
-	if (modValuerGen ==0){
-		catn(gen);}
-	defineGlobal("modValuelog", integerMod(gen, log_samp));
-
-}
 12000:100000 late(){
 	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
