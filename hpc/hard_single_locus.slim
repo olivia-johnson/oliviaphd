@@ -64,7 +64,7 @@ initialize() {
 	rates = map.getValue("rates");
 	initializeRecombinationRate(rates, ends);
 	
-	initializeMutationType("m1", 0.5, "f", 0.0);  // seasonal mutations
+	initializeMutationType("m1", 0.5, "f", s_s);  // seasonal mutations
 	initializeGenomicElementType("g1", m1, 1.0);
 	initializeGenomicElement(g1, 0, GenomeSize-1);
 	m1.color = "pink";
@@ -93,7 +93,6 @@ initialize() {
 	
 	target = sample(p0.genomes, asInteger(f));
 	target.addNewDrawnMutation(m1, asInteger((GenomeSize-(10*winSize))/2));
-	sim.mutationsOfType(m1).setSelectionCoeff(s_s);
 	if (sim.mutationFrequencies(p0)[0] != (f/(2*n_s))){
 		sim.simulationFinished();
 		catn("ERROR: SELECTED MUTATION NOT AT" + (f/(2*n_s))+ "STARTING FREQUENCY");
@@ -126,7 +125,6 @@ initialize() {
 	// re-introduce the sweep mutation
 	target = sample(p0.genomes, asInteger(f));
 	target.addNewDrawnMutation(m1, asInteger((GenomeSize-(10*winSize))/2));
-	sim.mutationsOfType(m1).setSelectionCoeff(s_s);
 	line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 	writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
 	writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P2", "G1", "G2", "G3", "G4" , sep=","), append = F);
