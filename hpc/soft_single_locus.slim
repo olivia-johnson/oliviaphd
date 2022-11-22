@@ -62,7 +62,7 @@ initialize() {
 	rates = map.getValue("rates");
 	initializeRecombinationRate(rates, ends);
 	
-	initializeMutationType("m1", 0.45, "f", s_s);  // seasonal mutations
+	initializeMutationType("m1", 0.0, "f", 0.0);  // seasonal mutations
 	initializeMutationType("m2", 0.0, "f", 0.0);  // neutral mutations
 	initializeGenomicElementType("g1", m2, 1.0);
 	initializeGenomicElementType("g2", m1, 1.0);
@@ -97,8 +97,20 @@ initialize() {
 	line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
 	writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line3, append = F);
 	writeFile(paste(asString(tmpdir)+"/pedigree_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), paste("Gen","Ind","P1","P2", "G1", "G2", "G3", "G4" , sep=","), append = F);
-	
-	
+
+
+}
+
+
+fitnessEffect(p0) {
+	if (length(individual.genomes.mutations)>0){
+		if (length(individual.genomes.mutations)>1){
+			return 1.0 + s_s;
+		}else{
+			return 1.0+(0.5*s_s);}
+	} else {
+		return 1.0;
+	}
 }
 
 2:12000 early(){
@@ -165,8 +177,8 @@ initialize() {
 			for (i in 1:size(sim.mutations)-1){
 				tab_line = paste(c(gen,sim.mutations[i].id,sim.mutationFrequencies(p0)[i]), sep = ",");
 				writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);}
-				community.deregisterScriptBlock(self);}
-
+			community.deregisterScriptBlock(self);}
+		
 		else {
 			outcome = paste(group+ "_"+sim_run + ": single mutation fixed at gen "+ gen+" – RESTARTING\n");
 			writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), outcome, append = T);
