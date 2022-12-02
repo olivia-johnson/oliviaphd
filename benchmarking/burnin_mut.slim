@@ -23,9 +23,12 @@ initialize() {
 
 // output samples of 10 genomes periodically, all fixed mutations at end
 
-100000 late() {sim.outputFull("/hpcfs/users/a1704225/results/phd_data/benchmarking/burnin_mut.txt");
+100000 late() {
+sim.outputFull("/hpcfs/users/a1704225/results/benchmarking/burnin_mut.txt");
+//sim.outputFull("~/phd_data/benchmarking/burnin_mut.txt");
 	mem = (usage(peak=T))*1024*1024;
 	catn(mem);
 	defineConstant("endTime", time());
 	writeFile("/hpcfs/users/a1704225/results/benchmarking/burnin_benchmarking_slim_mut.txt", paste(startTime, endTime, mem, sep="\t"), append=T);
+//writeFile("~/phd_data/benchmarking/burnin_benchmarking_slim_mut.txt", paste(startTime, endTime, mem, sep="\t"), append=T);
 	}
