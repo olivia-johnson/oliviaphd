@@ -1,0 +1,31 @@
+// set up a simple neutral simulation
+initialize() {
+	defineConstant("startTime", time());
+	defineGlobal("N", 1e4);
+	defineConstant("sequenceLength", 1e6);
+	initializeMutationRate(1e-7);
+	
+	// m1 mutation type: neutral
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	
+	// g1 genomic element type: uses m1 for all mutations
+	initializeGenomicElementType("g1", m1, 1.0);
+	
+	// uniform chromosome of length 100 kb with uniform recombination
+	initializeGenomicElement(g1, 0, sequenceLength);
+	initializeRecombinationRate(1e-6);
+}
+
+// create a population of 500 individuals
+1 early() {
+	sim.addSubpop("p1", N);
+}
+
+// output samples of 10 genomes periodically, all fixed mutations at end
+
+100000 late() {sim.outputFull("/hpcfs/users/a1704225/results/phd_data/benchmarking/burnin_mut.txt");
+	mem = (usage(peak=T))*1024*1024;
+	catn(mem);
+	defineConstant("endTime", time());
+	writeFile("/hpcfs/users/a1704225/results/benchmarking/burnin_benchmarking_slim_mut.txt", paste(startTime, endTime, mem, sep="\t"), append=T);
+	}
