@@ -1,0 +1,119 @@
+
+initialize() {
+	
+	defineConstant("GenomeSize", 1000000);  // genome size
+	
+	defineConstant("s", 1); // selection coefficient
+	
+	defineConstant("n", 1e4); //  population size
+	
+	defineConstant("h", 0.6);  //  dominance coefficient
+	
+	defineConstant("g_s", 10);  // generations per summer
+	
+	defineConstant("g_w", 10);  // generations per winter 
+	
+	defineConstant("g", (g_s + g_w));  // generations per seasonal cycle     
+	
+	defineConstant("mut", 0.0); // mutation rate
+	
+	defineConstant("rr", 1e-6); // recombination rate
+	
+	defineConstant("group", 0); // group of parameters
+	
+	if (!exists("sim_run"))
+	{defineConstant("sim_run", 1);} // sim run
+	
+	if (!exists("fit"))
+	{defineConstant("fit",1);} //if fit = 0 fitness function switched off
+	initializeSLiMOptions(keepPedigrees=T)	;
+	initializeMutationRate(mut);
+	
+	initializeRecombinationRate(rr);
+	
+	//	initializeMutationType("m0", 0.5, "f", 0.0);  // neutral mutations
+	initializeMutationType("m1", 0.0, "f", 0.0);  // seasonal mutations
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, GenomeSize-1);
+	m1.color = "pink";
+	m1.convertToSubstitution = F;
+	
+	initializeTreeSeq();
+}
+
+/// "/tmp/lls_" + asString("~/phd_data/benchmarking")+"/al_freq_group_"  HPC TMPDIR PATH
+
+1 late() {
+	sim.readFromPopulationFile(paste("~/phd_data/benchmarking/burnints_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
+	
+	target = sample(p0.genomes, asInteger(1));
+	target.addNewDrawnMutation(m1, asInteger(GenomeSize/2));
+	if (sim.mutationFrequencies(p0)[0] != (1/(2*n))){
+		sim.simulationFinished();
+		catn("ERROR: SELECTED MUTATION NOT AT" + (1/(2*n))+ "STARTING FREQUENCY");
+	}
+}
+
+
+s1 fitnessEffect() { //summer
+	if (fit == 0){
+		return 1.0;
+	} else{
+		mut_count=individual.genomes.mutationFrequenciesInGenomes(); //determine if het or homozygous
+		if (mut_count == 0.5){
+			if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+				ft=1.0+(h*s);}
+			else { // winter
+				ft=1.0+(h*s);}
+		} else {
+			if (mut_count==0){
+				if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+					ft=1.0;
+				} else { // winter
+					ft=1.0+(s);}
+			}else {
+				if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+					ft=1.0+(s);}
+				else { // winter
+					ft=1.0;}}}}
+	return ft;
+}
+
+
+1:10000 early(){
+	defineGlobal("gen", sim.cycle);
+	defineGlobal("modValueSeason",integerMod(gen, g));
+	
+	
+}
+
+
+1:10000 late(){
+	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
+	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+		
+		if (exists("slimgui")) {cat("Summer\n");}
+	}
+	if (modValueSeason >= g_s) { //winter
+		
+		if (exists("slimgui")) {cat("Winter\n");}
+	}
+	if (sim.countOfMutationsOfType(m1) == 0)
+	{outcome = paste(group+ "_"+sim_run + ": LOST at gen "+ gen+" – RESTARTING\n");
+		catn(outcome);
+		sim.readFromPopulationFile(paste("~/phd_data/benchmarking/burnints_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));
+		
+		target = sample(p0.genomes, asInteger(1));
+		target.addNewDrawnMutation(m1, asInteger(GenomeSize/2));}
+
+
+}
+
+10000 late() {
+	mem = usage(peak=T);
+	line4 = paste("Memory usage: "+ mem);
+	catn(line4);
+	writeFile("~/phd_data/benchmarking/forward_benchmarking_mem.txt", paste("ts", "single_locus", mem, sep="\t"), append=T);
+	sim.treeSeqOutput(paste(asString("~/phd_data/benchmarking")+ "/treeseq_single_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
+}
+
