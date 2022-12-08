@@ -8,6 +8,15 @@ library(grDevices)
 library(cowplot)
 setwd("~/phd_data/drosData")
 
+
+rudman=as.data.table(read_excel("rudman/science.abj7484_tables_s1_s3_and_s6.xlsx", 
+                                sheet = "Table S6"))
+rudman[, c("chrom", "region") := tstrsplit(cluster_region, ":", fixed=TRUE)]
+rudman[, c("cluster_start", "cluster_end") := tstrsplit(region, "-", fixed=TRUE)]
+setnames(rudman, "marker_SNP_position", "pos")
+rudman=rudman[,.(`cluster label`, cluster_start, cluster_end, chrom, pos, `time segment`)]
+
+
 data.labs = c('chrom', 'pos','AF', 'SP', 'SQ' ,'FallF', 'SprF')
 bergland_snps= fread("bergland/bergland_PA.txt", col.names = data.labs)
 
@@ -19,6 +28,30 @@ m_snps<- as.data.table(read_excel("machado/elife-67577-supp1-v2.xlsx",
 m_pops <-as.data.table(read_excel("machado/elife-67577-supp1-v2.xlsx", 
                     sheet = "Supplementaryfile1A"))
 
+## check overlap between rudman, machado, and bergland
+fintersect(rudman[,.(chrom,pos)], bergland_snps[,.(chrom, pos)])
+fintersect(rudman[,.(chrom,pos)], m_snps[,.(chrom,pos)])
+
+overlap_snps=NULL
+for (i in 1:length(bergland_snps$chrom)){
+  chr=bergland_snps$chrom[i]
+  position=bergland_snps$pos[i]
+  within=rudman[chrom==chr & cluster_start<=position & cluster_end>=position]
+  within[,`:=` (snp_position=position, data="bergland")]
+  overlap_snps=rbind(overlap_snps, within)
+}
+for (i in 1:length(m_snps$chrom)){
+  chr=m_snps$chrom[i]
+  position=m_snps$pos[i]
+  within=rudman[chrom==chr & cluster_start<=position & cluster_end>=position]
+  within[,`:=` (snp_position=position, data="machado")]
+  overlap_snps=rbind(overlap_snps, within)
+}
+
+m_cluster=unique(overlap_snps[data=="machado", .(`cluster label`)])
+b_cluster = unique(overlap_snps[data=="bergland", .(`cluster label`)])
+
+intersect(m_cluster, b_cluster)
 
 pop_keep = m_pops[Core20=="yes", .(.N, Sample, InternalName, Year, Season), by=c("Locality")]
 pop_keep = pop_keep[N>2]
