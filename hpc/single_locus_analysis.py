@@ -10,8 +10,9 @@ import time
 import allel
 import itertools
 import statistics
-sys.path.insert(1, '/hpcfs/users/a1704225//oliviaphd/')
+sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
 import single_locus_hpc
+import NCD
 
 params=sys.argv[1]
 sim_run = sys.argv[2]
@@ -31,6 +32,8 @@ fitness_on = parameters["fitness_on"]
 sum_gen = int(parameters["sum_gen"])
 win_gen = int(parameters["win_gen"])
 winSize = parameters["winSize"]
+s_s = parameters["s_s"]
+s_w = parameters["s_w"]
 group=parameters["group"]
 
 
@@ -69,7 +72,7 @@ ind_times = np.unique(slim_ts.individual_times).astype(int)
 
 
 ## ADD NEUTRAL MUTATIONS - simulations run without neutral mutations, need to put on tree to generate summary statistics removes current muts on tree
-mut_ts = msprime.sim_mutations(slim_ts, rate=mutRate, model = 'infinite_alleles', keep=False)
+mut_ts = msprime.sim_mutations(slim_ts, rate=mutRate, model = 'binary', keep=False)
 
 
 ## CALCULATE SUMMARY STATISTICS
@@ -123,6 +126,27 @@ for t in ind_times:
     gn=odds+evens
     gn=gn.view('int8')
             
+    
+    #### CALCULATE balancing selection NCD
+    Ncd=[]
+    if sim_type=="wittmann_unlinked":
+        ef=s_s/(s_s+s_w)
+        gen_year=pyslim.slim_time(slim_ts,t)%(sum_gen+win_gen)
+        p=((4+3*s_s)/(4+s_s))
+        if gen_year<=sum_gen:
+            TF=(1/(1+p**(gen_year-sum_gen/2)))
+        else:
+            TF=(1/(1+p**(-gen_year+3/2*sum_gen)))
+    else:
+        TF=s_s/(s_s+s_w)
+    AF=samp_ac[:,1]/200
+    for j in range(len(win3)-1):
+        win_vals=np.where((mut_positions>=win3[j])&(mut_positions<win3[j+1]))[0]
+        WAF=np.take(AF,win_vals)
+        WAF=np.delete(WAF, np.where((WAF == 0.) | (WAF ==1.)))
+        MAF=np.where(WAF >0.5, 1-WAF, WAF)
+        Ncd.append(NCD.ncd(MAF, TF))
+        
     #ehh=allel.ehh_decay(h)
     
     #ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
@@ -175,7 +199,7 @@ for t in ind_times:
         dict3.update({"tajimas_d_site":tajdb[w]})     ## tajima's D (calculated with tskit)
         dict3.update({"tajimas_d_allel": tajda[0][w]})        
         dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
-        #dict3.update({"ehh": ehh_win[0][w]})        ## mean ehh per window
+        dict3.update({"ncd": Ncd[w]})        ## ncd
         dict3.update({"r2": r2[0][w]})        ## r2 per win
         dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
         dict3.update({"H1": hap_stats[0][w][0]})         ## H1
