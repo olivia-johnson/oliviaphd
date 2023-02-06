@@ -22,6 +22,6 @@ p_name=$(basename -s ".txt" ${params});
 results_dir="/hpcfs/users/a1704225/results/${sim_type}/${p_name}"
 
 #python script ${paramter file} ${array id} ${job id for tmpdir path in SLiM}
-python background_run.py ${params} ${SLURM_ARRAY_TASK_ID} ${results_dir} ${sim_type}
+python analysis_run.py ${params} ${SLURM_ARRAY_TASK_ID} ${results_dir} ${sim_type}
 
 conda deactivate
