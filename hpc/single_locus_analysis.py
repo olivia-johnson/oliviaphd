@@ -130,7 +130,6 @@ for t in ind_times:
     #### CALCULATE balancing selection NCD
     Ncd=[]
     if sim_type=="wittmann_unlinked":
-        ef=s_s/(s_s+s_w)
         gen_year=pyslim.slim_time(slim_ts,t)%(sum_gen+win_gen)
         p=((4+3*s_s)/(4+s_s))
         if gen_year<=sum_gen:
@@ -139,7 +138,9 @@ for t in ind_times:
             TF=(1/(1+p**(-gen_year+3/2*sum_gen)))
     else:
         TF=s_s/(s_s+s_w)
-    AF=samp_ac[:,1]/200
+    if TF > 0.5:
+        TF=1-TF
+    AF=samp_ac[:,1]/sum(samp_ac[0])
     for j in range(len(win3)-1):
         win_vals=np.where((mut_positions>=win3[j])&(mut_positions<win3[j+1]))[0]
         WAF=np.take(AF,win_vals)
