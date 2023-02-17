@@ -1,0 +1,31 @@
+// set up a simple neutral simulation
+initialize() {
+	initializeMutationRate(0);
+	
+	// m1 mutation type: neutral
+	initializeMutationType("m1", 0.5, "f", 0.5);
+	
+	// g1 genomic element type: uses m1 for all mutations
+	initializeGenomicElementType("g1", m1, 1.0);
+	
+	// uniform chromosome of length 100 kb with uniform recombination
+	initializeGenomicElement(g1, 0, 1e6-1);
+	initializeRecombinationRate(1e-6);
+	initializeTreeSeq();
+}
+
+// create a population of 500 individuals
+1 late() {
+	sim.readFromPopulationFile("~/oliviaphd/r2_test/burnin.trees");
+	target = sample(p0.genomes, 1);
+	target.addNewDrawnMutation(m1, asInteger((1e6-1)/2));
+}
+
+
+// output samples of 10 genomes periodically, all fixed mutations at end
+1000 late() {
+	rInd= sample(p0.individuals, 100);
+	sim.treeSeqRememberIndividuals(rInd);
+}
+2000 late() { sim.treeSeqOutput("~/oliviaphd/r2_test/ts.trees");
+}
