@@ -10,6 +10,7 @@ import time
 import allel
 import itertools
 import statistics
+import scipy
 sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
 import single_locus_hpc
 import NCD
@@ -126,9 +127,14 @@ for t in ind_times:
     gn=odds+evens
     gn=gn.view('int8')
             
-    
     #### CALCULATE balancing selection NCD
     Ncd=[]
+    Ncd5=[]
+    Ncd4=[]
+    Ncd3=[]
+    var=[]
+    skew=[]
+    kurtosis=[]
     if sim_type=="wittmann_unlinked":
         gen_year=pyslim.slim_time(slim_ts,t)%(sum_gen+win_gen)
         p=((4+3*s_s)/(4+s_s))
@@ -145,14 +151,20 @@ for t in ind_times:
         win_vals=np.where((mut_positions>=win3[j])&(mut_positions<win3[j+1]))[0]
         WAF=np.take(AF,win_vals)
         WAF=np.delete(WAF, np.where((WAF == 0.) | (WAF ==1.)))
+        var.append(statistics.variance(WAF))
+        skew.append(scipy.stats.skew(WAF))
+        kurtosis.append(scipy.stats.kurtosis(WAF))
         MAF=np.where(WAF >0.5, 1-WAF, WAF)
         Ncd.append(NCD.ncd(MAF, TF))
+        Ncd5.append(NCD.ncd(MAF, 0.5))
+        Ncd4.append(NCD.ncd(MAF, 0.4))
+        Ncd3.append(NCD.ncd(MAF, 0.3))
         
     #ehh=allel.ehh_decay(h)
     
     #ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
     
-    r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
+    # r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
     
         # generate haplotype statistics (H1, H12, H123, H2/H1)
     hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
@@ -174,7 +186,7 @@ for t in ind_times:
 
         # calculate diversity (tajima's pi) using tskit
     div = samp_ts.diversity(sample_sets = None, windows = win3)  ##fix windows
-    ts_tests = [div, tajdb, r2[0]]
+    ts_tests = [div, tajdb, hap_div[0]]
     for test in ts_tests:
         if len(test)!= len(win3)-1:
             print("error in test ", test, ", number of values does not match number of windows")
@@ -201,7 +213,13 @@ for t in ind_times:
         dict3.update({"tajimas_d_allel": tajda[0][w]})        
         dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
         dict3.update({"ncd": Ncd[w]})        ## ncd
-        dict3.update({"r2": r2[0][w]})        ## r2 per win
+        dict3.update({"ncd_5": Ncd5[w]})        ## ncd with TF=0.5
+        dict3.update({"ncd_4": Ncd4[w]})        ## ncd with TF=0.4
+        dict3.update({"ncd_53": Ncd3[w]})        ## ncd with TF=0.3
+        dict3.update({"variance": var[w]})        ## sample variance
+        dict3.update({"kurtosis": kurtosis[w]})        ## kurtosis of distirbution af
+        dict3.update({"skew": skew[w]})        ## skew of distribution of af
+        # dict3.update({"r2": r2[0][w]})        ## r2 per win
         dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
         dict3.update({"H1": hap_stats[0][w][0]})         ## H1
         dict3.update({"H12":hap_stats[0][w][1]})         ## H12
