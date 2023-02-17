@@ -49,8 +49,10 @@ print("Number of sites with mutations:",mut_ts.num_sites)     ## number of sites
 all_mutations = mut_ts.mutations_site  ## sites of all mutations (includes duplicate positions)
 duplicate_mutations = dupes(all_mutations)  ##identify duplicate positions
 dupe_no=mut_ts.num_mutations-mut_ts.num_sites  #numebr of duplicates
-if dupe_no==len(duplicate_mutations):
-    print("No. duplicate mutations:", str(dupe_no))
+print("No. duplicate mutations:", str(dupe_no))
+
+# if dupe_no==len(duplicate_mutations):
+#     print("No. duplicate mutations:", str(dupe_no))
 
 
 
@@ -99,3 +101,49 @@ nans =np.reshape( np.concatenate((nan_start, nan_end), axis=0), (len(nan_start[0
 print("No. sites with nan val:", sum(np.isnan(r2[0])))
 print("Seg sites in window with nan val: ", np.take((r2[2]),np.where(np.isnan(r2[0]))) ) ##the seg sites of windows with nan values
 print("Windows of nan val:", nans)  ##the start position of windows with nan values
+
+
+
+
+
+## Compared to previous method using infinite_alleles  (This will overright variables above)
+mut_ts =msprime.sim_mutations(slim_ts, rate=mutRate, model = 'infinite_alleles', keep=False)
+
+print("Number of mutations (ia):", mut_ts.num_mutations) ## number of mutations 
+print("Number of sites with mutations (ia):",mut_ts.num_sites)     ## number of sites that have mutations
+all_mutations = mut_ts.mutations_site  ## sites of all mutations (includes duplicate positions)
+duplicate_mutations = dupes(all_mutations)  ##identify duplicate positions
+dupe_no=mut_ts.num_mutations-mut_ts.num_sites  #numebr of duplicates
+print("No. duplicate mutations (ia):", str(dupe_no))
+    
+samp_gm=mut_ts.genotype_matrix()
+     # convert genotype matrix to haplotyoe array for haplotype statistics
+h= allel.HaplotypeArray(samp_gm)
+     # allele count for scikit.allel stats
+samp_ac = h.count_alleles()
+     # positions of mutations in samp_ts for scikit.allel windowed_statistic function
+mut_positions = [int(var.position+1) for var in mut_ts.variants()]
+ 
+     ## crete genotype array for LD
+odds = h[:,::2]
+evens = h[:,1::2]
+ 
+gn=odds+evens
+gn=gn.view('int8')  ##input for r2 a gentoype array made up of 0,1,2
+         
+print("Length of genotype data (ia):",len(gn))
+print("Length of position vector (ia):",len(mut_positions))
+print("Length of unique in position vector (ia):",len(np.unique(mut_positions)))
+
+
+r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
+print(r2[0])
+
+nan_start=np.take(r2[1][:, 0],np.where(np.isnan(r2[0]))) ## start of nan windows
+nan_end=np.take(r2[1][:, 1],np.where(np.isnan(r2[0]))) ##end of nan windows
+nans =np.reshape( np.concatenate((nan_start, nan_end), axis=0), (len(nan_start[0]), 2))  ## start and end of vector
+
+print("No. sites with nan val (ia):", sum(np.isnan(r2[0])))
+print("Seg sites in window with nan val (ia): ", np.take((r2[2]),np.where(np.isnan(r2[0]))) ) ##the seg sites of windows with nan values
+print("Windows of nan val (ia):", nans)  ##the start position of windows with nan values
+
