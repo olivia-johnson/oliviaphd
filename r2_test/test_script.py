@@ -204,6 +204,18 @@ tajds =  mut_ts.Tajimas_D(sample_sets=None, windows=win3, mode="site")
 tajda= allel.windowed_tajima_d(mut_positions, samp_ac, windows=al_win3)
 tajds-tajda[0] ##differnce between tajimas d site from tskit and scikit allele tajimas d
 
+n_seg =mut_ts.segregating_sites(sample_sets=None, windows=win3, mode="site", span_normalise=False)
+segsites =mut_ts.segregating_sites(sample_sets=None, windows=win3, mode="site")
+
+
+hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
+hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
+ 
+tw=allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
+
+diva= allel.windowed_diversity(mut_positions, samp_ac, windows=al_win3)[0]*1e10
+divt=mut_ts.diversity(windows=win3)
+diva-divt
 
 nan_start=np.take(r2[1][:, 0],np.where(np.isnan(r2[0]))) ## start of nan windows
 nan_end=np.take(r2[1][:, 1],np.where(np.isnan(r2[0]))) ##end of nan windows
