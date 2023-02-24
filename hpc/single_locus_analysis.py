@@ -73,7 +73,7 @@ ind_times = np.unique(slim_ts.individual_times).astype(int)
 
 
 ## ADD NEUTRAL MUTATIONS - simulations run without neutral mutations, need to put on tree to generate summary statistics removes current muts on tree
-mut_ts = msprime.sim_mutations(slim_ts, rate=mutRate, model = 'binary', keep=False)
+mut_ts = msprime.sim_mutations(slim_ts, rate=mutRate, discrete_genome=False, keep=False)
 
 
 ## CALCULATE SUMMARY STATISTICS
@@ -88,17 +88,24 @@ win3 = np.append(win3, mut_ts.sequence_length)
 win3=np.insert(win3, 0, 0)
    # windows for scikit.allel statistics
 
-al_win3 = []
+# al_win3 = []
+# for w in range(len(win3)-1):
+#       if w == len(win3)-1:
+#           window = [win3[w], int(mut_ts.sequence_length)]
+#       else:
+#           window = [win3[w], win3[w+1]-1]
+#       al_win3.append(window)
+
+al_win3 = []  ##windows for infinite sites
 for w in range(len(win3)-1):
       if w == len(win3)-1:
-          window = [win3[w], int(mut_ts.sequence_length)]
+          window = [win3[w]*1e10, int(mut_ts.sequence_length)*1e10]
       else:
-          window = [win3[w], win3[w+1]-1]
+          window = [win3[w]*1e10, win3[w+1]*1e10-1]
       al_win3.append(window)
 
-
     # cycle throught timepoints for which data has been collected
-for t in ind_times:
+for t in ind_times[1:10]:
 
         # collate nodes (geotype identifiers) of indviduals at time t
     sample_ind = pyslim.individuals_alive_at(slim_ts, t)
@@ -118,7 +125,7 @@ for t in ind_times:
         # allele count for scikit.allel stats
     samp_ac = h.count_alleles()
         # positions of mutations in samp_ts for scikit.allel windowed_statistic function
-    mut_positions = [int(var.position+1) for var in samp_ts.variants()]
+    mut_positions = [int(var.position*1e10+1) for var in samp_ts.variants()]
     
         ## crete genotype array for LD
     odds = h[:,::2]
@@ -148,7 +155,7 @@ for t in ind_times:
         TF=1-TF
     AF=samp_ac[:,1]/sum(samp_ac[0])
     for j in range(len(win3)-1):
-        win_vals=np.where((mut_positions>=win3[j])&(mut_positions<win3[j+1]))[0]
+        win_vals=np.where((mut_positions>=win3[j]*1e10)&(mut_positions<win3[j+1]*1e10))[0]
         WAF=np.take(AF,win_vals)
         WAF=np.delete(WAF, np.where((WAF == 0.) | (WAF ==1.)))
         var.append(statistics.variance(WAF))
@@ -164,7 +171,7 @@ for t in ind_times:
     
     #ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
     
-    # r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
+    r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
     
         # generate haplotype statistics (H1, H12, H123, H2/H1)
     hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
@@ -179,10 +186,10 @@ for t in ind_times:
     segsites =samp_ts.segregating_sites(sample_sets=None, windows=win3, mode="site")
 
         # wattersons theta using scikit.allel
-    tw_a= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)
+    tw_a= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)[0]*1e10
 
     # tajimas D using scikit.allel
-    tajda= allel.windowed_tajima_d(mut_positions, samp_ac, windows=al_win3)
+    tajda= allel.windowed_tajima_d(mut_positions, samp_ac, windows=al_win3)[0]*1e10
 
         # calculate diversity (tajima's pi) using tskit
     div = samp_ts.diversity(sample_sets = None, windows = win3)  ##fix windows
@@ -210,8 +217,8 @@ for t in ind_times:
         dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tsk
         dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
         dict3.update({"tajimas_d_site":tajdb[w]})     ## tajima's D (calculated with tskit)
-        dict3.update({"tajimas_d_allel": tajda[0][w]})        
-        dict3.update({"theta_w_allele": tw_a[0][w]})        ## watterson's theta (allele with scikit allel)
+        dict3.update({"tajimas_d_allel": tajda[w]})        
+        dict3.update({"theta_w_allele": tw_a[w]})        ## watterson's theta (allele with scikit allel)
         dict3.update({"ncd": Ncd[w]})        ## ncd
         dict3.update({"ncd_5": Ncd5[w]})        ## ncd with TF=0.5
         dict3.update({"ncd_4": Ncd4[w]})        ## ncd with TF=0.4
@@ -219,7 +226,7 @@ for t in ind_times:
         dict3.update({"variance": var[w]})        ## sample variance
         dict3.update({"kurtosis": kurtosis[w]})        ## kurtosis of distirbution af
         dict3.update({"skew": skew[w]})        ## skew of distribution of af
-        # dict3.update({"r2": r2[0][w]})        ## r2 per win
+        dict3.update({"r2": r2[0][w]})        ## r2 per win
         dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
         dict3.update({"H1": hap_stats[0][w][0]})         ## H1
         dict3.update({"H12":hap_stats[0][w][1]})         ## H12
