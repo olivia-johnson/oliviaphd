@@ -222,7 +222,7 @@ for t in ind_times[1:10]:
         dict3.update({"ncd": Ncd[w]})        ## ncd
         dict3.update({"ncd_5": Ncd5[w]})        ## ncd with TF=0.5
         dict3.update({"ncd_4": Ncd4[w]})        ## ncd with TF=0.4
-        dict3.update({"ncd_53": Ncd3[w]})        ## ncd with TF=0.3
+        dict3.update({"ncd_3": Ncd3[w]})        ## ncd with TF=0.3
         dict3.update({"variance": var[w]})        ## sample variance
         dict3.update({"kurtosis": kurtosis[w]})        ## kurtosis of distirbution af
         dict3.update({"skew": skew[w]})        ## skew of distribution of af
