@@ -105,7 +105,7 @@ for w in range(len(win3)-1):
       al_win3.append(window)
 
     # cycle throught timepoints for which data has been collected
-for t in ind_times[1:10]:
+for t in ind_times:
 
         # collate nodes (geotype identifiers) of indviduals at time t
     sample_ind = pyslim.individuals_alive_at(slim_ts, t)
