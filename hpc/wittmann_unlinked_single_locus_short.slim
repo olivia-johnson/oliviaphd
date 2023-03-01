@@ -135,7 +135,7 @@ s1 fitnessEffect() { //summer
 	return ft;
 }
 
-2:150000 late(){
+2:100000 late(){
 	
 	
 	if (sim.countOfMutationsOfType(m1) == 0)
@@ -213,7 +213,7 @@ s1 fitnessEffect() { //summer
 
 }
 
-12000:150000 early(){
+12000:100000 early(){
 	defineGlobal("gen", sim.cycle);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuerGen", integerMod(gen, rGen));
