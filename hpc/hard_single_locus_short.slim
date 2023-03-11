@@ -201,6 +201,13 @@ initialize() {
 
 1:100000 late(){
 	if (gen==(fixed_gen+61)){
+	mem = usage(peak=T);
+	line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts);
+	catn(line4);
+	writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line4, append = T);
+	
+	
+	sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));
 		sim.simulationFinished();}
 }
 12000:100000 early(){
