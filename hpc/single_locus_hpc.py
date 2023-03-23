@@ -21,7 +21,7 @@ def recombination_map(tmpdir, group, genomeSize, recRate, winSize):
 ## create recombination map for msprime and slim to simulate unlinked section
     unlinked_region = 10*winSize    
     rec_pos=[0, genomeSize-1,genomeSize, (genomeSize+unlinked_region)]
-    rates=[recRate, 0.5, recRate]
+    rates=[recRate, np.log(2), recRate]
     rate_map = msprime.RateMap(position=rec_pos,rate=rates)
     rate_map
     sequenceSize=rate_map.sequence_length
