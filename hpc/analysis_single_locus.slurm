@@ -1,10 +1,11 @@
 #!/bin/bash -l
 #SBATCH --array=1
+#SBATCH -p skylake,icelake,a100cpu,v100cpu
 #SBATCH --cpus-per-task=1
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --time=24:00:00
-#SBATCH --mem=52G
+#SBATCH --time=15:00:00
+#SBATCH --mem=45G
 #SBATCH --mail-type=END                                         # Send a notification email when the job is done (=END)
 #SBATCH --mail-type=FAIL                                        # Send a notification email when the job fails (=FAIL)
 #SBATCH --mail-user=olivia.johnson@adelaide.edu.au          # Email to which notifications will be sent
