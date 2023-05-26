@@ -14,7 +14,7 @@ export HOME=/hpcfs/users/a1704225
 
 params=${1} #parameters, pass from text file outside slurm file (could use for loop to cycle through multiple sets outside of this script)
 sim_type=${2}
-module load  Anaconda3/2023.03
+module load  Anaconda3/2020.07
 conda activate slim_4
 
 # directories
