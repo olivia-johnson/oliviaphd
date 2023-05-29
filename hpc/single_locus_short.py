@@ -13,7 +13,7 @@ sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
 import single_locus_hpc
 import NCD
 
-print("modules loaded")
+# print("modules loaded")
 
 params=sys.argv[1]
 sim_run = sys.argv[2]
@@ -43,13 +43,13 @@ group=parameters["group"]
 winSize = parameters["winSize"]
 freq=int(parameters["f"])
 
-print("parameters loaded")
+# print("parameters loaded")
 start_time = time.time()
 
 ## Calculate Burnin Ne
 burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
 
-print("burnin Ne calcd")
+# print("burnin Ne calcd")
 
 ####  SIMULATE BURNIN
 if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
@@ -58,12 +58,12 @@ if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, g
 
 ####  SIMULATE SEGLIFT
 
-# single_locus_hpc.short_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq, sim_type, winSize)
+single_locus_hpc.short_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq, sim_type, winSize)
 
 
 # ####  Run analysis
 
-# single_locus_hpc.analyse(tmpdir, results_dir, group, sim_run, mutRate, genomeSize, winSize, sum_gen, win_gen, s_pop, w_pop, sim_type, s_s, s_w)
+single_locus_hpc.analyse(tmpdir, results_dir, group, sim_run, mutRate, genomeSize, winSize, sum_gen, win_gen, s_pop, w_pop, sim_type, s_s, s_w)
 
 print("Time = ", (time.time() - start_time))
 
