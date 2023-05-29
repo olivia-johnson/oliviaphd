@@ -9,7 +9,7 @@ import pandas as pd
 import time
 import allel
 import scipy
-sys.path.insert(1, '/hpcfs/users/a1704225/scripts/oliviaphd/')
+sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
 import single_locus_hpc
 import NCD
 
@@ -48,18 +48,18 @@ start_time = time.time()
 burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
 
 ####  SIMULATE BURNIN
-if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
-    rate_map, sequenceSize = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate, winSize)
-    single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, sequenceSize, s_pop, burnin_Ne, recRate)
+# if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
+rate_map, sequenceSize = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate, winSize)
+single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, sequenceSize, s_pop, burnin_Ne, recRate)
 
 ####  SIMULATE SEGLIFT
 
-single_locus_hpc.short_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq, sim_type, winSize)
+# single_locus_hpc.short_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq, sim_type, winSize)
 
 
-####  Run analysis
+# ####  Run analysis
 
-single_locus_hpc.analyse(tmpdir, results_dir, group, sim_run, mutRate, genomeSize, winSize, sum_gen, win_gen, s_pop, w_pop, sim_type, s_s, s_w)
+# single_locus_hpc.analyse(tmpdir, results_dir, group, sim_run, mutRate, genomeSize, winSize, sum_gen, win_gen, s_pop, w_pop, sim_type, s_s, s_w)
 
 print("Time = ", (time.time() - start_time))
 
