@@ -13,6 +13,8 @@ sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
 import single_locus_hpc
 import NCD
 
+print("modules loaded")
+
 params=sys.argv[1]
 sim_run = sys.argv[2]
 tmpdir =str(sys.argv[3])
@@ -41,16 +43,18 @@ group=parameters["group"]
 winSize = parameters["winSize"]
 freq=int(parameters["f"])
 
-
+print("parameters loaded")
 start_time = time.time()
 
 ## Calculate Burnin Ne
 burnin_Ne = round((sum_gen+win_gen)/(((1/s_pop)*sum_gen)+((1/w_pop)*win_gen)))
 
+print("burnin Ne calcd")
+
 ####  SIMULATE BURNIN
-# if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
-rate_map, sequenceSize = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate, winSize)
-single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, sequenceSize, s_pop, burnin_Ne, recRate)
+if os.path.exists('{0}/burnin_seglift_group_{1}_{2}.trees'.format(results_dir, group,sim_run))==False:
+    rate_map, sequenceSize = single_locus_hpc.recombination_map(tmpdir, group, genomeSize, recRate, winSize)
+    single_locus_hpc.single_locus_burnin(tmpdir, group, sim_run, sequenceSize, s_pop, burnin_Ne, recRate)
 
 ####  SIMULATE SEGLIFT
 
