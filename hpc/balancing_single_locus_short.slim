@@ -83,6 +83,7 @@ initialize() {
 1 early(){	defineGlobal("restarts", 0);
 	defineGlobal("log_samp", g*2);
 	defineGlobal("eq_year", 0);
+	defineGlobal("eq_gen", 12000);
 	defineGlobal("equilibrium", F);}
 
 1 late() {
@@ -91,11 +92,11 @@ initialize() {
 	
 	writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line1, append = F);
 	
-	if (fileExists(paste(asString(results_dir)+"/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"))==T){
-		sim.readFromPopulationFile(paste(asString(results_dir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));} else{
-		sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));}
-	
-	//	sim.addSubpop("p0", n_s);
+//	if (fileExists(paste(asString(results_dir)+"/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"))==T){
+//		sim.readFromPopulationFile(paste(asString(results_dir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));} else{
+//		sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));}
+//	
+		sim.addSubpop("p0", n_s);
 	
 	
 	target = sample(p0.genomes, asInteger(f));
@@ -192,7 +193,8 @@ s1 fitnessEffect() { //summer
 		if (modValueSeason==19&year>=2){frequencies=c(gy0,gy05,gy10,gy15);
 			defineGlobal("av_freq", mean(frequencies));
 			if(av_freq>0.49 &av_freq<0.51){defineGlobal("equilibrium", T);
-				defineGlobal("eq_year", year+1);}
+				defineGlobal("eq_year", year);
+				defineGlobal("eq_gen", gen+1);}
 		}
 		
 		defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
@@ -206,7 +208,7 @@ s1 fitnessEffect() { //summer
 				p0.setSubpopulationSize(n_w);}
 			if (exists("slimgui")) {cat("Winter\n");}
 		}
-		if (equilibrium==T & year==eq_year){
+		if (equilibrium==T & year==eq_year & gen>=eq_gen & gen<(eq_gen+20)){
 			tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
 			writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 			if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
