@@ -221,7 +221,9 @@ s1 fitnessEffect() { //summer
 		tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
 		writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
 		
-		
+	if (equilibrium=="Finished" &year>eq_year){
+	sim.treeSeqOutput(paste(asString(tmpdir)+ "/treeseq_group_"+ asString(group) + "_" + asString(sim_run) + ".trees"));;
+	sim.simulationFinished();}
 		if (gen>=2560 & gen <2580){
 			if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
 			rInd= sample(p0.individuals, 100);
