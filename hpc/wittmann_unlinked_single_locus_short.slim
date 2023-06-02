@@ -7,7 +7,7 @@ initialize() {
 	{defineConstant("results_dir", "/Users/olivia/phd_data/Results/single_locus/wittmann_unlinked/group_1");} // call in results dir
 	
 	if (!exists("GenomeSize"))
-	{defineConstant("GenomeSize", 199999); } // genome size
+	{defineConstant("GenomeSize", 5099999); } // genome size
 	
 	if (!exists("winSize"))
 	{defineConstant("winSize", 10000); } // window size
@@ -72,7 +72,7 @@ initialize() {
 	initializeMutationType("m1", 0.0, "f", 0.0);  // seasonal mutations
 	initializeGenomicElementType("g1", m1, 1.0);
 	initializeGenomicElement(g1, 0, GenomeSize-1);
-	m1.color = "black";
+	m1.color = "pink";
 	m1.convertToSubstitution = F;
 	
 	initializeTreeSeq();
@@ -81,7 +81,10 @@ initialize() {
 /// "/tmp/lls_" + asString(tmpdir)+"/al_freq_group_"  HPC TMPDIR PATH
 
 1 early(){	defineGlobal("restarts", 0);
-	defineGlobal("log_samp", g*2);}
+	defineGlobal("log_samp", g*2);
+	defineGlobal("eq_year", 0);
+	defineGlobal("eq_gen", 12000);
+	defineGlobal("equilibrium", F);}
 
 1 late() {
 	cat(sim_run + "\n");
@@ -188,6 +191,16 @@ s1 fitnessEffect() { //summer
 
 
 1:12000 late(){
+	defineGlobal("year", (integerDiv(gen, g)+1));
+	if(equilibrium==F){
+		if (modValueSeason==0){defineGlobal("gy0", sim.mutationFrequencies(p0)[0]);}
+		if (modValueSeason==10){defineGlobal("gy10", sim.mutationFrequencies(p0)[0]);}
+		if (modValueSeason==19&year>=2){frequencies=c(gy0,gy10);
+			defineGlobal("av_freq", mean(frequencies));
+			if(av_freq>0.45 &av_freq<0.55){defineGlobal("equilibrium", T);
+				defineGlobal("eq_year", year+1);
+				defineGlobal("eq_gen", gen+1);}}
+	}
 	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
@@ -199,7 +212,14 @@ s1 fitnessEffect() { //summer
 			p0.setSubpopulationSize(n_w);}
 		if (exists("slimgui")) {cat("Winter\n");}
 	}
-	
+	if (equilibrium==T & year==eq_year & gen>=eq_gen & gen<(eq_gen+20)){
+		tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
+		writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
+		rInd= sample(p0.individuals, 100);
+		sim.treeSeqRememberIndividuals(rInd);
+	}
+	if(equilibrium==T & year==eq_year+1){defineGlobal("equilibrium", "Finished");}
 	if (modValuelog >=0 & modValuelog <=((3*(g_s + g_w))-1)) {
 		if (exists("slimgui")) {catn("Gen:" + gen + " sampling");}
 		tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
