@@ -57,7 +57,7 @@ else:
     
     
 midpoint=(slim_ts.sequence_length-1e5)/2
-slim_ts=slim_ts.keep_intervals([[(midpoint-4750), (midpoint+4750)]])
+slim_ts=slim_ts.keep_intervals([[(midpoint-5750), (midpoint+5750)]])
 
 ## SUMMARISE INDIVIDUALS - obtain metadata for individuals 'remembered' in ts
 rows_list = []
