@@ -88,8 +88,9 @@ rows_list3 = []
 
     # create windows for stats to be calculated in
     # windows for tskit statistics
+start_pos=(2500000-150)-(((2500000-(winSize/2))//winSize)*winSize)
 
-win3 = np.arange(winSize/2, mut_ts.sequence_length, winSize).astype(int)
+win3 = np.arange(start_pos, mut_ts.sequence_length, winSize).astype(int)
 win=win3[win3>=(midpoint-4750)]
 win3=win[win<=(midpoint+4750)]
 win3=np.insert(win3, 0, 0)
@@ -167,14 +168,23 @@ for t in ind_times:
         win_vals=np.where((mut_positions>=win3[j]*1e10)&(mut_positions<win3[j+1]*1e10))[0]
         WAF=np.take(AF,win_vals)
         WAF=np.delete(WAF, np.where((WAF == 0.) | (WAF ==1.)))
-        var.append(statistics.variance(WAF))
-        skew.append(scipy.stats.skew(WAF))
-        kurtosis.append(scipy.stats.kurtosis(WAF))
-        MAF=np.where(WAF >0.5, 1-WAF, WAF)
-        Ncd.append(NCD.ncd(MAF, TF))
-        Ncd5.append(NCD.ncd(MAF, 0.5))
-        Ncd4.append(NCD.ncd(MAF, 0.4))
-        Ncd3.append(NCD.ncd(MAF, 0.3))
+        if len(WAF)<=1:
+            var.append(pd.NA)
+            skew.append(pd.NA)
+            kurtosis.append(pd.NA)
+            Ncd.append(pd.NA)
+            Ncd5.append(pd.NA)
+            Ncd4.append(pd.NA)
+            Ncd3.append(pd.NA)
+        else:
+            var.append(statistics.variance(WAF))
+            skew.append(scipy.stats.skew(WAF))
+            kurtosis.append(scipy.stats.kurtosis(WAF))
+            MAF=np.where(WAF >0.5, 1-WAF, WAF)
+            Ncd.append(NCD.ncd(MAF, TF))
+            Ncd5.append(NCD.ncd(MAF, 0.5))
+            Ncd4.append(NCD.ncd(MAF, 0.4))
+            Ncd3.append(NCD.ncd(MAF, 0.3))
         
     #ehh=allel.ehh_decay(h)
     
@@ -213,9 +223,9 @@ for t in ind_times:
 
     ## Collate summary statics into dataframe
         # loop over windows
-    for w in range(len(win3)-1):
+    for w in range(len(win3)-2):
 
-
+        w=w+1
         dict3={}
         dict3.update({"time":pyslim.slim_time(slim_ts,t)})                        ## generation
         dict3.update({"n_win":w})                       ## identifier for window
