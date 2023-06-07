@@ -57,7 +57,7 @@ else:
     
     
 midpoint=(slim_ts.sequence_length-1e5)/2
-slim_ts=slim_ts.keep_intervals([[(midpoint-3150), (midpoint+3150)]])
+slim_ts=slim_ts.keep_intervals([[(midpoint-4750), (midpoint+4750)]])
 
 ## SUMMARISE INDIVIDUALS - obtain metadata for individuals 'remembered' in ts
 rows_list = []
@@ -90,8 +90,8 @@ rows_list3 = []
     # windows for tskit statistics
 
 win3 = np.arange(winSize/2, mut_ts.sequence_length, winSize).astype(int)
-win=win3[win3>=(midpoint-3150)]
-win3=win[win<=(midpoint+3150)]
+win=win3[win3>=(midpoint-4750)]
+win3=win[win<=(midpoint+4750)]
 win3=np.insert(win3, 0, 0)
 win3 = np.append(win3, mut_ts.sequence_length)
 
