@@ -57,7 +57,6 @@ else:
     
     
 midpoint=(slim_ts.sequence_length-1e5)/2
-slim_ts=slim_ts.keep_intervals([[(midpoint-5750), (midpoint+5750)]])
 
 ## SUMMARISE INDIVIDUALS - obtain metadata for individuals 'remembered' in ts
 rows_list = []
@@ -190,7 +189,7 @@ for t in ind_times:
     
     #ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
     
-    r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
+    # r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
     
         # generate haplotype statistics (H1, H12, H123, H2/H1)
     hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
@@ -245,7 +244,7 @@ for t in ind_times:
         dict3.update({"variance": var[w]})        ## sample variance
         dict3.update({"kurtosis": kurtosis[w]})        ## kurtosis of distirbution af
         dict3.update({"skew": skew[w]})        ## skew of distribution of af
-        dict3.update({"r2": r2[0][w]})        ## r2 per win
+        # dict3.update({"r2": r2[0][w]})        ## r2 per win
         dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
         dict3.update({"H1": hap_stats[0][w][0]})         ## H1
         dict3.update({"H12":hap_stats[0][w][1]})         ## H12
