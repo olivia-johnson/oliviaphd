@@ -137,11 +137,11 @@ for t in ind_times:
     mut_positions = [int(var.position*1e10+1) for var in samp_ts.variants()]
     
         ## crete genotype array for LD
-    odds = h[:,::2]
-    evens = h[:,1::2]
+    # odds = h[:,::2]
+    # evens = h[:,1::2]
     
-    gn=odds+evens
-    gn=gn.view('int8')
+    # gn=odds+evens
+    # gn=gn.view('int8')
             
     #### CALCULATE balancing selection NCD
     Ncd=[]
@@ -192,9 +192,9 @@ for t in ind_times:
     # r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
     
         # generate haplotype statistics (H1, H12, H123, H2/H1)
-    hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
+    # hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
 
-    hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
+    # hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
     
         # tajimas D using tskit and branches of ts
     tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="branch")
@@ -207,14 +207,14 @@ for t in ind_times:
     tw_a= allel.windowed_watterson_theta(mut_positions, samp_ac, windows=al_win3)[0]*1e10
 
     # tajimas D using scikit.allel
-    tajda= allel.windowed_tajima_d(mut_positions, samp_ac, windows=al_win3)[0]*1e10
+    # tajda= allel.windowed_tajima_d(mut_positions, samp_ac, windows=al_win3)[0]*1e10
 
         # calculate diversity (tajima's pi) using tskit
     div = samp_ts.diversity(sample_sets = None, windows = win3)  ##fix windows
-    ts_tests = [div, tajdb, hap_div[0]]
-    for test in ts_tests:
-        if len(test)!= len(win3)-1:
-            print("error in test ", test, ", number of values does not match number of windows")
+    # ts_tests = [div, tajdb, hap_div[0]]
+    # for test in ts_tests:
+    #     if len(test)!= len(win3)-1:
+    #         print("error in test ", test, ", number of values does not match number of windows")
 
     # for test in al_tests:
     #     if len(test)!= alwin:
@@ -235,7 +235,7 @@ for t in ind_times:
         dict3.update({"diversity": div[w]})             ## diversity (tajimas pi; calculated with tsk
         dict3.update({"tajimas_d_branch":tajdb[w]})     ## tajima's D (calculated with tskit)
         dict3.update({"tajimas_d_site":tajdb[w]})     ## tajima's D (calculated with tskit)
-        dict3.update({"tajimas_d_allel": tajda[w]})        
+        # dict3.update({"tajimas_d_allel": tajda[w]})        
         dict3.update({"theta_w_allele": tw_a[w]})        ## watterson's theta (allele with scikit allel)
         dict3.update({"ncd": Ncd[w]})        ## ncd
         dict3.update({"ncd_5": Ncd5[w]})        ## ncd with TF=0.5
@@ -245,11 +245,11 @@ for t in ind_times:
         dict3.update({"kurtosis": kurtosis[w]})        ## kurtosis of distirbution af
         dict3.update({"skew": skew[w]})        ## skew of distribution of af
         # dict3.update({"r2": r2[0][w]})        ## r2 per win
-        dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
-        dict3.update({"H1": hap_stats[0][w][0]})         ## H1
-        dict3.update({"H12":hap_stats[0][w][1]})         ## H12
-        dict3.update({"H123": hap_stats[0][w][2]})       ## H123
-        dict3.update({"H2H1": hap_stats[0][w][3]})       ## H2/H1
+        # dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
+        # dict3.update({"H1": hap_stats[0][w][0]})         ## H1
+        # dict3.update({"H12":hap_stats[0][w][1]})         ## H12
+        # dict3.update({"H123": hap_stats[0][w][2]})       ## H123
+        # dict3.update({"H2H1": hap_stats[0][w][3]})       ## H2/H1
 
         rows_list3.append(dict3)
 
