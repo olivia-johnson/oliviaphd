@@ -115,7 +115,7 @@ for w in range(len(win3)-1):
 
     # cycle throught timepoints for which data has been collected
 end_time=max(ind_times)
-if sim_run <=20:
+if int(sim_run) <=20:
     early_t=ind_times[ind_times>(end_time-5000)]
     late_t= ind_times[ind_times<=(end_time-96000)]
     late_t=late_t[late_t>((end_time-97000))]
