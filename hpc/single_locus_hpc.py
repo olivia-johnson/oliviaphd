@@ -82,6 +82,20 @@ def short_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize,
     # #print("Time for SLiM sim = ", (time.time()- start_time))
     print("Simulations took ", (time.time()-start_time) ,  " seconds")
     
+def af_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, f, sim_type, winSize):
+
+    ## FORWARD SIMULATION
+    # for when uneven seasons " -d g_s=" + str(sum_gen)+ " -d g_w=" + str(win_gen)
+    start_time = time.time()
+    tmpdir_call = "tmpdir='" + str(tmpdir)+ "'"
+    results = "results_dir='" + str(results_dir)+ "'"
+    sequnceSize=genomeSize+(10*winSize)
+    cmd = 'slim -d "' +str(tmpdir_call)+ '" -d "' +str(results)+ '" -d fit='+ str(fitness_on)+" -d group=" + str(group) + " -d winSize=" + str(winSize) +" -d f=" + str(f) + " -d h_s=" + str(h_s)+ " -d h_w=" + str(h_w)+ " -d s_s=" + str(s_s)+ " -d s_w=" + str(s_w)+" -d g_s=" + str(sum_gen)+" -d g_w=" + str(win_gen)+" -d sim_run=" + str(sim_run) + " -d GenomeSize=" + str(int(sequnceSize)) +  " -d n_s=" + str(int(s_pop)) + " -d n_w=" + str(int(w_pop)) + " -d mut=0.0 -d rr=" + str(recRate) +   " -d rGen="+ str(rGen) +" ~/oliviaphd/hpc/"+str(sim_type)+"_single_locus_af.slim"
+    print(cmd)
+    os.system(cmd)
+    # #print("Time for SLiM sim = ", (time.time()- start_time))
+    print("Simulations took ", (time.time()-start_time) ,  " seconds")
+    
 def analyse(tmpdir, results_dir,group, sim_run, mutRate, genomeSize, winSize, sum_gen, win_gen, s_pop, w_pop, sim_type, s_s, s_w):
     ## input  group(parameter identifier), simulation type, simulation run), mutation rate,
     ##  number of selected loci, number of chromosomes and number of windows
