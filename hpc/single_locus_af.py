@@ -57,7 +57,7 @@ rate_map, sequenceSize = single_locus_hpc.recombination_map(tmpdir, group, genom
 
 ####  SIMULATE SEGLIFT
 
-single_locus_hpc.short_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq, sim_type, winSize)
+single_locus_hpc.af_single_locus(tmpdir, results_dir, group, sim_run, recRate, genomeSize, s_pop, w_pop, h_s, h_w, s_s, s_w, rGen, fitness_on, sum_gen, win_gen, freq, sim_type, winSize)
 
 
 print("Time = ", (time.time() - start_time))
