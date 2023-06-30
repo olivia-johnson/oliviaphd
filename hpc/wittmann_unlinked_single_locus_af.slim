@@ -140,10 +140,7 @@ s1 fitnessEffect() { //summer
 	
 	if (sim.countOfMutationsOfType(m1) == 0)
 	{	if (restarts == 5000){
-			mem = usage(peak=T);
-			line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts);
-			catn(line4);
-			writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line4, append = T);
+			
 			sim.simulationFinished();}
 		defineGlobal("restarts", restarts+1);
 		fixed = (sum(sim.substitutions.mutationType == m1) == 1);
@@ -184,7 +181,7 @@ s1 fitnessEffect() { //summer
 1:12000 late(){
 	defineGlobal("year", (integerDiv(gen, g)+1));
 	tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
-	writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+	writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+"_af.txt"), tab_line, append = T);
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
 			p0.setSubpopulationSize(n_s);}
@@ -205,7 +202,7 @@ s1 fitnessEffect() { //summer
 
 90000:100000 late(){
 	tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
-	writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+	writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+"_af.txt"), tab_line, append = T);
 	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
