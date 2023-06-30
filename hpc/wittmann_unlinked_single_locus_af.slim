@@ -1,0 +1,227 @@
+
+initialize() {
+	if (!exists("tmpdir"))
+	{defineConstant("tmpdir", "/Users/olivia/phd_data/Results/single_locus/wittmann_unlinked/group_1");} // call in tmpdir
+	
+	if (!exists("results_dir"))
+	{defineConstant("results_dir", "/Users/olivia/phd_data/Results/single_locus/wittmann_unlinked/group_1");} // call in results dir
+	
+	if (!exists("GenomeSize"))
+	{defineConstant("GenomeSize", 5099999); } // genome size
+	
+	if (!exists("winSize"))
+	{defineConstant("winSize", 10000); } // window size
+	
+	if (!exists("f"))
+	{defineConstant("f", 1); } // mutation frequency (f/2N)
+	
+	if (!exists("s_s"))
+	{defineConstant("s_s", 0.5); }// summer selection coefficient
+	
+	if (!exists("s_w"))
+	{defineConstant("s_w", 0.5); }// winter selection coefficient
+	
+	if (!exists("n_s"))
+	{defineConstant("n_s", 1e4); }// summer population size
+	
+	if (!exists("n_w"))
+	{defineConstant("n_w", 1e4); }// winter population size
+	
+	if (!exists("h_s"))
+	{defineConstant("h_s", 0.6); } // summer dominance coefficient
+	
+	if (!exists("h_w"))
+	{defineConstant("h_w", 0.6); } // winter dominance coefficient
+	
+	if (!exists("g_s"))
+	{defineConstant("g_s", 10); } // generations per summer
+	
+	if (!exists("g_w"))
+	{defineConstant("g_w", 10); } // generations per winter 
+	
+	if (!exists("g"))
+	{defineConstant("g", (g_s + g_w)); } // generations per seasonal cycle     
+	
+	if (!exists("mut"))
+	{defineConstant("mut", 0.0);} // mutation rate
+	
+	if (!exists("rr"))
+	{defineConstant("rr", 1e-6);} // recombination rate
+	
+	if (!exists("rGen"))
+	{defineConstant("rGen", 12000);} // remember individuals gen call
+	
+	if (!exists("group"))
+	{defineConstant("group", 1);} // group of parameters
+	
+	if (!exists("sim_run"))
+	{defineConstant("sim_run", 0);} // sim run
+	
+	if (!exists("fit"))
+	{defineConstant("fit",1);} //if fit = 0 fitness function switched off
+	initializeSLiMOptions(keepPedigrees=T)	;
+	initializeMutationRate(mut);
+	
+	//	initializeRecombinationRate(rr);
+	
+	map = readCSV(paste(asString(tmpdir)+"/rec_map_group_"+asString(group)+".txt"), sep="\t");
+	ends = map.getValue("ends");
+	rates = map.getValue("rates");
+	initializeRecombinationRate(rates, ends);
+	
+	initializeMutationType("m1", 0.0, "f", 0.0);  // seasonal mutations
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, GenomeSize-1);
+	m1.color = "pink";
+	m1.convertToSubstitution = F;
+}
+
+/// "/tmp/lls_" + asString(tmpdir)+"/al_freq_group_"  HPC TMPDIR PATH
+
+1 early(){	defineGlobal("restarts", 0);
+	defineGlobal("eq_year", 0);
+	defineGlobal("eq_gen", 12000);
+	defineGlobal("equilibrium", F);
+	defineConstant("simID", getSeed());}
+
+1 late() {
+	cat(sim_run + "\n");
+	line1 = paste(c("SimID:" + sim_run +"\n" + "Fitness_on=" + fit+ ", n_s=" + n_s + ", n_w=" + n_w+ ", GenomeSize=" + GenomeSize +", h_s=" + h_s + ", h_w=" + h_w +", s_s=" +s_s +", s_w=" +s_w + ", g_s=" + g_s + ", g_w="+g_w+", initial_freq="+f));
+	
+	writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line1, append = F);
+	
+	//	if (fileExists(paste(asString(results_dir)+"/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"))==T){
+	//		sim.readFromPopulationFile(paste(asString(results_dir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));} else{
+	//		sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));}
+	
+	sim.addSubpop("p0", n_s);
+	sim.outputFull(tempdir() + "slim_" + simID + ".txt");
+	
+	
+	target = sample(p0.genomes, asInteger(f));
+	target.addNewDrawnMutation(m1, asInteger((GenomeSize-(10*winSize))/2));
+	if (sim.mutationFrequencies(p0)[0] != (f/(2*n_s))){
+		sim.simulationFinished();
+		catn("ERROR: SELECTED MUTATION NOT AT" + (f/(2*n_s))+ "STARTING FREQUENCY");
+	}
+	
+	
+	line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
+	writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+"_af.txt"), line3, append = F);
+}
+
+
+s1 fitnessEffect() { //summer
+	if (fit == 0){
+		return 1.0;
+	} else{
+		mut_count=individual.genomes.mutationFrequenciesInGenomes(); //determine if het or homozygous
+		if (mut_count == 0.5){
+			if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+				ft=1.0+(h_s*s_s);}
+			else { // winter
+				ft=1.0+(h_w*s_w);}
+		} else {
+			if (mut_count==0){
+				if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+					ft=1.0;
+				} else { // winter
+					ft=1.0+(s_w);}
+			}else {
+				if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+					ft=1.0+(s_s);}
+				else { // winter
+					ft=1.0;}}}}
+	return ft;
+}
+
+2:100000 late(){
+	
+	
+	if (sim.countOfMutationsOfType(m1) == 0)
+	{	if (restarts == 5000){
+			mem = usage(peak=T);
+			line4 = paste("Memory usage: "+ mem+"\n No. restarts: "+restarts);
+			catn(line4);
+			writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), line4, append = T);
+			sim.simulationFinished();}
+		defineGlobal("restarts", restarts+1);
+		fixed = (sum(sim.substitutions.mutationType == m1) == 1);
+		
+		if (fixed > 0)
+		{
+			outcome = paste(group+ "_"+sim_run + ": FIXED at gen "+ gen+" – RESTARTING\n");
+			sim.simulationFinished();
+		}
+		else
+		{
+			outcome = paste(group+ "_"+sim_run + ": LOST at gen "+ gen+" – RESTARTING\n");}
+		writeFile(paste(asString(tmpdir)+"/slimlog_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), outcome, append = T);
+		
+		// go back to generation 1
+		//		if (fileExists(paste(asString(results_dir)+"/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"))==T){
+		//			sim.readFromPopulationFile(paste(asString(results_dir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));} else{
+		//			sim.readFromPopulationFile(paste(asString(tmpdir)+ "/burnin_seglift_group_"+ asString(group) + "_"+ asString(sim_run) + ".trees"));}
+		sim.readFromPopulationFile(tempdir() + "slim_" + simID + ".txt");
+		
+		// start a newly seeded run
+		setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+		defineGlobal("log_samp", g*2);
+		// re-introduce the sweep mutation
+		target = sample(p0.genomes, asInteger(f));
+		target.addNewDrawnMutation(m1, asInteger((GenomeSize-(10*winSize))/2));
+		line3 = "FREQUENCIES \nGen,mut_pos,mut_freq";
+		writeFile(paste(asString(tmpdir)+ "/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+"_af.txt"), line3, append = F);
+	}
+}
+
+1:12000 early(){
+	defineGlobal("gen", sim.cycle);
+	defineGlobal("modValueSeason",integerMod(gen, g));
+}
+
+
+1:12000 late(){
+	defineGlobal("year", (integerDiv(gen, g)+1));
+	tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
+	writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+		if (modValueSeason == 0){
+			p0.setSubpopulationSize(n_s);}
+		if (exists("slimgui")) {cat("Summer\n");}
+	}
+	if (modValueSeason >= g_s) { //winter
+		if (modValueSeason == g_s){
+			p0.setSubpopulationSize(n_w);}
+		if (exists("slimgui")) {cat("Winter\n");}
+	}
+}
+
+12000:100000 early(){
+	defineGlobal("gen", sim.cycle);
+	defineGlobal("modValueSeason",integerMod(gen, g));
+	defineGlobal("modValuerGen", integerMod(gen, rGen));
+}
+
+90000:100000 late(){
+	tab_line = paste(c(gen,sim.mutations[0].position,sim.mutationFrequencies(p0)[0]), sep = ",");
+	writeFile(paste(asString(tmpdir)+"/al_freq_group_"+ asString(group) + "_"+ asString(sim_run)+".txt"), tab_line, append = T);
+	defineGlobal("fixed", sum(sim.mutationFrequencies(p0)==1));
+	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
+		if (modValueSeason == 0){
+			p0.setSubpopulationSize(n_s);}
+		if (exists("slimgui")) {cat("Summer\n");}
+	}
+	if (modValueSeason >= g_s) { //winter
+		if (modValueSeason == g_s){
+			p0.setSubpopulationSize(n_w);}
+		if (exists("slimgui")) {cat("Winter\n");}
+	}
+}
+
+
+
+100000 late() {
+	sim.simulationFinished();
+}
+
