@@ -14,6 +14,7 @@ import scipy
 sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
 import single_locus_hpc
 import NCD
+from ld_estimator import pairwise_ld
 
 params=sys.argv[1]
 sim_run = sys.argv[2]
@@ -121,12 +122,16 @@ for t in ind_times:
     samp_gm=samp_ts.genotype_matrix()
 
         # convert genotype matrix to haplotyoe array for haplotype statistics
-    h= allel.HaplotypeArray(samp_gm)
+    haps= allel.HaplotypeArray(samp_gm)
         # allele count for scikit.allel stats
-    samp_ac = h.count_alleles()
+    samp_alc = haps.count_alleles()
         # positions of mutations in samp_ts for scikit.allel windowed_statistic function
-    mut_positions = [int(var.position*1e10+1) for var in samp_ts.variants()]
+    all_positions = [int(var.position*1e10+1) for var in samp_ts.variants()]
     
+    fixed_pos=np.where((samp_alc[:,1]==0) | (samp_alc[:,1]==len(samples)))
+    samp_ac=np.delete(samp_alc, fixed_pos,0)
+    mut_positions=np.delete(all_positions, fixed_pos,0)
+    h=np.delete(haps, fixed_pos,0)
         ## crete genotype array for LD
     odds = h[:,::2]
     evens = h[:,1::2]
@@ -172,6 +177,10 @@ for t in ind_times:
     #ehh_win=allel.windowed_statistic(mut_positions, ehh, statistics.mean, windows=al_win3)
     
     r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
+    
+    
+    ld=tskit.LdCalculator(samp_ts).r2_matrix()
+    
     
         # generate haplotype statistics (H1, H12, H123, H2/H1)
     hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
