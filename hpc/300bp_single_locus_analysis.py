@@ -19,6 +19,7 @@ params=sys.argv[1]
 sim_run = sys.argv[2]
 results_dir =str(sys.argv[3])
 sim_type =str(sys.argv[4])
+w_size=str(sys.argv[5])
 ####  READ IN PARAMETERS
     # load in parameter file
 with open('/hpcfs/users/a1704225/parameters/single_locus/{0}/{1}.txt'.format(sim_type,params), 'r') as f:
@@ -32,7 +33,7 @@ w_pop = int(parameters["w_pop"])
 fitness_on = parameters["fitness_on"]
 sum_gen = int(parameters["sum_gen"])
 win_gen = int(parameters["win_gen"])
-winSize = 300
+winSize = w_size
 s_s = parameters["s_s"]
 s_w = parameters["s_w"]
 group=parameters["group"]
@@ -87,11 +88,11 @@ rows_list3 = []
 
     # create windows for stats to be calculated in
     # windows for tskit statistics
-start_pos=(2500000-150)-(((2500000-(winSize/2))//winSize)*winSize)
+start_pos=(2500000-winSize/2)-(((2500000-(winSize/2))//winSize)*winSize)
 
 win3 = np.arange(start_pos, mut_ts.sequence_length, winSize).astype(int)
-win=win3[win3>=(midpoint-4750)]
-win3=win[win<=(midpoint+4750)]
+win=win3[win3>=(midpoint-(winSize*10.5))]
+win3=win[win<=(midpoint+(winSize*10.5))]
 win3=np.insert(win3, 0, 0)
 win3 = np.append(win3, mut_ts.sequence_length)
 
@@ -200,9 +201,9 @@ for t in ind_times:
     # r2=allel.windowed_r_squared(mut_positions, gn, windows=al_win3)
     
         # generate haplotype statistics (H1, H12, H123, H2/H1)
-    # hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
+    hap_stats = allel.windowed_statistic(mut_positions,h,allel.garud_h, windows = al_win3)
 
-    # hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
+    hap_div = allel.windowed_statistic(mut_positions,h,allel.haplotype_diversity, windows = al_win3)
     
         # tajimas D using tskit and branches of ts
     tajdb =  samp_ts.Tajimas_D(sample_sets=None, windows=win3, mode="branch")
@@ -253,11 +254,11 @@ for t in ind_times:
         dict3.update({"kurtosis": kurtosis[w]})        ## kurtosis of distirbution af
         dict3.update({"skew": skew[w]})        ## skew of distribution of af
         # dict3.update({"r2": r2[0][w]})        ## r2 per win
-        # dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
-        # dict3.update({"H1": hap_stats[0][w][0]})         ## H1
-        # dict3.update({"H12":hap_stats[0][w][1]})         ## H12
-        # dict3.update({"H123": hap_stats[0][w][2]})       ## H123
-        # dict3.update({"H2H1": hap_stats[0][w][3]})       ## H2/H1
+        dict3.update({"haplotype_diversity": hap_div[0][w]})        ## haplotype diversity
+        dict3.update({"H1": hap_stats[0][w][0]})         ## H1
+        dict3.update({"H12":hap_stats[0][w][1]})         ## H12
+        dict3.update({"H123": hap_stats[0][w][2]})       ## H123
+        dict3.update({"H2H1": hap_stats[0][w][3]})       ## H2/H1
 
         rows_list3.append(dict3)
 
@@ -265,6 +266,6 @@ for t in ind_times:
 ts_stats = pd.DataFrame(rows_list3)
 
         # write statistic df to text file
-ts_stats.to_string(buf = "{2}/sim_stat_300_{0}_{1}.txt".format(group,sim_run,results_dir), index=False)    
+ts_stats.to_string(buf = "{2}/sim_stat_{3}_{0}_{1}.txt".format(group,sim_run,results_dir, winSize), index=False)    
    
 print("Time = ", (time.time() - start_time))
