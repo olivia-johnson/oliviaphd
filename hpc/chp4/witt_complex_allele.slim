@@ -14,16 +14,16 @@ initialize() {
 	{defineConstant("y", 0.5); }// exponent of fitness function
 	
 	if (!exists("n_s"))
-	{defineConstant("n_s", 1e4); }// summer population size
+	{defineConstant("n_s", 5e5); }// summer population size
 	
 	if (!exists("n_w"))
-	{defineConstant("n_w", 1e4); }// winter population size
+	{defineConstant("n_w", 5e5); }// winter population size
 	
 	if (!exists("g_s"))
-	{defineConstant("g_s", 10); } // generations per summer
+	{defineConstant("g_s", 5); } // generations per summer
 	
 	if (!exists("g_w"))
-	{defineConstant("g_w", 10); } // generations per winter 
+	{defineConstant("g_w", 5); } // generations per winter 
 	
 	if (!exists("g"))
 	{defineConstant("g", (g_s + g_w)); } // generations per seasonal cycle     
@@ -140,7 +140,7 @@ s1 fitnessEffect() { //summer
 	}
 }
 
-1:100000 early(){
+1:45000 early(){
 	defineGlobal("gen", sim.cycle);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuerGen", integerMod(gen, rGen));
@@ -150,7 +150,7 @@ s1 fitnessEffect() { //summer
 		catn(gen);}
 }
 
-1:100000 late(){
+1:45000 late(){
 	
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
@@ -171,7 +171,7 @@ s1 fitnessEffect() { //summer
 			
 			}}}}
 
-2:120000 early(){
+2:45000 early(){
 	
 	
 	if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
@@ -198,7 +198,7 @@ s1 fitnessEffect() { //summer
 }
 
 
-100000 late() {
+45000 late() {
 	gen = sim.cycle;
 	if (L > 0){
 		for (i in 1:size(sim.mutations)-1){
