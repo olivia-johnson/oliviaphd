@@ -140,7 +140,7 @@ s1 fitnessEffect() { //summer
 	}
 }
 
-1:45020 early(){
+1:30020 early(){
 	defineGlobal("gen", sim.cycle);
 	defineGlobal("modValueSeason",integerMod(gen, g));
 	defineGlobal("modValuerGen", integerMod(gen, rGen));
@@ -150,7 +150,7 @@ s1 fitnessEffect() { //summer
 		catn(gen);}
 }
 
-1:45020 late(){
+1:30020 late(){
 	
 	if (modValueSeason >= 0 & modValueSeason < g_s) { //summer
 		if (modValueSeason == 0){
@@ -171,7 +171,7 @@ s1 fitnessEffect() { //summer
 			
 			}}}}
 
-2:45020 early(){
+2:30020 early(){
 	
 	
 	if (exists("slimgui")) {cat(mean(p0.cachedFitness(NULL)) + "\n");}
@@ -198,7 +198,7 @@ s1 fitnessEffect() { //summer
 }
 
 
-45020 late() {
+30020 late() {
 	gen = sim.cycle;
 	if (L > 0){
 		for (i in 1:size(sim.mutations)-1){
