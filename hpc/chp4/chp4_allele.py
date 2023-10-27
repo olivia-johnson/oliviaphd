@@ -7,7 +7,7 @@ import yaml
 import tskit
 import pandas as pd
 import time
-sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
+sys.path.insert(1, '/localscratch/oliviaphd/hpc/')
 import chp4_functions
 
 params=sys.argv[1]
@@ -15,7 +15,7 @@ sim_run = sys.argv[2]
 tmpdir =str(sys.argv[3])
 ####  READ IN PARAMETERS
     # load in parameter file
-with open('/hpcfs/users/a1704225/parameters/chp4_alleles/{0}.txt'.format(params), 'r') as f:
+with open('/localscratch/olivia/parameters/{0}.txt'.format(params), 'r') as f:
     parameters = yaml.load(f, Loader=yaml.FullLoader)
 
     #set parameters from file
