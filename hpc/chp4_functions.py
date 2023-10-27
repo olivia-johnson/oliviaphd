@@ -7,9 +7,9 @@ import tskit
 import pandas as pd
 import time
 import itertools
-import allel
+#import allel
 import statistics
-import scipy
+#import scipy
 sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
 import NCD
 
