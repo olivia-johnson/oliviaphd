@@ -7,7 +7,6 @@ import yaml
 import tskit
 import pandas as pd
 import time
-import allel
 sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
 import chp4_functions
 
