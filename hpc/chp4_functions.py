@@ -10,7 +10,7 @@ import itertools
 #import allel
 import statistics
 #import scipy
-sys.path.insert(1, '/hpcfs/users/a1704225/oliviaphd/hpc/')
+sys.path.insert(1, '/localscratch/oliviaphd/hpc/')
 import NCD
 
 
